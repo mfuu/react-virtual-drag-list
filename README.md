@@ -51,7 +51,7 @@ function Virtual() {
       v-dragend={ handleDragEnd }
     >
       {
-        (record, index, dataKey) => {
+        (record, index, uniqueKey) => {
           return (
             <div>
               <span>{ index }</span>
