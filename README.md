@@ -14,16 +14,16 @@
 ## Simple usage
 
 ```bash
-npm i react-virtual-draglist -D
+npm i react-virtual-drag-list -D
 
 or
 
-yarn add react-virtual-draglist -D
+yarn add react-virtual-drag-list -D
 ```
 
 Root component:
 ```jsx
-import virtualList from 'react-virtual-draglist'
+import virtualList from 'react-virtual-drag-list'
 
 function Virtual() {
 
