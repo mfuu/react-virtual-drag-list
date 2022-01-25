@@ -241,7 +241,8 @@ function Virtual(props) {
       dataKey,
       children,
       dataSource,
-      dragStyle
+      dragStyle,
+      ...props
     }
   }, [dataSource, dataKey, children])
 

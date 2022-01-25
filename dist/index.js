@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v1.0.2
+ * react-virtual-drag-list v1.0.3
  * open source under the MIT license
  * https://github.com/mf-note/react-virtual-drag-list#readme
  */
@@ -220,15 +220,17 @@
         setDragState = props.setDragState,
         handleDragEnd = props.handleDragEnd,
         dragState = props.dragState;
-    var _props$dataProps = props.dataProps,
-        index = _props$dataProps.index,
-        record = _props$dataProps.record,
-        uniqueKey = _props$dataProps.uniqueKey;
     var _props$itemProps = props.itemProps,
         children = _props$itemProps.children,
         dataKey = _props$itemProps.dataKey,
         dataSource = _props$itemProps.dataSource,
-        dragStyle = _props$itemProps.dragStyle;
+        dragStyle = _props$itemProps.dragStyle,
+        _props$itemProps$drag = _props$itemProps.draggable,
+        draggable = _props$itemProps$drag === void 0 ? true : _props$itemProps$drag;
+    var _props$dataProps = props.dataProps,
+        index = _props$dataProps.index,
+        record = _props$dataProps.record,
+        uniqueKey = _props$dataProps.uniqueKey;
     var vm = React.useRef();
     var mask = React.useRef(); // ======================= observer =======================
 
@@ -252,9 +254,10 @@
     }, []); // ======================= drag =======================
 
     function handleOnMouseDown(e, vm) {
-      // 仅设置了draggable=true的元素才可拖动
-      var draggable = e.target.getAttribute('draggable');
-      if (!draggable) return; // 记录初始拖拽元素
+      if (!draggable) return; // 仅设置了draggable=true的元素才可拖动
+
+      var allow = e.target.getAttribute('draggable');
+      if (!allow) return; // 记录初始拖拽元素
 
       var _getTarget = getTarget(e, vm),
           target = _getTarget.target,
@@ -395,6 +398,8 @@
 
     return /*#__PURE__*/React__default["default"].createElement("div", {
       ref: vm,
+      className: props.itemClass,
+      style: props.itemStyle,
       "data-key": uniqueKey,
       onMouseDown: function onMouseDown(e) {
         return handleOnMouseDown(e, vm.current);
@@ -678,12 +683,12 @@
 
 
     var itemProps = React.useMemo(function () {
-      return {
+      return _objectSpread2({
         dataKey: dataKey,
         children: children,
         dataSource: dataSource,
         dragStyle: dragStyle
-      };
+      }, props);
     }, [dataSource, dataKey, children]);
     var dragState = React.useRef({
       oldNode: null,

@@ -31,8 +31,8 @@ export function VirtualSlot(props) {
 export function VirtualItem(props) {
 
   const { onSizeChange, setDragState, handleDragEnd, dragState } = props
+  const { children, dataKey, dataSource, dragStyle, draggable = true } = props.itemProps
   const { index, record, uniqueKey } = props.dataProps
-  const { children, dataKey, dataSource, dragStyle } = props.itemProps
 
   const vm = useRef()
 
@@ -58,9 +58,10 @@ export function VirtualItem(props) {
 
   // ======================= drag =======================
   function handleOnMouseDown(e, vm) {
-    // 仅设置了draggable=true的元素才可拖动
-    const draggable = e.target.getAttribute('draggable')
     if (!draggable) return
+    // 仅设置了draggable=true的元素才可拖动
+    const allow = e.target.getAttribute('draggable')
+    if (!allow) return
     // 记录初始拖拽元素
     const { target, item } = getTarget(e, vm, dataSource, dataKey)
     setDragState({ oldNode: target, oldItem: item })
@@ -157,7 +158,13 @@ export function VirtualItem(props) {
 
   // ======================= render =======================
   return (
-    <div ref={ vm } data-key={ uniqueKey } onMouseDown={ (e) => handleOnMouseDown(e, vm.current) }>
+    <div
+      ref={ vm }
+      className={ props.itemClass }
+      style={ props.itemStyle }
+      data-key={ uniqueKey }
+      onMouseDown={ (e) => handleOnMouseDown(e, vm.current) }
+    >
       { typeof children === 'function' ? children(record, index, uniqueKey) : children }
     </div>
   )

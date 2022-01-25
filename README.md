@@ -73,8 +73,13 @@ function Virtual() {
 | `dataSource`    | Array      |   ✓   | 数据源            | `[]` |
 | `size`          | Number     |   ✓   | 每一行的预估高度  | 50 |
 | `keeps`         | Number     |       | 虚拟滚动渲染的行数  | 30 |
+| `draggable`     | Boolean    |       | 是否支持拖拽。需要指定可拖拽元素，为其设置draggable属性  | `true` |
 | `header`        | JSX.Element|       | 列表顶部            | - |
 | `footer`        | JSX.Element|       | 列表底部            | - |
 | `v-top`         | Function   |       | 滚动到顶部时触发的回调函数  | - |
 | `v-bottom`      | Function   |       | 滚动到底部时触发的回调函数  | - |
 | `v-dragend`     | Function   |       | 拖拽完成时的事件  | - |
+| `dragStyle`     | Object     |       | 拖拽中蒙版样式  | - |
+| `itemStyle`     | Object     |       | item样式  | - |
+| `itemClass`     | String     |       | item类名  | - |
+
