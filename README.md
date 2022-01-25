@@ -1,9 +1,9 @@
 <p>
-  <a href="https://npm-stat.com/charts.html?package=react-virtual-draglist">
-    <img alt="Downloads" src="https://img.shields.io/npm/dm/react-virtual-draglist.svg">
+  <a href="https://npm-stat.com/charts.html?package=react-virtual-drag-list">
+    <img alt="Downloads" src="https://img.shields.io/npm/dm/react-virtual-drag-list.svg">
   </a>
-  <a href="https://www.npmjs.com/package/react-virtual-draglist">
-    <img alt="Version" src="https://img.shields.io/npm/v/react-virtual-draglist.svg"/>
+  <a href="https://www.npmjs.com/package/react-virtual-drag-list">
+    <img alt="Version" src="https://img.shields.io/npm/v/react-virtual-drag-list.svg"/>
   </a>
 </p>
 

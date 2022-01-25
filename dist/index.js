@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v1.0.0
+ * react-virtual-drag-list v1.0.1
  * open source under the MIT license
  * https://github.com/mf-note/react-virtual-drag-list#readme
  */
