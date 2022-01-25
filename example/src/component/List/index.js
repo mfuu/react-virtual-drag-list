@@ -2,11 +2,13 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { VirtualSlot, VirtualItem } from './render'
 
+import { getUniqueKey } from './utils'
+
 function Virtual(props) {
 
   // ======================= props =======================
   const { children, header, footer } = props
-  const { dataSource = [], dataKey, keeps = 50, size, height = '100%' } = props
+  const { dataSource = [], dataKey, keeps = 30, size = 50, height = '100%' } = props
   const { dragStyle = { backgroundImage: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' } } = props
 
   // ======================= ref =======================
@@ -232,10 +234,6 @@ function Virtual(props) {
     return uniqueKeys.length - 1
   }
 
-  function getUniqueKey(item, key) {
-    return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce((o, k) => (o || {})[key], item) || ''
-  }
-
   // ======================= item state =======================
 
   const itemProps = useMemo(() => {
@@ -284,7 +282,6 @@ function Virtual(props) {
                 dragState={ dragState }
                 itemProps={ itemProps }
                 dataProps={ dataProps }
-                getUniqueKey={ getUniqueKey }
                 setDragState={ setDragState }
                 handleDragEnd={ handleDragEnd }
                 onSizeChange={ onItemSizeChange }

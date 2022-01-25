@@ -1,5 +1,7 @@
-import List from './component/List/index'
+// import List from './component/List/index'
 // import List from './dist/index'
+
+import List from 'react-virtual-drag-list'
 
 import utils from './utils'
 import { Random } from './utils/mock'

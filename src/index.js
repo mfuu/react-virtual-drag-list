@@ -2,6 +2,8 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { VirtualSlot, VirtualItem } from './render'
 
+import { getUniqueKey } from './utils'
+
 function Virtual(props) {
 
   // ======================= props =======================
@@ -232,10 +234,6 @@ function Virtual(props) {
     return uniqueKeys.length - 1
   }
 
-  function getUniqueKey(item, key) {
-    return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce((o, k) => (o || {})[key], item) || ''
-  }
-
   // ======================= item state =======================
 
   const itemProps = useMemo(() => {
@@ -284,7 +282,6 @@ function Virtual(props) {
                 dragState={ dragState }
                 itemProps={ itemProps }
                 dataProps={ dataProps }
-                getUniqueKey={ getUniqueKey }
                 setDragState={ setDragState }
                 handleDragEnd={ handleDragEnd }
                 onSizeChange={ onItemSizeChange }

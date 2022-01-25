@@ -35,3 +35,7 @@ export function setStyle (el, prop, val) {
     }
   }
 }
+
+export function getUniqueKey(item, key) {
+  return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce((o, k) => (o || {})[key], item) || ''
+}

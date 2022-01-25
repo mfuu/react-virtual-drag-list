@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v1.0.1
+ * react-virtual-drag-list v1.0.2
  * open source under the MIT license
  * https://github.com/mf-note/react-virtual-drag-list#readme
  */
@@ -180,6 +180,11 @@
       }
     }
   }
+  function getUniqueKey(item, key) {
+    return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce(function (o, k) {
+      return (o || {})[key];
+    }, item) || '';
+  }
 
   function VirtualSlot(props) {
     var children = props.children,
@@ -212,7 +217,6 @@
   }
   function VirtualItem(props) {
     var onSizeChange = props.onSizeChange,
-        getUniqueKey = props.getUniqueKey,
         setDragState = props.setDragState,
         handleDragEnd = props.handleDragEnd,
         dragState = props.dragState;
@@ -670,12 +674,6 @@
 
     function getKeyLen() {
       return uniqueKeys.length - 1;
-    }
-
-    function getUniqueKey(item, key) {
-      return (!Array.isArray(key) ? key.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : key).reduce(function (o, k) {
-        return (o || {})[key];
-      }, item) || '';
     } // ======================= item state =======================
 
 
@@ -741,7 +739,6 @@
         dragState: dragState,
         itemProps: itemProps,
         dataProps: dataProps,
-        getUniqueKey: getUniqueKey,
         setDragState: setDragState,
         handleDragEnd: handleDragEnd,
         onSizeChange: onItemSizeChange

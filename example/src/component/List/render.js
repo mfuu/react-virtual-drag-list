@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef } from "react";
-import { animate, setStyle } from './utils'
+import { animate, setStyle, getUniqueKey } from './utils'
 
 export function VirtualSlot(props) {
   const { children, roleId, onSizeChange } = props
@@ -30,7 +30,7 @@ export function VirtualSlot(props) {
 
 export function VirtualItem(props) {
 
-  const { onSizeChange, getUniqueKey, setDragState, handleDragEnd, dragState } = props
+  const { onSizeChange, setDragState, handleDragEnd, dragState } = props
   const { index, record, uniqueKey } = props.dataProps
   const { children, dataKey, dataSource, dragStyle } = props.itemProps
 
