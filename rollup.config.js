@@ -17,6 +17,7 @@ export default {
   output: {
     format: 'umd',
     file: 'dist/index.js',
+    name: 'virtualDragList',
     sourcemap: false,
     globals: {
       react: 'React'
