@@ -98,6 +98,7 @@ return (
   <button onClick={ scrollToBottom }></button>
   <virtualList
     ref={ virtualRef }
+    ...
   >
     {
       (record) => <div>{ record.text }</div>
