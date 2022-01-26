@@ -54,7 +54,7 @@ function Virtual() {
         (record, index, uniqueKey) => {
           return (
             <div>
-              <span>{ index }</span>
+              <span draggable>{ index }</span>
               { record.text }
             </div>
           )
@@ -73,7 +73,7 @@ function Virtual() {
 | `dataSource`    | Array      |   ✓   | data list            | `[]` |
 | `size`          | Number     |   ✓   | estimated height of each row  | 50 |
 | `keeps`         | Number     |       | the number of lines rendered by the virtual scroll  | 30 |
-| `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the draggable attribute for it  | `true` |
+| `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it  | `true` |
 | `header`        | JSX.Element|       | top of list            | - |
 | `footer`        | JSX.Element|       | bottom of list            | - |
 | `v-top`         | Function   |       | callback function that fires when scrolling to the top  | - |
