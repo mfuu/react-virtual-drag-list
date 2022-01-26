@@ -1,6 +1,6 @@
 {
   "name": "react-virtual-drag-list",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "支持拖拽排序的虚拟列表组件",
   "main": "dist/index.js",
   "files": [

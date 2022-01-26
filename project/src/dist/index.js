@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v1.0.3
+ * react-virtual-drag-list v1.0.4
  * open source under the MIT license
  * https://github.com/mf-note/react-virtual-drag-list#readme
  */
@@ -407,7 +407,7 @@
     }, typeof children === 'function' ? children(record, index, uniqueKey) : children);
   }
 
-  function Virtual(props) {
+  function Virtual(props, ref) {
     // ======================= props =======================
     var children = props.children,
         header = props.header,
@@ -456,7 +456,67 @@
     var range = React.useRef({
       start: 0,
       end: 0
-    }); // ======================= init =======================
+    }); // ======================= usefull methods =======================
+
+    React.useImperativeHandle(ref, function () {
+      return {
+        // 通过key值获取当前行的高度
+        getSize: function getSize(key) {
+          return sizeStack.get(key);
+        },
+        // 返回当前滚动高度
+        getScrollTop: function getScrollTop() {
+          return scrollOffset.current;
+        },
+        // 滚动到最底部
+        scrollToBottom: function scrollToBottom() {
+          _scrollToBottom();
+        },
+        // 滚动到指定高度
+        scrollToOffset: function scrollToOffset(offset) {
+          _scrollToOffset(offset);
+        },
+        scrollToIndex: function scrollToIndex(index) {
+          _scrollToIndex(index);
+        }
+      };
+    }); // 滚动到最底部
+
+    function _scrollToBottom() {
+      if (bottomVm) {
+        var offset = bottomVm.current.offsetTop;
+
+        _scrollToOffset(offset);
+      } // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+
+
+      var _virtualVm$current = virtualVm.current,
+          scrollTop = _virtualVm$current.scrollTop,
+          scrollHeight = _virtualVm$current.scrollHeight,
+          clientHeight = _virtualVm$current.clientHeight;
+      setTimeout(function () {
+        if (scrollTop + clientHeight < scrollHeight) {
+          _scrollToBottom();
+        }
+      }, 10);
+    } // 滚动到指定高度
+
+
+    function _scrollToOffset(offset) {
+      virtualVm.current.scrollTop = offset;
+    } // 滚动到指定索引值位置
+
+
+    function _scrollToIndex(index) {
+      if (index >= dataSource.length - 1) {
+        _scrollToBottom();
+      } else {
+        var offset = getOffsetByIndex(index);
+
+        _scrollToOffset(offset);
+      }
+    } // ======================= init =======================
+
 
     var uniqueKeys = React.useMemo(function () {
       return dataSource.map(function (item) {
@@ -531,7 +591,7 @@
     function handleScroll(e) {
       var scrollTop = Math.ceil(e.target.scrollTop);
       var scrollHeight = Math.ceil(e.target.scrollHeight);
-      var clientHeight = Math.ceil(virtualVm.current.clientHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
+      var clientHeight = Math.ceil(e.target.clientHeight); // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
 
       if (!scrollHeight || scrollTop < 0 || scrollTop + clientHeight > scrollHeight + 1) return; // 记录上一次滚动的距离，判断当前滚动方向
 
@@ -757,6 +817,8 @@
     }));
   }
 
-  return Virtual;
+  var index = /*#__PURE__*/React.forwardRef(Virtual);
+
+  return index;
 
 }));

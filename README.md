@@ -7,7 +7,7 @@
   </a>
 </p>
 
-可拖拽排序的虚拟滚动列表组件 
+A virtual scrolling list component that can be sorted by dragging
 
 
 
@@ -44,8 +44,8 @@ function Virtual() {
     <virtualList
       dataKey="id"
       dataSource={ list }
-      header={ <div class="loading">top loading...</div> }
-      footer={ <div class="loading">bottom loading...</div> }
+      header={ <div className="loading">top loading...</div> }
+      footer={ <div className="loading">bottom loading...</div> }
       v-top={ handleToTop }
       v-bottom={ handleToBottom }
       v-dragend={ handleDragEnd }
@@ -69,17 +69,48 @@ function Virtual() {
 
 |     **Prop**    |  **Type**  | **Required?** | **Description**  |    **Default**   |
 |-----------------|------------|------------|------------------|------------------|
-| `dataKey`       | String     |   ✓   | 每一条数据的唯一标识`'a.b.c'`形式 | - |
-| `dataSource`    | Array      |   ✓   | 数据源            | `[]` |
-| `size`          | Number     |   ✓   | 每一行的预估高度  | 50 |
-| `keeps`         | Number     |       | 虚拟滚动渲染的行数  | 30 |
-| `draggable`     | Boolean    |       | 是否支持拖拽。需要指定可拖拽元素，为其设置draggable属性  | `true` |
-| `header`        | JSX.Element|       | 列表顶部            | - |
-| `footer`        | JSX.Element|       | 列表底部            | - |
-| `v-top`         | Function   |       | 滚动到顶部时触发的回调函数  | - |
-| `v-bottom`      | Function   |       | 滚动到底部时触发的回调函数  | - |
-| `v-dragend`     | Function   |       | 拖拽完成时的事件  | - |
-| `dragStyle`     | Object     |       | 拖拽中蒙版样式  | - |
-| `itemStyle`     | Object     |       | item样式  | - |
-| `itemClass`     | String     |       | item类名  | - |
+| `dataKey`       | String     |   ✓   | the unique identifier of each piece of data, in the form of `'a.b.c'` | - |
+| `dataSource`    | Array      |   ✓   | data list            | `[]` |
+| `size`          | Number     |   ✓   | estimated height of each row  | 50 |
+| `keeps`         | Number     |       | the number of lines rendered by the virtual scroll  | 30 |
+| `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the draggable attribute for it  | `true` |
+| `header`        | JSX.Element|       | top of list            | - |
+| `footer`        | JSX.Element|       | bottom of list            | - |
+| `v-top`         | Function   |       | callback function that fires when scrolling to the top  | - |
+| `v-bottom`      | Function   |       | callback function that fires when scrolling to the bottom  | - |
+| `v-dragend`     | Function   |       | event when drag is complete  | - |
+| `dragStyle`     | Object     |       | mask style while dragging  | - |
+| `itemStyle`     | Object     |       | style for each line  | - |
+| `itemClass`     | String     |       | class for each line  | - |
+
+## Methods
+Use the methods exposed in the component by setting `ref`, like this:
+```jsx
+...
+
+const virtualRef = useRef()
+
+const scrollToBottom = () => {
+  virtualRef.current.scrollToBottom()
+}
+
+return (
+  <button onClick={ scrollToBottom }></button>
+  <virtualList
+    ref={ virtualRef }
+  >
+    {
+      (record) => <div>{ record.text }</div>
+    }
+  </virtualList>
+)
+```
+
+|     **Prop**     | **Description** |
+|------------------|-----------------|
+| `scrollToBottom()` | scroll to the bottom of the list  |
+| `scrollToOffset(offset)` | scroll to the specified height  |
+| `scrollToIndex(index)` | scroll to the specified index value  |
+| `getSize(key)` | get the height of the specified item by key value  |
+| `getScrollTop()` | get the current scroll height  |
 

@@ -1,7 +1,8 @@
-// import List from './component/List/index'
+import { useLayoutEffect, useRef } from 'react'
+import List from './component/List/index'
 // import List from './dist/index'
 
-import List from 'react-virtual-drag-list'
+// import List from 'react-virtual-drag-list'
 
 import utils from './utils'
 import { Random } from './utils/mock'
@@ -23,6 +24,8 @@ const getPageData = (count, currentLength) => {
 
 function App() {
 
+  const virtualRef = useRef()
+
   const handleToTop = () => {
     console.log('istop')
   }
@@ -33,13 +36,21 @@ function App() {
     console.log(arr, 'new arr after deag end')
   }
 
+  const toBottom = () => {
+    console.log(virtualRef)
+    virtualRef.current.scrollToBottom()
+  }
+
   return (
     <div className="App">
+      <button style={{ float: 'right' }} onClick={ toBottom }>to bottom</button>
       <List
+        ref={ virtualRef }
         dataSource={ getPageData(600, 0) }
         dataKey="id"
-        // header={ <div>header</div> }
-        // footer={ <div>footer</div> }
+        keeps="50"
+        header={ <div className="loading">top loading...</div> }
+        footer={ <div className="loading">bottom loading...</div> }
         v-top={ handleToTop }
         v-bottom={ handleToBottom }
         v-dragend={ handleDragEnd }

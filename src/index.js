@@ -1,10 +1,10 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { VirtualSlot, VirtualItem } from './render'
 
 import { getUniqueKey } from './utils'
 
-function Virtual(props) {
+function Virtual(props, ref) {
 
   // ======================= props =======================
   const { children, header, footer } = props
@@ -38,6 +38,57 @@ function Virtual(props) {
     start: 0,
     end: 0
   })
+
+  // ======================= usefull methods =======================
+  useImperativeHandle(ref, () => ({
+    // 通过key值获取当前行的高度
+    getSize(key) {
+      return sizeStack.get(key)
+    },
+    // 返回当前滚动高度
+    getScrollTop() {
+      return scrollOffset.current
+    },
+    // 滚动到最底部
+    scrollToBottom() {
+      scrollToBottom()
+    },
+    // 滚动到指定高度
+    scrollToOffset(offset) {
+      scrollToOffset(offset)
+    },
+    scrollToIndex(index) {
+      scrollToIndex(index)
+    }
+  }))
+
+  // 滚动到最底部
+  function scrollToBottom() {
+    if (bottomVm) {
+      const offset = bottomVm.current.offsetTop
+      scrollToOffset(offset)
+    }
+    // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
+    const { scrollTop, scrollHeight, clientHeight } = virtualVm.current
+    setTimeout(() => {
+      if (scrollTop + clientHeight < scrollHeight) {
+        scrollToBottom()
+      }
+    }, 10)
+  }
+  // 滚动到指定高度
+  function scrollToOffset(offset) {
+    virtualVm.current.scrollTop = offset
+  }
+  // 滚动到指定索引值位置
+  function scrollToIndex(index) {
+    if (index >= dataSource.length - 1) {
+      scrollToBottom()
+    } else {
+      const offset = getOffsetByIndex(index)
+      scrollToOffset(offset)
+    }
+  }
 
   // ======================= init =======================
   const uniqueKeys = useMemo(() => {
@@ -96,7 +147,7 @@ function Virtual(props) {
   function handleScroll(e) {
     const scrollTop = Math.ceil(e.target.scrollTop)
     const scrollHeight = Math.ceil(e.target.scrollHeight)
-    const clientHeight = Math.ceil(virtualVm.current.clientHeight)
+    const clientHeight = Math.ceil(e.target.clientHeight)
     // 如果不存在滚动元素 || 滚动高度小于0 || 超出最大滚动距离
     if (!scrollHeight || scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1)) return
     // 记录上一次滚动的距离，判断当前滚动方向
@@ -297,4 +348,4 @@ function Virtual(props) {
   )
 }
 
-export default Virtual
+export default forwardRef(Virtual)
