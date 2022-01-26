@@ -37,7 +37,7 @@ function Virtual() {
     console.log('isbottom')
   }
   const handleDragEnd = (arr) => {
-    console.log(arr, 'new arr after deag end')
+    console.log(arr, 'new arr after drag end')
   }
 
   return (
