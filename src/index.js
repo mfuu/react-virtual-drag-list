@@ -49,6 +49,9 @@ function Virtual(props, ref) {
     getScrollTop() {
       return scrollOffset.current
     },
+    scrollToTop() {
+      scrollToTop()
+    },
     // 滚动到最底部
     scrollToBottom() {
       scrollToBottom()
@@ -62,6 +65,10 @@ function Virtual(props, ref) {
     }
   }))
 
+  // 滚动到顶部
+  function scrollToTop() {
+    virtualVm.current.scrollTop = 0
+  }
   // 滚动到最底部
   function scrollToBottom() {
     if (bottomVm) {
