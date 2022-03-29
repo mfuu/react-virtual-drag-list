@@ -109,9 +109,10 @@ return (
 
 |     **Prop**     | **Description** |
 |------------------|-----------------|
+| `getScrollTop()` | get the current scroll height  |
 | `scrollToBottom()` | scroll to the bottom of the list  |
+| `scrollToTop()` | scroll to the top of the list  |
 | `scrollToOffset(offset)` | scroll to the specified height  |
 | `scrollToIndex(index)` | scroll to the specified index value  |
 | `getSize(key)` | get the height of the specified item by key value  |
-| `getScrollTop()` | get the current scroll height  |
 

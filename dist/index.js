@@ -1,7 +1,7 @@
 /*!
- * react-virtual-drag-list v1.0.4
+ * react-virtual-drag-list v1.0.5
  * open source under the MIT license
- * https://github.com/mf-note/react-virtual-drag-list#readme
+ * https://github.com/mfuu/react-virtual-drag-list#readme
  */
 
 (function (global, factory) {
@@ -468,6 +468,9 @@
         getScrollTop: function getScrollTop() {
           return scrollOffset.current;
         },
+        scrollToTop: function scrollToTop() {
+          _scrollToTop();
+        },
         // 滚动到最底部
         scrollToBottom: function scrollToBottom() {
           _scrollToBottom();
@@ -480,7 +483,12 @@
           _scrollToIndex(index);
         }
       };
-    }); // 滚动到最底部
+    }); // 滚动到顶部
+
+    function _scrollToTop() {
+      virtualVm.current.scrollTop = 0;
+    } // 滚动到最底部
+
 
     function _scrollToBottom() {
       if (bottomVm) {
