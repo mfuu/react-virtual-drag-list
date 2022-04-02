@@ -73,7 +73,9 @@ function Virtual() {
 | `dataSource`    | Array      |   ✓   | data list            | `[]` |
 | `size`          | Number     |   ✓   | estimated height of each row  | 50 |
 | `keeps`         | Number     |       | the number of lines rendered by the virtual scroll  | 30 |
+| `delay`         | Number     |       | Delay time of debounce function  | 10 |
 | `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it  | `true` |
+| `dragElement`   | Function   |       | The function that selects the dragged element, **must have a return value with a dom node**, has two parameters: e(the currently selected element), parent(the parent node of the list)   | - |
 | `header`        | JSX.Element|       | top of list            | - |
 | `footer`        | JSX.Element|       | bottom of list            | - |
 | `v-top`         | Function   |       | callback function that fires when scrolling to the top  | - |
@@ -109,10 +111,11 @@ return (
 
 |     **Prop**     | **Description** |
 |------------------|-----------------|
+| `reset()`  | reset to initial |
+| `getSize(key)` | get the height of the specified item by key value  |
 | `getScrollTop()` | get the current scroll height  |
 | `scrollToBottom()` | scroll to the bottom of the list  |
 | `scrollToTop()` | scroll to the top of the list  |
 | `scrollToOffset(offset)` | scroll to the specified height  |
 | `scrollToIndex(index)` | scroll to the specified index value  |
-| `getSize(key)` | get the height of the specified item by key value  |
 

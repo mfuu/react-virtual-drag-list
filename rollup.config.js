@@ -1,4 +1,7 @@
 import babel from 'rollup-plugin-babel'
+import commonJs from 'rollup-plugin-commonjs'
+import resolve from 'rollup-plugin-node-resolve'
+import typescript from 'rollup-plugin-typescript2'
 const packageJson = require('./package.json')
 const version = packageJson.version
 const homepage = packageJson.homepage
@@ -12,19 +15,23 @@ const banner = `
 `
 
 export default {
-  external: ['vue'],
-  input: 'src/index.js',
+  external: ['react', 'react-dom', 'js-draggable-list'],
+  input: 'src/index.tsx',
   output: {
     format: 'umd',
     file: 'dist/index.js',
     name: 'virtualDragList',
     sourcemap: false,
     globals: {
-      react: 'React'
+      react: 'React',
+      'js-draggable-list': 'Draggable'
     },
     banner: banner.replace(/\n/, '')
   },
   plugins: [
-    babel()
+    typescript(),
+    babel(),
+    resolve(),
+    commonJs()
   ]
 }

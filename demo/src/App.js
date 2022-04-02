@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef } from 'react'
-import List from './component/List/index'
+import { useLayoutEffect, useRef, useEffect, useState } from 'react'
+// import List from './component/List-js/index'
+// import List from './component/List-ts/index.tsx'
 // import List from './dist/index'
 
-// import List from 'react-virtual-drag-list'
+import List from 'react-virtual-drag-list'
 
 import utils from './utils'
 import { Random } from './utils/mock'
@@ -26,7 +27,18 @@ function App() {
 
   const virtualRef = useRef()
 
+  const [dataSource, setDataScource] = useState([])
+
+  useEffect(() => {
+    setTimeout(() => {
+      setDataScource(getPageData(100, 0))
+    }, 500)
+  }, [])
+
   const handleToTop = () => {
+    // setDataScource((pre) => {
+    //   return [...getPageData(100, 0), ...pre]
+    // })
     console.log('istop')
   }
   const handleToBottom = () => {
@@ -34,6 +46,7 @@ function App() {
   }
   const handleDragEnd = (arr) => {
     console.log(arr, 'new arr after deag end')
+    // setDataScource(() => [...arr])
   }
 
   const toBottom = () => {
@@ -46,9 +59,9 @@ function App() {
       <button style={{ float: 'right' }} onClick={ toBottom }>to bottom</button>
       <List
         ref={ virtualRef }
-        dataSource={ getPageData(600, 0) }
+        dataSource={ dataSource }
         dataKey="id"
-        keeps="50"
+        keeps={ 50 }
         header={ <div className="loading">top loading...</div> }
         footer={ <div className="loading">bottom loading...</div> }
         v-top={ handleToTop }
@@ -56,8 +69,8 @@ function App() {
         v-dragend={ handleDragEnd }
       >
         {
-          (record, index) => <div style={{padding: '10px',borderBottom: '1px solid #ccc'}}>
-            <span draggable="true" style={{color: 'blue'}}>{ index }</span>
+          (record, index, key) => <div style={{padding: '16px',borderBottom: '1px solid #1984ff'}}>
+            <span draggable="true" style={{color: '#1984ff', cursor: 'grab'}}>{ key }</span>
             { record.desc }
           </div>
         }
