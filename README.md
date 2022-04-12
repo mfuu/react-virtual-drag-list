@@ -75,6 +75,7 @@ function Virtual() {
 | `keeps`         | Number     |       | the number of lines rendered by the virtual scroll  | 30 |
 | `delay`         | Number     |       | Delay time of debounce function  | 10 |
 | `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it  | `true` |
+| `draggableOnly` | Boolean    |       | Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect | true |
 | `dragElement`   | Function   |       | The function that selects the dragged element, **must have a return value with a dom node**, has two parameters: e(the currently selected element), parent(the parent node of the list)   | - |
 | `header`        | JSX.Element|       | top of list            | - |
 | `footer`        | JSX.Element|       | bottom of list            | - |

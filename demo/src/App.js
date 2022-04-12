@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useEffect, useState } from 'react'
 // import List from './component/List-js/index'
 // import List from './component/List-ts/index.tsx'
-// import List from './dist/index'
+// import List from './dist/draglist'
 
 import List from 'react-virtual-drag-list'
 
@@ -29,6 +29,8 @@ function App() {
 
   const [dataSource, setDataScource] = useState([])
 
+  const [editing, setEditing] = useState(true)
+
   useEffect(() => {
     setTimeout(() => {
       setDataScource(getPageData(100, 0))
@@ -54,14 +56,22 @@ function App() {
     virtualRef.current.scrollToBottom()
   }
 
+  const changeEdit = () => {
+    setEditing(() => !editing)
+  }
   return (
     <div className="App">
-      <button style={{ float: 'right' }} onClick={ toBottom }>to bottom</button>
+      <div>
+        <button onClick={ toBottom }>to bottom</button>
+        <button onClick={ changeEdit }>change editing</button>
+      </div>
       <List
         ref={ virtualRef }
         dataSource={ dataSource }
         dataKey="id"
         keeps={ 50 }
+        draggableOnly={ false }
+        draggable={ editing }
         header={ <div className="loading">top loading...</div> }
         footer={ <div className="loading">bottom loading...</div> }
         v-top={ handleToTop }
@@ -70,7 +80,9 @@ function App() {
       >
         {
           (record, index, key) => <div style={{padding: '16px',borderBottom: '1px solid #1984ff'}}>
-            <span draggable="true" style={{color: '#1984ff', cursor: 'grab'}}>{ key }</span>
+            {editing && <div className="sort" draggable="true">
+              <i className="f7-icons">sort_ios</i>
+            </div>}
             { record.desc }
           </div>
         }

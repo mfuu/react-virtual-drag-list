@@ -8,7 +8,7 @@ export type RenderFunc<T> = (
 
 export type GetKey<T> = (item: T) => React.Key
 
-export interface baseProps {
+export interface BaseProps {
   onSizeChange?: Function;
   children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }

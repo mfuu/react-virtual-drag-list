@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Observer } from './hooks'
-import { baseProps } from './interface'
+import { BaseProps } from './interface'
 
-export interface itemProps<T> extends baseProps {
+export interface itemProps<T> extends BaseProps {
   key: any;
   record: T;
   index: number;
@@ -30,7 +30,7 @@ export function Item<T>(props: itemProps<T>) {
   )
 }
 
-export interface slotProps<T> extends baseProps {
+export interface slotProps<T> extends BaseProps {
   roleId: string;
 }
 

@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.0.0
+ * react-virtual-drag-list v2.1.0
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -113,7 +113,7 @@
   const STYLE = { overflow: 'hidden auto', position: 'relative' }; // 列表默认样式
   const MASKIMAGE = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'; // 拖拽时默认背景样式
   function Virtual(props, ref) {
-      const { header, footer, children, dataSource = [], dataKey, keeps = 30, size = 50, height = '100%', delay = 10, dragStyle = { backgroundImage: MASKIMAGE } } = props;
+      const { header, footer, children, dataSource = [], dataKey, keeps = 30, size = 50, height = '100%', delay = 10, draggable = true, draggableOnly = true, dragStyle = { backgroundImage: MASKIMAGE } } = props;
       // =============================== State ===============================
       const [cloneList, setCloneList] = React.useState([]);
       const [sizeStack, setSizeStack] = React.useState(new Map());
@@ -349,16 +349,16 @@
           // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [dataSource]);
       // =============================== drag ===============================
-      React.useLayoutEffect(() => {
-          if (!cloneList.length)
-              return;
-          if (dragRef.current)
-              return;
+      const initDraggable = () => {
+          destroyDraggable();
           dragRef.current = new Draggable__default["default"]({
               groupElement: groupRef.current,
               scrollElement: virtualRef.current,
               cloneElementStyle: dragStyle,
               dragElement: (e) => {
+                  const draggable = e.target.getAttribute('draggable');
+                  if (draggableOnly && !draggable)
+                      return null;
                   if (props.dragElement) {
                       return props.dragElement(e, groupRef.current);
                   }
@@ -398,14 +398,25 @@
                   dragList.current = [...newArr];
                   const callback = props[CALLBACKS.dragend];
                   callback && callback(newArr);
-                  // eslint-disable-next-line react-hooks/exhaustive-deps
               }
           });
+      };
+      const destroyDraggable = () => {
+          dragRef.current && dragRef.current.destroy();
+          dragRef.current = null;
+      };
+      React.useLayoutEffect(() => {
+          if (draggable) {
+              initDraggable();
+          }
+          else {
+              destroyDraggable();
+          }
           // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [cloneList]);
+      }, [cloneList, draggable]);
       React.useEffect(() => {
           return () => {
-              dragRef.current && dragRef.current.destroy();
+              destroyDraggable();
           };
       }, []);
       // ================================ Render ================================

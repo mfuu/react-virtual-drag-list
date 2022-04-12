@@ -21,6 +21,8 @@ export interface virtualProps<T> {
 
   // whether to support drag and drop. You need to specify a draggable element and set the draggable attribute for it
   draggable?: boolean;
+  // Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect
+  draggableOnly?: boolean;
   // mask style while dragging
   dragStyle?: object;
   
@@ -47,6 +49,8 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
     size = 50,
     height = '100%',
     delay = 10,
+    draggable = true,
+    draggableOnly = true,
     dragStyle = { backgroundImage: MASKIMAGE }
   } = props
 
@@ -299,14 +303,15 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
   }, [dataSource])
 
   // =============================== drag ===============================
-  useLayoutEffect(() => {
-    if (!cloneList.length) return
-    if (dragRef.current) return
+  const initDraggable = () => {
+    destroyDraggable()
     dragRef.current = new Draggable({
       groupElement: groupRef.current,
       scrollElement: virtualRef.current,
       cloneElementStyle: dragStyle,
       dragElement: (e: any) => {
+        const draggable = e.target.getAttribute('draggable')
+        if (draggableOnly && !draggable) return null
         if (props.dragElement) {
           return props.dragElement(e, groupRef.current)
         } else {
@@ -344,15 +349,27 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
     
         const callback = props[CALLBACKS.dragend]
         callback && callback(newArr)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
       }
     })
+  }
+
+  const destroyDraggable = () => {
+    dragRef.current && dragRef.current.destroy()
+    dragRef.current = null
+  }
+
+  useLayoutEffect(() => {
+    if (draggable) {
+      initDraggable()
+    } else {
+      destroyDraggable()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cloneList])
+  }, [cloneList, draggable])
 
   useEffect(() => {
     return () => {
-      dragRef.current && dragRef.current.destroy()
+      destroyDraggable()
     }
   }, [])
 

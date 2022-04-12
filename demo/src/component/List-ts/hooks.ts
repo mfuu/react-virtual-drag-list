@@ -40,7 +40,7 @@ export function Observer(props: observerProps) {
   })
 }
 
-export function useRefCallback<T>(fn: Function, dependencies: Array<T>) {
+export function UseRefCallback<T>(fn: Function, dependencies: Array<T>) {
   const ref = React.useRef(fn)
 
   // 每次调用的时候，fn 都是一个全新的函数，函数中的变量有自己的作用域
@@ -56,7 +56,7 @@ export function useRefCallback<T>(fn: Function, dependencies: Array<T>) {
   }, [ref])
 }
 
-export function useMethods<T extends Record<string, (...args: any[]) => any>>(methods: T) {
+export function UseMethods<T extends Record<string, (...args: any[]) => any>>(methods: T) {
   const { current } = React.useRef({
     methods,
     func: undefined as T | undefined,

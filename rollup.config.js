@@ -1,7 +1,7 @@
 import babel from 'rollup-plugin-babel'
 import commonJs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
-import typescript from 'rollup-plugin-typescript2'
+import typescript from 'rollup-plugin-typescript'
 const packageJson = require('./package.json')
 const version = packageJson.version
 const homepage = packageJson.homepage
@@ -15,11 +15,11 @@ const banner = `
 `
 
 export default {
-  external: ['react', 'react-dom', 'js-draggable-list'],
+  external: ['react', 'js-draggable-list'],
   input: 'src/index.tsx',
   output: {
     format: 'umd',
-    file: 'dist/index.js',
+    file: 'dist/draglist.js',
     name: 'virtualDragList',
     sourcemap: false,
     globals: {
