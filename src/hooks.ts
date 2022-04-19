@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export interface observerProps {
+export interface ObserverProps {
   uniqueKey: string | number;
 
   onSizeChange?: Function;
@@ -8,7 +8,7 @@ export interface observerProps {
   children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }
 
-export function Observer(props: observerProps) {
+export function Observer(props: ObserverProps) {
 
   const { uniqueKey, children, onSizeChange } = props
 

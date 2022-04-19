@@ -1,4 +1,5 @@
 import babel from 'rollup-plugin-babel'
+import { uglify } from 'rollup-plugin-uglify'
 import commonJs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
 import typescript from 'rollup-plugin-typescript'
@@ -14,24 +15,46 @@ const banner = `
  */
 `
 
-export default {
-  external: ['react', 'js-draggable-list'],
-  input: 'src/index.tsx',
-  output: {
-    format: 'umd',
-    file: 'dist/draglist.js',
-    name: 'virtualDragList',
-    sourcemap: false,
-    globals: {
-      react: 'React',
-      'js-draggable-list': 'Draggable'
+export default [
+  {
+    external: ['react'],
+    input: 'src/index.tsx',
+    output: {
+      format: 'umd',
+      file: 'dist/draglist.js',
+      name: 'virtualDragList',
+      sourcemap: false,
+      globals: {
+        react: 'React'
+      },
+      banner: banner.replace(/\n/, '')
     },
-    banner: banner.replace(/\n/, '')
+    plugins: [
+      typescript(),
+      babel(),
+      resolve(),
+      commonJs()
+    ]
   },
-  plugins: [
-    typescript(),
-    babel(),
-    resolve(),
-    commonJs()
-  ]
-}
+  {
+    external: ['react'],
+    input: 'src/index.tsx',
+    output: {
+      format: 'umd',
+      file: 'dist/draglist.min.js',
+      name: 'virtualDragList',
+      sourcemap: false,
+      globals: {
+        react: 'React'
+      },
+      banner: banner.replace(/\n/, '')
+    },
+    plugins: [
+      typescript(),
+      babel(),
+      uglify(),
+      resolve(),
+      commonJs()
+    ]
+  }
+]

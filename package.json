@@ -1,6 +1,6 @@
 {
   "name": "react-virtual-drag-list",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "支持拖拽排序的虚拟列表组件",
   "main": "dist/draglist.js",
   "files": [
@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/mfuu/react-virtual-drag-list#readme",
   "dependencies": {
-    "js-draggable-list": "^0.0.7"
+    "sortable-dnd": "^0.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
@@ -48,6 +48,7 @@
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-typescript": "^1.0.1",
+    "rollup-plugin-uglify": "^6.0.4",
     "ts-loader": "^9.2.6",
     "tslib": "^2.3.1",
     "typescript": "^4.5.4"

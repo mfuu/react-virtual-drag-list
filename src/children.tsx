@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Observer } from './hooks'
 import { BaseProps } from './interface'
 
-export interface itemProps<T> extends BaseProps {
+export interface ItemProps<T> extends BaseProps {
   key: any;
   record: T;
   index: number;
@@ -11,7 +11,7 @@ export interface itemProps<T> extends BaseProps {
   itemStyle?: object;
 }
 
-export function Item<T>(props: itemProps<T>) {
+export function Item<T>(props: ItemProps<T>) {
 
   const { children, uniqueKey, itemClass, itemStyle } = props
 
@@ -30,11 +30,11 @@ export function Item<T>(props: itemProps<T>) {
   )
 }
 
-export interface slotProps<T> extends BaseProps {
+export interface SlotProps<T> extends BaseProps {
   roleId: string;
 }
 
-export function Slot<T>(props: slotProps<T>) {
+export function Slot<T>(props: SlotProps<T>) {
   
   const { children, roleId, onSizeChange } = props
 

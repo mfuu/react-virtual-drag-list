@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Draggable from 'js-draggable-list'
+import Sortable from 'sortable-dnd'
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 
 import type { RenderFunc, GetKey } from './interface'
@@ -10,7 +10,7 @@ const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 
 const STYLE = { overflow: 'hidden auto', position: 'relative' } // 列表默认样式
 const MASKIMAGE = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' // 拖拽时默认背景样式
 
-export interface virtualProps<T> {
+export interface VirtualProps<T> {
   dataSource: T[];
   dataKey: string;
   // the number of lines rendered by the virtual scroll
@@ -38,7 +38,7 @@ export interface virtualProps<T> {
   dragElement?: Function
 }
 
-export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
+export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
     header,
     footer,
@@ -305,11 +305,10 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
   // =============================== drag ===============================
   const initDraggable = () => {
     destroyDraggable()
-    dragRef.current = new Draggable({
-      groupElement: groupRef.current,
-      scrollElement: virtualRef.current,
-      cloneElementStyle: dragStyle,
-      dragElement: (e: any) => {
+    dragRef.current = new Sortable({
+      group: groupRef.current,
+      ghostStyle: dragStyle,
+      dragging: (e: any) => {
         const draggable = e.target.getAttribute('draggable')
         if (draggableOnly && !draggable) return null
         if (props.dragElement) {
