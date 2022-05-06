@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useEffect, useState } from 'react'
 // import List from './component/List-js/index'
 // import List from './component/List-ts/index.tsx'
-// import List from './dist/draglist'
+// import List from './dist/draglist.js'
 
 import List from 'react-virtual-drag-list'
 
@@ -46,8 +46,8 @@ function App() {
   const handleToBottom = () => {
     console.log('isbottom')
   }
-  const handleDragEnd = (arr) => {
-    console.log(arr, 'new arr after deag end')
+  const handleDragEnd = (arr, _old, _new, changed) => {
+    console.log(arr, _old, _new, changed, 'new arr after deag end')
     // setDataScource(() => [...arr])
   }
 
@@ -70,8 +70,8 @@ function App() {
         dataSource={ dataSource }
         dataKey="id"
         keeps={ 50 }
-        draggableOnly={ false }
-        draggable={ editing }
+        draggable=".drag"
+        disabled={ !editing }
         header={ <div className="loading">top loading...</div> }
         footer={ <div className="loading">bottom loading...</div> }
         v-top={ handleToTop }
@@ -80,7 +80,7 @@ function App() {
       >
         {
           (record, index, key) => <div style={{padding: '16px',borderBottom: '1px solid #1984ff'}}>
-            {editing && <div className="sort" draggable="true">
+            {editing && <div className="drag">
               <i className="f7-icons">sort_ios</i>
             </div>}
             { record.desc }

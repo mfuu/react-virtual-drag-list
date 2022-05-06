@@ -36,14 +36,15 @@ function Virtual() {
   const handleToBottom = () => {
     console.log('isbottom')
   }
-  const handleDragEnd = (arr) => {
-    console.log(arr, 'new arr after drag end')
+  const handleDragEnd = (arr, _old, _new, changed) => {
+    console.log(arr, _old, _new, changed, 'new state after drag end')
   }
 
   return (
     <virtualList
       dataKey="id"
       dataSource={ list }
+      draggable=".drag"
       header={ <div className="loading">top loading...</div> }
       footer={ <div className="loading">bottom loading...</div> }
       v-top={ handleToTop }
@@ -54,7 +55,7 @@ function Virtual() {
         (record, index, uniqueKey) => {
           return (
             <div>
-              <span draggable>{ index }</span>
+              <span class=".drag">{ index }</span>
               { record.text }
             </div>
           )
@@ -67,27 +68,30 @@ function Virtual() {
 
 ## Props
 
-|     **Prop**    |  **Type**  | **Required?** | **Description**  |    **Default**   |
-|-----------------|------------|------------|------------------|------------------|
-| `dataKey`       | String     |   ✓   | the unique identifier of each piece of data, in the form of `'a.b.c'` | - |
-| `dataSource`    | Array      |   ✓   | data list            | `[]` |
-| `size`          | Number     |   ✓   | estimated height of each row  | 50 |
-| `keeps`         | Number     |       | the number of lines rendered by the virtual scroll  | 30 |
-| `delay`         | Number     |       | Delay time of debounce function  | 10 |
-| `draggable`     | Boolean    |       | whether to support drag and drop. You need to specify a draggable element and set the `draggable` attribute for it  | `true` |
-| `draggableOnly` | Boolean    |       | Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect | true |
-| `dragElement`   | Function   |       | The function that selects the dragged element, **must have a return value with a dom node**, has two parameters: e(the currently selected element), parent(the parent node of the list)   | - |
-| `header`        | JSX.Element|       | top of list            | - |
-| `footer`        | JSX.Element|       | bottom of list            | - |
-| `v-top`         | Function   |       | callback function that fires when scrolling to the top  | - |
-| `v-bottom`      | Function   |       | callback function that fires when scrolling to the bottom  | - |
-| `v-dragend`     | Function   |       | event when drag is complete  | - |
-| `dragStyle`     | Object     |       | mask style while dragging  | - |
-| `itemStyle`     | Object     |       | style for each line  | - |
-| `itemClass`     | String     |       | class for each line  | - |
+|     **Prop**    |   **Type**   | **Required?** | **Description**  |    **Default**   |
+|-----------------|--------------|---------------|------------------|------------------|
+| `dataKey`       | `String`     |   ✓   | the unique identifier of each piece of data, in the form of `'a.b.c'` | - |
+| `dataSource`    | `Array`      |   ✓   | data list            | `[]` |
+| `size`          | `Number`     |   ✓   | estimated height of each row  | `50` |
+| `keeps`         | `Number`     |       | the number of lines rendered by the virtual scroll  | `30` |
+| `delay`         | `Number`     |       | Delay time of debounce function  | `10` |
+| `header`        | `JSX.Element`|       | top of list            | - |
+| `footer`        | `JSX.Element`|       | bottom of list            | - |
+| `v-top`         | `Function`   |       | callback function that fires when scrolling to the top  | - |
+| `v-bottom`      | `Function`   |       | callback function that fires when scrolling to the bottom  | - |
+| `v-dragend`     | `Function`   |       | event when drag is complete  | - |
+| `itemStyle`     | `Object`     |       | style for each line  | `{}` |
+| `itemClass`     | `String`     |       | class for each line  | `''` |
+| `disabled`      | `Boolean`    |       | Disables the sortable if set to true | `false` |
+| `animation`     | `Number`     |       | Drag-and-drop's animation delay | `150` |
+| `draggable`     | `Function/String` |  | Specifies which items inside the element should be draggable, the function type must return a boolean | `undefined` |
+| `dragging`      | `Function`   |       | Specifies the drag element, which must return an HTMLElement, such as `(e) => e.target` | `undefined` |
+| `ghostStyle`    | `Object`     |       | The style of the mask element when dragging | `{}` |
+| `ghostClass`    | `String`     |       | The class of the mask element when dragging | `''` |
+| `chosenClass`   | `String`     |       | The class of the selected element when dragging | `''` |
 
 ## Methods
-Use the methods exposed in the component by setting `ref`, like this:
+Use the methods exposed in the component by setting `ref`
 ```jsx
 ...
 

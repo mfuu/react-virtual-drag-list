@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Draggable from 'js-draggable-list'
+import Sortable from 'sortable-dnd'
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 
 import type { RenderFunc, GetKey } from './interface'
@@ -10,21 +10,20 @@ const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 
 const STYLE = { overflow: 'hidden auto', position: 'relative' } // 列表默认样式
 const MASKIMAGE = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' // 拖拽时默认背景样式
 
-export interface virtualProps<T> {
+export interface VirtualProps<T> {
   dataSource: T[];
   dataKey: string;
-  // the number of lines rendered by the virtual scroll
-  keeps?: number;
-  // estimated height of each row
-  size?: number;
+  keeps?: number; // the number of lines rendered by the virtual scroll
+  size?: number; // estimated height of each row
   height?: string;
 
-  // whether to support drag and drop. You need to specify a draggable element and set the draggable attribute for it
-  draggable?: boolean;
-  // Whether to drag and drop only elements with the draggable attribute set. When true, selecting the parent element will not produce a dragging effect
-  draggableOnly?: boolean;
-  // mask style while dragging
-  dragStyle?: object;
+  disabled?: Boolean; // Disables the sortable if set to true
+  draggable?: Function | string; // Specifies which items inside the element should be draggable, the function type must return a boolean
+  dragging?: Function; // Specifies the drag element, which must return an HTMLElement, such as (e) => e.target
+  ghostStyle?: object; // The style of the mask element when dragging
+  ghostClass?: string; // The class of the mask element when dragging
+  chosenClass?: string; // The class of the selected element when dragging
+  animation?: number; // Animation delay
   
   children: RenderFunc<T>;
   header: RenderFunc<T>;
@@ -35,10 +34,9 @@ export interface virtualProps<T> {
   'v-dragend'?: Function;
 
   delay?: number;
-  dragElement?: Function
 }
 
-export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
+export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
     header,
     footer,
@@ -49,9 +47,13 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
     size = 50,
     height = '100%',
     delay = 10,
-    draggable = true,
-    draggableOnly = true,
-    dragStyle = { backgroundImage: MASKIMAGE }
+    disabled = false,
+    draggable = undefined,
+    dragging = undefined,
+    ghostClass = '',
+    ghostStyle = { backgroundImage: MASKIMAGE },
+    chosenClass = '',
+    animation = 150
   } = props
 
   // =============================== State ===============================
@@ -305,52 +307,51 @@ export function Virtual<T>(props: virtualProps<T>, ref: React.ref) {
   // =============================== drag ===============================
   const initDraggable = () => {
     destroyDraggable()
-    dragRef.current = new Draggable({
-      groupElement: groupRef.current,
-      scrollElement: virtualRef.current,
-      cloneElementStyle: dragStyle,
-      dragElement: (e: any) => {
-        const draggable = e.target.getAttribute('draggable')
-        if (draggableOnly && !draggable) return null
-        if (props.dragElement) {
-          return props.dragElement(e, groupRef.current)
-        } else {
-          let result = e.target
-          while([].indexOf.call(groupRef.current.children, result) < 0) {
-            result = result.parentNode
+    dragRef.current = new Sortable(
+      groupRef.current,
+      {
+        disabled,
+        animation,
+        draggable,
+        dragging,
+        ghostStyle,
+        ghostClass,
+        chosenClass,
+        dragEnd: (pre: any, cur: any, changed: boolean) => {
+          if (!(pre && cur)) return
+          const dragState = {
+            oldNode: pre.node, oldItem: null, oldIndex: null,
+            newNode: cur.node, newItem: null, newIndex: null
           }
-          return result
+          const oldKey = pre.node.getAttribute('data-key')
+          const newKey = cur.node.getAttribute('data-key')
+          dragList.current.forEach((el: any, index: number) => {
+            if (getKey(el) === oldKey) {
+              dragState.oldItem = el
+              dragState.oldIndex = index
+            }
+            if (getKey(el) === newKey) {
+              dragState.newItem = el
+              dragState.newIndex = index
+            }
+          })
+          const newArr = [...dragList.current]
+          if (changed) {
+            newArr.splice(dragState.oldIndex, 1)
+            newArr.splice(dragState.newIndex, 0, dragState.oldItem)
+            setCloneList(() => [...newArr])
+            dragList.current = [...newArr]
+          }
+          const callback = props[CALLBACKS.dragend]
+          callback && callback(
+            newArr,
+            { ...pre, item: dragState.oldItem, index: dragState.oldIndex },
+            { ...pre, item: dragState.newItem, index: dragState.newIndex },
+            changed
+          )
         }
-      },
-      dragEnd: (pre: any, cur: any) => {
-        if (!(pre && cur)) return
-        if (pre.rect.top === cur.rect.top) return
-        const dragState = {
-          oldNode: pre.node, oldItem: null, oldIndex: null,
-          newNode: cur.node, newItem: null, newIndex: null
-        }
-        const oldKey = pre.node.getAttribute('data-key')
-        const newKey = cur.node.getAttribute('data-key')
-        dragList.current.forEach((el: any, index: number) => {
-          if (getKey(el) === oldKey) {
-            dragState.oldItem = el
-            dragState.oldIndex = index
-          }
-          if (getKey(el) === newKey) {
-            dragState.newItem = el
-            dragState.newIndex = index
-          }
-        })
-        const newArr = [...dragList.current]
-        newArr.splice(dragState.oldIndex, 1)
-        newArr.splice(dragState.newIndex, 0, dragState.oldItem)
-        setCloneList(() => [...newArr])
-        dragList.current = [...newArr]
-    
-        const callback = props[CALLBACKS.dragend]
-        callback && callback(newArr)
       }
-    })
+    )
   }
 
   const destroyDraggable = () => {

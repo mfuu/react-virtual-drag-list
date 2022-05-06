@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.2.0
+ * react-virtual-drag-list v2.3.0
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -38,13 +38,23 @@
 
 	var sortable = createCommonjsModule(function (module, exports) {
 	/*!
-	 * sortable-dnd v0.0.6
+	 * sortable-dnd v0.1.0
 	 * open source under the MIT license
 	 * https://github.com/mfuu/sortable-dnd#readme
 	 */
 	(function (global, factory) {
 	  module.exports = factory() ;
 	})(commonjsGlobal, function () {
+
+	  function _typeof(obj) {
+	    "@babel/helpers - typeof";
+
+	    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+	      return typeof obj;
+	    } : function (obj) {
+	      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+	    }, _typeof(obj);
+	  }
 
 	  function _classCallCheck(instance, Constructor) {
 	    if (!(instance instanceof Constructor)) {
@@ -112,157 +122,472 @@
 
 	  var IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
 	  var Safari = userAgent(/safari/i) && !userAgent(/chrome/i) && !userAgent(/android/i);
+	  var IOS = userAgent(/iP(ad|od|hone)/i);
+	  var ChromeForAndroid = userAgent(/chrome/i) && userAgent(/android/i);
 	  var captureMode = {
 	    capture: false,
 	    passive: false
 	  };
-	  var utils = {
-	    on: function on(el, event, fn) {
-	      el.addEventListener(event, fn, !IE11OrLess && captureMode);
-	    },
-	    off: function off(el, event, fn) {
-	      el.removeEventListener(event, fn, !IE11OrLess && captureMode);
-	    },
-	    getWindowScrollingElement: function getWindowScrollingElement() {
-	      var scrollingElement = document.scrollingElement;
+	  var R_SPACE = /\s+/g;
+	  /**
+	   * detect passive event support
+	   */
 
-	      if (scrollingElement) {
-	        return scrollingElement;
-	      } else {
-	        return document.documentElement;
+	  function supportPassive() {
+	    // https://github.com/Modernizr/Modernizr/issues/1894
+	    var supportPassive = false;
+	    document.addEventListener('checkIfSupportPassive', null, {
+	      get passive() {
+	        supportPassive = true;
+	        return true;
 	      }
-	    },
-	    index: function index(group, el) {
-	      if (!el || !el.parentNode) return -1;
 
-	      var children = _toConsumableArray(Array.from(group.children));
-
-	      return children.indexOf(el);
-	    },
-	    getRect: function getRect(children, index) {
-	      if (!children.length) return {};
-	      if (index < 0) return {};
-	      return children[index].getBoundingClientRect();
-	    },
-	    getElement: function getElement(group, dragging) {
-	      var result = {
-	        index: -1,
-	        el: null,
-	        rect: {}
-	      };
-
-	      var children = _toConsumableArray(Array.from(group.children)); // 如果能直接在子元素中找到，返回对应的index
+	    });
+	    return supportPassive;
+	  }
+	  /**
+	  * add specified event listener
+	  * @param {HTMLElement} el 
+	  * @param {String} event 
+	  * @param {Function} fn 
+	  * @param {Boolean} sp
+	  */
 
 
-	      var index = children.indexOf(dragging);
-	      if (index > -1) Object.assign(result, {
-	        index: index,
-	        el: children[index],
-	        rect: children[index].getBoundingClientRect()
-	      }); // children 中无法直接找到对应的dom时，需要向下寻找
+	  function on(el, event, fn, sp) {
+	    if (window.addEventListener) {
+	      el.addEventListener(event, fn, sp || !IE11OrLess ? captureMode : false);
+	    } else if (window.attachEvent) {
+	      el.attachEvent('on' + event, fn);
+	    }
+	  }
+	  /**
+	  * remove specified event listener
+	  * @param {HTMLElement} el 
+	  * @param {String} event 
+	  * @param {Function} fn 
+	  * @param {Boolean} sp
+	  */
 
-	      for (var i = 0; i < children.length; i++) {
-	        if (this.isChildOf(dragging, children[i])) Object.assign(result, {
+
+	  function off(el, event, fn, sp) {
+	    if (window.removeEventListener) {
+	      el.removeEventListener(event, fn, sp || !IE11OrLess ? captureMode : false);
+	    } else if (window.detachEvent) {
+	      el.detachEvent('on' + event, fn);
+	    }
+	  }
+	  /**
+	   * get element's offetTop
+	   * @param {HTMLElement} el 
+	   */
+
+
+	  function getOffset(el) {
+	    var result = {
+	      top: 0,
+	      left: 0,
+	      height: 0,
+	      width: 0
+	    };
+	    result.height = el.offsetHeight;
+	    result.width = el.offsetWidth;
+	    result.top = el.offsetTop;
+	    result.left = el.offsetLeft;
+	    var parent = el.offsetParent;
+
+	    while (parent !== null) {
+	      result.top += parent.offsetTop;
+	      result.left += parent.offsetLeft;
+	      parent = parent.offsetParent;
+	    }
+
+	    return result;
+	  }
+	  /**
+	   * get scroll element
+	   * @param {HTMLElement} el 
+	   * @param {Boolean} includeSelf whether to include the passed element
+	   * @returns {HTMLElement} scroll element
+	   */
+
+
+	  function getParentAutoScrollElement(el, includeSelf) {
+	    // skip to window
+	    if (!el || !el.getBoundingClientRect) return getWindowScrollingElement();
+	    var elem = el;
+	    var gotSelf = false;
+
+	    do {
+	      // we don't need to get elem css if it isn't even overflowing in the first place (performance)
+	      if (elem.clientWidth < elem.scrollWidth || elem.clientHeight < elem.scrollHeight) {
+	        var elemCSS = css(elem);
+
+	        if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
+	          if (!elem.getBoundingClientRect || elem === document.body) return getWindowScrollingElement();
+	          if (gotSelf || includeSelf) return elem;
+	          gotSelf = true;
+	        }
+	      }
+	    } while (elem = elem.parentNode);
+
+	    return getWindowScrollingElement();
+	  }
+
+	  function getWindowScrollingElement() {
+	    var scrollingElement = document.scrollingElement;
+
+	    if (scrollingElement) {
+	      return scrollingElement;
+	    } else {
+	      return document.documentElement;
+	    }
+	  }
+	  /**
+	   * Returns the "bounding client rect" of given element
+	   * @param {HTMLElement} el  The element whose boundingClientRect is wanted
+	   */
+
+
+	  function getRect(el) {
+	    if (!el.getBoundingClientRect && el !== window) return;
+	    var rect = {
+	      top: 0,
+	      left: 0,
+	      bottom: 0,
+	      right: 0,
+	      height: 0,
+	      width: 0
+	    };
+	    var elRect;
+
+	    if (el !== window && el.parentNode && el !== getWindowScrollingElement()) {
+	      elRect = el.getBoundingClientRect();
+	      rect.top = elRect.top;
+	      rect.left = elRect.left;
+	      rect.bottom = elRect.bottom;
+	      rect.right = elRect.right;
+	      rect.height = elRect.height;
+	      rect.width = elRect.width;
+	    } else {
+	      rect.top = 0;
+	      rect.left = 0;
+	      rect.bottom = window.innerHeight;
+	      rect.right = window.innerWidth;
+	      rect.height = window.innerHeight;
+	      rect.width = window.innerWidth;
+	    }
+
+	    return rect;
+	  }
+	  /**
+	   * get target Element in group
+	   * @param {HTMLElement} group 
+	   * @param {HTMLElement} el 
+	   */
+
+
+	  function getElement(group, el) {
+	    var result = {
+	      index: -1,
+	      el: null,
+	      rect: {},
+	      offset: {}
+	    };
+
+	    var children = _toConsumableArray(Array.from(group.children)); // 如果能直接在子元素中找到，返回对应的index
+
+
+	    var index = children.indexOf(el);
+	    if (index > -1) Object.assign(result, {
+	      index: index,
+	      el: children[index],
+	      rect: getRect(children[index]),
+	      offset: getOffset(children[index])
+	    }); // children 中无法直接找到对应的dom时，需要向下寻找
+
+	    for (var i = 0; i < children.length; i++) {
+	      if (isChildOf(el, children[i])) {
+	        Object.assign(result, {
 	          index: i,
 	          el: children[i],
-	          rect: children[i].getBoundingClientRect()
+	          rect: getRect(children[i]),
+	          offset: getOffset(children[i])
 	        });
+	        break;
 	      }
-
-	      return result;
-	    },
-	    // 判断子元素是否包含在父元素中
-	    isChildOf: function isChildOf(child, parent) {
-	      var parentNode;
-
-	      if (child && parent) {
-	        parentNode = child.parentNode;
-
-	        while (parentNode) {
-	          if (parent === parentNode) return true;
-	          parentNode = parentNode.parentNode;
-	        }
-	      }
-
-	      return false;
-	    },
-	    animate: function animate(el, preRect) {
-	      var _this = this;
-
-	      var animation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 300;
-	      var curRect = el.getBoundingClientRect();
-	      var left = preRect.left - curRect.left;
-	      var top = preRect.top - curRect.top;
-	      this.css(el, 'transition', 'none');
-	      this.css(el, 'transform', "translate3d(".concat(left, "px, ").concat(top, "px, 0)"));
-	      el.offsetLeft; // 触发重绘
-
-	      this.css(el, 'transition', "all ".concat(animation, "ms"));
-	      this.css(el, 'transform', 'translate3d(0px, 0px, 0px)');
-	      clearTimeout(el.animated);
-	      el.animated = setTimeout(function () {
-	        _this.css(el, 'transition', '');
-
-	        _this.css(el, 'transform', '');
-
-	        el.animated = null;
-	      }, animation);
-	    },
-	    css: function css(el, prop, val) {
-	      var style = el && el.style;
-
-	      if (style) {
-	        if (val === void 0) {
-	          if (document.defaultView && document.defaultView.getComputedStyle) {
-	            val = document.defaultView.getComputedStyle(el, '');
-	          } else if (el.currentStyle) {
-	            val = el.currentStyle;
-	          }
-
-	          return prop === void 0 ? val : val[prop];
-	        } else {
-	          if (!(prop in style) && prop.indexOf('webkit') === -1) {
-	            prop = '-webkit-' + prop;
-	          }
-
-	          style[prop] = val + (typeof val === 'string' ? '' : 'px');
-	        }
-	      }
-	    },
-	    debounce: function debounce(fn, delay) {
-	      return function () {
-	        var _this2 = this;
-
-	        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-	          args[_key] = arguments[_key];
-	        }
-
-	        clearTimeout(fn.id);
-	        fn.id = setTimeout(function () {
-	          fn.call.apply(fn, [_this2].concat(args));
-	        }, delay);
-	      };
 	    }
-	  };
+
+	    return result;
+	  }
+	  /**
+	   * Check if child element is contained in parent element
+	   * @param {HTMLElement} child 
+	   * @param {HTMLElement} parent 
+	   * @returns {Boolean} true | false
+	   */
+
+
+	  function isChildOf(child, parent) {
+	    var parentNode;
+
+	    if (child && parent) {
+	      parentNode = child.parentNode;
+
+	      while (parentNode) {
+	        if (parent === parentNode) return true;
+	        parentNode = parentNode.parentNode;
+	      }
+	    }
+
+	    return false;
+	  }
+	  /**
+	   * add or remove element's class
+	   * @param {HTMLElement} el element
+	   * @param {String} name class name
+	   * @param {Boolean} state true: add, false: remove
+	   */
+
+
+	  function toggleClass(el, name, state) {
+	    if (el && name) {
+	      if (el.classList) {
+	        el.classList[state ? 'add' : 'remove'](name);
+	      } else {
+	        var className = (' ' + el.className + ' ').replace(R_SPACE, ' ').replace(' ' + name + ' ', ' ');
+	        el.className = (className + (state ? ' ' + name : '')).replace(R_SPACE, ' ');
+	      }
+	    }
+	  }
+	  /**
+	   * Check if a DOM element matches a given selector
+	   * @param {HTMLElement} el 
+	   * @param {String} selector 
+	   * @returns 
+	   */
+
+
+	  function matches(el, selector) {
+	    if (!selector) return;
+	    selector[0] === '>' && (selector = selector.substring(1));
+
+	    if (el) {
+	      try {
+	        if (el.matches) {
+	          return el.matches(selector);
+	        } else if (el.msMatchesSelector) {
+	          return el.msMatchesSelector(selector);
+	        } else if (el.webkitMatchesSelector) {
+	          return el.webkitMatchesSelector(selector);
+	        }
+	      } catch (error) {
+	        return false;
+	      }
+	    }
+
+	    return false;
+	  }
+
+	  function css(el, prop, val) {
+	    var style = el && el.style;
+
+	    if (style) {
+	      if (val === void 0) {
+	        if (document.defaultView && document.defaultView.getComputedStyle) {
+	          val = document.defaultView.getComputedStyle(el, '');
+	        } else if (el.currentStyle) {
+	          val = el.currentStyle;
+	        }
+
+	        return prop === void 0 ? val : val[prop];
+	      } else {
+	        if (!(prop in style) && prop.indexOf('webkit') === -1) {
+	          prop = '-webkit-' + prop;
+	        }
+
+	        style[prop] = val + (typeof val === 'string' ? '' : 'px');
+	      }
+	    }
+	  }
+
+	  function _nextTick(fn) {
+	    return setTimeout(fn, 0);
+	  }
+
+	  var CSS_TRANSITIONS = ['-webkit-transition', '-moz-transition', '-ms-transition', '-o-transition', 'transition'];
+	  var CSS_TRANSFORMS = ['-webkit-transform', '-moz-transform', '-ms-transform', '-o-transform', 'transform'];
+
+	  function Animation() {
+	    var animationState = [];
+	    return {
+	      captureAnimationState: function captureAnimationState() {
+	        var children = _toConsumableArray(Array.from(this.$el.children));
+
+	        var _getRange = getRange(children, this.dragEl, this.dropEl),
+	            start = _getRange.start,
+	            end = _getRange.end;
+
+	        animationState.length = 0; // 重置
+
+	        children.slice(start, end + 1).forEach(function (child) {
+	          animationState.push({
+	            target: child,
+	            rect: getRect(child)
+	          });
+	        });
+	      },
+	      animateRange: function animateRange() {
+	        var _this = this;
+
+	        animationState.forEach(function (state) {
+	          var target = state.target,
+	              rect = state.rect;
+
+	          _this.animate(target, rect, _this.animation);
+	        });
+	      },
+	      animate: function animate(el, preRect) {
+	        var animation = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 150;
+	        var curRect = getRect(el);
+	        var left = preRect.left - curRect.left;
+	        var top = preRect.top - curRect.top;
+	        CSS_TRANSITIONS.forEach(function (ts) {
+	          return css(el, ts, 'none');
+	        });
+	        CSS_TRANSFORMS.forEach(function (tf) {
+	          return css(el, tf, "".concat(tf.split('transform')[0], "translate3d(").concat(left, "px, ").concat(top, "px, 0)"));
+	        });
+	        el.offsetLeft; // 触发重绘
+
+	        CSS_TRANSITIONS.forEach(function (ts) {
+	          return css(el, ts, "".concat(ts.split('transition')[0], "transform ").concat(animation, "ms"));
+	        });
+	        CSS_TRANSFORMS.forEach(function (tf) {
+	          return css(el, tf, "".concat(tf.split('transform')[0], "translate3d(0px, 0px, 0px)"));
+	        });
+	        clearTimeout(el.animated);
+	        el.animated = setTimeout(function () {
+	          CSS_TRANSITIONS.forEach(function (ts) {
+	            return css(el, ts, '');
+	          });
+	          CSS_TRANSFORMS.forEach(function (tf) {
+	            return css(el, tf, '');
+	          });
+	          el.animated = null;
+	        }, animation);
+	      }
+	    };
+	  }
+
+	  function getRange(children, drag, drop) {
+	    var start = children.indexOf(drag);
+	    var end = children.indexOf(drop);
+	    return start < end ? {
+	      start: start,
+	      end: end
+	    } : {
+	      start: end,
+	      end: start
+	    };
+	  }
+
+	  function DNDEvent() {
+	    return {
+	      _bindEventListener: function _bindEventListener() {
+	        this._onStart = this._onStart.bind(this);
+	        this._onMove = this._onMove.bind(this);
+	        this._onDrop = this._onDrop.bind(this);
+	        var _this$options = this.options,
+	            supportPointer = _this$options.supportPointer,
+	            supportTouch = _this$options.supportTouch,
+	            supportPassive = _this$options.supportPassive;
+
+	        if (supportPointer) {
+	          on(this.$el, 'pointerdown', this._onStart, supportPassive);
+	        } else if (supportTouch) {
+	          on(this.$el, 'touchstart', this._onStart, supportPassive);
+	        } else {
+	          on(this.$el, 'mousedown', this._onStart, supportPassive);
+	        }
+	      },
+	      _unbindEventListener: function _unbindEventListener() {
+	        var supportPassive = this.options.supportPassive;
+	        off(this.$el, 'pointerdown', this._onStart, supportPassive);
+	        off(this.$el, 'touchstart', this._onStart, supportPassive);
+	        off(this.$el, 'mousedown', this._onStart, supportPassive);
+
+	        if (this.nativeDraggable) {
+	          off(this.$el, 'dragover', this);
+	          off(this.$el, 'dragenter', this);
+	        }
+	      },
+	      _onMoveEvents: function _onMoveEvents(touch) {
+	        var _this$options2 = this.options,
+	            supportPointer = _this$options2.supportPointer,
+	            ownerDocument = _this$options2.ownerDocument,
+	            supportPassive = _this$options2.supportPassive;
+
+	        if (supportPointer) {
+	          on(ownerDocument, 'pointermove', this._onMove, supportPassive);
+	        } else if (touch) {
+	          on(ownerDocument, 'touchmove', this._onMove, supportPassive);
+	        } else {
+	          on(ownerDocument, 'mousemove', this._onMove, supportPassive);
+	        }
+	      },
+	      _onUpEvents: function _onUpEvents() {
+	        var _this$options3 = this.options,
+	            ownerDocument = _this$options3.ownerDocument,
+	            supportPassive = _this$options3.supportPassive;
+	        on(ownerDocument, 'pointerup', this._onDrop, supportPassive);
+	        on(ownerDocument, 'pointercancel', this._onDrop, supportPassive);
+	        on(ownerDocument, 'touchend', this._onDrop, supportPassive);
+	        on(ownerDocument, 'touchcancel', this._onDrop, supportPassive);
+	        on(ownerDocument, 'mouseup', this._onDrop, supportPassive);
+	      },
+	      _offMoveEvents: function _offMoveEvents() {
+	        var _this$options4 = this.options,
+	            ownerDocument = _this$options4.ownerDocument,
+	            supportPassive = _this$options4.supportPassive;
+	        off(ownerDocument, 'pointermove', this._onMove, supportPassive);
+	        off(ownerDocument, 'touchmove', this._onMove, supportPassive);
+	        off(ownerDocument, 'mousemove', this._onMove, supportPassive);
+	      },
+	      _offUpEvents: function _offUpEvents() {
+	        var _this$options5 = this.options,
+	            ownerDocument = _this$options5.ownerDocument,
+	            supportPassive = _this$options5.supportPassive;
+	        off(ownerDocument, 'pointerup', this._onDrop, supportPassive);
+	        off(ownerDocument, 'pointercancel', this._onDrop, supportPassive);
+	        off(ownerDocument, 'touchend', this._onDrop, supportPassive);
+	        off(ownerDocument, 'touchcancel', this._onDrop, supportPassive);
+	        off(ownerDocument, 'mouseup', this._onDrop, supportPassive);
+	      }
+	    };
+	  }
 	  /**
 	   * 拖拽前后差异初始化
 	   */
 
-	  var Diff = /*#__PURE__*/function () {
-	    function Diff() {
-	      _classCallCheck(this, Diff);
 
-	      this.old = {
+	  var Differ = /*#__PURE__*/function () {
+	    function Differ() {
+	      _classCallCheck(this, Differ);
+
+	      this._old_ = {
 	        node: null,
-	        rect: {}
+	        rect: {},
+	        offset: {}
 	      };
-	      this["new"] = {
+	      this._new_ = {
 	        node: null,
-	        rect: {}
+	        rect: {},
+	        offset: {}
 	      };
 	    }
 
-	    _createClass(Diff, [{
+	    _createClass(Differ, [{
 	      key: "get",
 	      value: function get(key) {
 	        return this[key];
@@ -275,18 +600,20 @@
 	    }, {
 	      key: "destroy",
 	      value: function destroy() {
-	        this.old = {
+	        this._old_ = {
 	          node: null,
-	          rect: {}
+	          rect: {},
+	          offset: {}
 	        };
-	        this["new"] = {
+	        this._new_ = {
 	          node: null,
-	          rect: {}
+	          rect: {},
+	          offset: {}
 	        };
 	      }
 	    }]);
 
-	    return Diff;
+	    return Differ;
 	  }();
 	  /**
 	   * 拖拽中的元素
@@ -306,13 +633,8 @@
 	    _createClass(Ghost, [{
 	      key: "init",
 	      value: function init(el, rect) {
-	        if (!el) {
-	          console.error('Ghost Element is required');
-	          return;
-	        }
-
+	        if (!el) return;
 	        this.$el = el;
-	        this.rect = rect;
 	        var _this$options = this.options,
 	            ghostClass = _this$options.ghostClass,
 	            _this$options$ghostSt = _this$options.ghostStyle,
@@ -330,10 +652,8 @@
 	        this.$el.style.zIndex = 100000;
 	        this.$el.style.opacity = 0.8;
 	        this.$el.style.pointerEvents = 'none';
-
-	        for (var key in ghostStyle) {
-	          utils.css(this.$el, key, ghostStyle[key]);
-	        }
+	        this.$el.style.cursor = 'move';
+	        this.setStyle(ghostStyle);
 	      }
 	    }, {
 	      key: "get",
@@ -347,6 +667,18 @@
 	        this[key] = value;
 	      }
 	    }, {
+	      key: "setStyle",
+	      value: function setStyle(style) {
+	        for (var key in style) {
+	          css(this.$el, key, style[key]);
+	        }
+	      }
+	    }, {
+	      key: "rect",
+	      value: function rect() {
+	        return this.$el.getBoundingClientRect();
+	      }
+	    }, {
 	      key: "move",
 	      value: function move() {
 	        // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
@@ -356,6 +688,7 @@
 	        }
 
 	        this.$el.style.transform = "translate3d(".concat(this.x, "px, ").concat(this.y, "px, 0)");
+	        if (this.$el.style.cursor !== 'move') this.$el.style.cursor = 'move';
 	      }
 	    }, {
 	      key: "destroy",
@@ -366,272 +699,349 @@
 	    }]);
 
 	    return Ghost;
-	  }();
+	  }(); // -------------------------------- Sortable ----------------------------------
+
+
+	  var documentExists = typeof document !== 'undefined';
+	  var supportDraggable = documentExists && !ChromeForAndroid && !IOS && 'draggable' in document.createElement('div');
 	  /**
-	   * @interface Options {
-	   * 
-	   * group: HTMLElement,
-	   * 
-	   * draggable?: Function, return element node selected when dragging, or null
-	   * 
-	   * dragEnd?: Function, The callback function when the drag is completed
-	   * 
-	   * ghostStyle?: Object,
-	   * 
-	   * ghostClass?: String,
-	   * 
-	   * }
+	   * @class  Sortable
+	   * @param  {HTMLElement}  el
+	   * @param  {Object}       options
 	   */
 
+	  function Sortable(el, options) {
+	    if (!(el && el.nodeType && el.nodeType === 1)) {
+	      throw "Sortable: `el` must be an HTMLElement, not ".concat({}.toString.call(el));
+	    }
 
-	  var Sortable = /*#__PURE__*/function () {
-	    function Sortable(options) {
-	      _classCallCheck(this, Sortable);
+	    this.$el = el; // root element
 
-	      this.group = options.group; // 父级元素
+	    this.options = options = Object.assign({}, options);
+	    this.scrollEl = getParentAutoScrollElement(this.$el, true); // 获取页面滚动元素
 
-	      this.dragging = options.dragging; // 必须为函数且必须返回一个 HTMLElement (e) => return e.target
+	    this.dragEl = null; // 拖拽元素
 
-	      this.dragEnd = options.dragEnd; // 拖拽完成时的回调函数，返回两个值(olddom, newdom) => {}
+	    this.dropEl = null; // 释放元素
 
-	      this.ghostStyle = options.ghostStyle; // 克隆元素包含的属性
+	    this.differ = null; // 记录拖拽前后差异
 
-	      this.ghostClass = options.ghostClass; // 克隆元素的类名
+	    this.ghost = null; // 拖拽时蒙版元素
 
-	      this.animation = options.animation || 300; // 动画延迟
+	    this.calcXY = {
+	      x: 0,
+	      y: 0
+	    }; // 记录拖拽移动时坐标
 
-	      this.isMousedown = false; // 记录鼠标按下
+	    var defaults = {
+	      disabled: false,
+	      // 
+	      animation: 150,
+	      // 动画延时
+	      ghostClass: '',
+	      // 拖拽元素Class类名
+	      ghostStyle: {},
+	      // 拖拽元素样式
+	      chosenClass: '',
+	      // 选中元素样式
+	      draggable: undefined,
+	      // String: css selecter, Function: (e) => return true
+	      dragging: undefined,
+	      // 必须为函数且必须返回一个 HTMLElement: (e) => return e.target
+	      dragEnd: undefined,
+	      // 拖拽完成时的回调函数: (old, new, changed) => {}
+	      forceFallback: false,
+	      // 忽略 HTML5拖拽行为，强制回调进行
+	      stopPropagation: false,
+	      // 阻止捕获和冒泡阶段中当前事件的进一步传播
+	      supportPassive: supportPassive(),
+	      supportPointer: 'PointerEvent' in window && !Safari,
+	      supportTouch: 'ontouchstart' in window,
+	      ownerDocument: this.$el.ownerDocument
+	    }; // Set default options
 
-	      this.isMousemove = false; // 记录鼠标移动
+	    for (var name in defaults) {
+	      !(name in this.options) && (this.options[name] = defaults[name]);
+	    }
 
-	      this.dragEl = null; // 拖拽元素
+	    this.differ = new Differ();
+	    this.ghost = new Ghost(this.options);
+	    Object.assign(this, Animation(), DNDEvent());
 
-	      this.dropEl = null; // 释放元素
+	    this._bindEventListener();
 
-	      this.diff = new Diff(); // 记录拖拽前后差异
+	    this.nativeDraggable = this.options.forceFallback ? false : supportDraggable;
 
-	      this.ghost = new Ghost({
-	        ghostClass: this.ghostClass,
-	        ghostStyle: this.ghostStyle
-	      });
-	      this.supportPointer = 'PointerEvent' in window && !Safari;
+	    if (this.nativeDraggable) {
+	      on(this.$el, 'dragover', this);
+	      on(this.$el, 'dragenter', this);
+	    }
+
+	    this._handleDestroy();
+	  }
+
+	  Sortable.prototype =
+	  /** @lends Sortable.prototype */
+	  {
+	    constructor: Sortable,
+	    destroy: function destroy() {
+	      this._unbindEventListener();
+
+	      this._resetState();
+	    },
+	    // -------------------------------- drag and drop ----------------------------------
+	    _onStart: function _onStart(
+	    /** Event|TouchEvent */
+	    evt) {
+	      var _this$options2 = this.options,
+	          disabled = _this$options2.disabled,
+	          dragging = _this$options2.dragging,
+	          draggable = _this$options2.draggable,
+	          stopPropagation = _this$options2.stopPropagation;
+	      if (/mousedown|pointerdown/.test(evt.type) && evt.button !== 0 || disabled) return; // only left button and enabled
+
+	      var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
+	      var e = touch || evt; // Safari ignores further event handling after mousedown
+
+	      if (!this.nativeDraggable && Safari && e.target && e.target.tagName.toUpperCase() === 'SELECT') return;
+	      if (e.target === this.$el) return true;
+
+	      if (typeof draggable === 'function') {
+	        if (!draggable(e)) return true;
+	      } else if (typeof draggable === 'string') {
+	        if (!matches(e.target, draggable)) return true;
+	      } else if (draggable !== undefined) {
+	        throw new Error("draggable expected \"function\" or \"string\" but received \"".concat(_typeof(draggable), "\""));
+	      }
+
+	      if (evt.preventDefault !== void 0) evt.preventDefault();
+	      if (stopPropagation) evt.stopPropagation();
+
+	      try {
+	        if (document.selection) {
+	          // Timeout neccessary for IE9
+	          _nextTick(function () {
+	            document.selection.empty();
+	          });
+	        } else {
+	          window.getSelection().removeAllRanges();
+	        } // 获取拖拽元素
+
+
+	        var element = typeof dragging === 'function' ? dragging(e) : getElement(this.$el, e.target).el; // 不存在拖拽元素时不允许拖拽
+
+	        if (!element) return true;
+	        if (element.animated) return;
+	        this.dragEl = element;
+	      } catch (error) {
+	        throw new Error(error);
+	      }
+
+	      window.sortableDndOnDown = true; // 获取当前元素在列表中的位置
+
+	      var _getElement = getElement(this.$el, this.dragEl),
+	          index = _getElement.index,
+	          el = _getElement.el,
+	          rect = _getElement.rect,
+	          offset = _getElement.offset;
+
+	      if (!el || index < 0) return true; // 将拖拽元素克隆一份作为蒙版
+
+	      var ghostEl = this.dragEl.cloneNode(true);
+	      this.ghost.init(ghostEl, rect);
+	      this.ghost.set('x', rect.left);
+	      this.ghost.set('y', rect.top);
+	      this.differ._old_.rect = rect;
+	      this.differ._old_.offset = offset;
+	      this.differ._old_.node = this.dragEl;
+	      this.calcXY = {
+	        x: e.clientX,
+	        y: e.clientY
+	      };
+
+	      this._onMoveEvents(touch);
+
+	      this._onUpEvents(touch);
+	    },
+	    _onMove: function _onMove(
+	    /** Event|TouchEvent */
+	    evt) {
+	      if (evt.preventDefault !== void 0) evt.preventDefault(); // prevent scrolling
+
+	      var touch = evt.touches && evt.touches[0];
+	      var e = touch || evt;
+	      var clientX = e.clientX,
+	          clientY = e.clientY;
+	      var target = touch ? document.elementFromPoint(clientX, clientY) : e.target;
+	      var _this$options3 = this.options,
+	          chosenClass = _this$options3.chosenClass,
+	          stopPropagation = _this$options3.stopPropagation;
+	      if (stopPropagation) evt.stopPropagation();
+	      toggleClass(this.dragEl, chosenClass, true);
+	      this.ghost.move();
+	      if (!window.sortableDndOnDown) return;
+	      if (clientX < 0 || clientY < 0) return;
+	      window.sortableDndOnMove = true;
+	      this.ghost.set('x', this.ghost.x + clientX - this.calcXY.x);
+	      this.ghost.set('y', this.ghost.y + clientY - this.calcXY.y);
+	      this.calcXY = {
+	        x: clientX,
+	        y: clientY
+	      };
+	      this.ghost.move(); // 判断边界值
+
+	      var rc = getRect(this.$el);
+
+	      if (clientX < rc.left || clientX > rc.right || clientY < rc.top || clientY > rc.bottom) {
+	        this.ghost.setStyle({
+	          cursor: 'not-allowed'
+	        });
+	        return;
+	      }
+
+	      var _getElement2 = getElement(this.$el, target),
+	          index = _getElement2.index,
+	          el = _getElement2.el,
+	          rect = _getElement2.rect,
+	          offset = _getElement2.offset;
+
+	      var left = rect.left,
+	          right = rect.right,
+	          top = rect.top,
+	          bottom = rect.bottom;
+	      if (!el || index < 0 || top < 0) return; // 加上当前滚动距离
+
+	      var _this$scrollEl = this.scrollEl,
+	          scrollTop = _this$scrollEl.scrollTop,
+	          scrollLeft = _this$scrollEl.scrollLeft;
+	      var boundaryL = rc.left + scrollLeft;
+	      var boundaryT = rc.top + scrollTop; // 如果目标元素超出当前可视区，不允许拖动
+
+	      if (this.scrollEl !== this.$el && (rc.left < 0 || rc.top < 0)) {
+	        if (rc.top < 0 && top < boundaryT || rc.left < 0 && left < boundaryL) return;
+	      } else if (top < rc.top || left < rc.left) return;
+
+	      if (clientX > left && clientX < right && clientY > top && clientY < bottom) {
+	        this.dropEl = el; // 拖拽前后元素不一致时交换
+
+	        if (this.dropEl !== this.dragEl) {
+	          if (this.dropEl.animated) return;
+	          this.captureAnimationState();
+
+	          var _offset = getOffset(this.dragEl); // 获取拖拽元素的 offset 值
+	          // 优先比较 top 值，top 值相同再比较 left
+
+
+	          if (_offset.top < offset.top || _offset.left < offset.left) {
+	            this.$el.insertBefore(this.dragEl, this.dropEl.nextElementSibling);
+	          } else {
+	            this.$el.insertBefore(this.dragEl, this.dropEl);
+	          }
+
+	          this.animateRange();
+	          this.differ._new_.node = this.dropEl;
+	          this.differ._new_.rect = getRect(this.dropEl);
+	        }
+	      }
+	    },
+	    _onDrop: function _onDrop(
+	    /** Event|TouchEvent */
+	    evt) {
+	      this._offMoveEvents();
+
+	      this._offUpEvents();
+
+	      var _this$options4 = this.options,
+	          dragEnd = _this$options4.dragEnd,
+	          chosenClass = _this$options4.chosenClass,
+	          stopPropagation = _this$options4.stopPropagation;
+	      if (stopPropagation) evt.stopPropagation(); // 阻止事件冒泡
+
+	      toggleClass(this.dragEl, chosenClass, false);
+
+	      if (window.sortableDndOnDown && window.sortableDndOnMove) {
+	        // 重新获取一次拖拽元素的 offset 值作为拖拽完成后的 offset 值
+	        this.differ._new_.offset = getOffset(this.dragEl); // 拖拽完成触发回调函数
+
+	        var _this$differ = this.differ,
+	            _old_ = _this$differ._old_,
+	            _new_ = _this$differ._new_; // 通过 offset 比较是否进行了元素交换
+
+	        var changed = _old_.offset.top !== _new_.offset.top || _old_.offset.left !== _new_.offset.left; // 如果拖拽前后没有发生交换，重新赋值一次
+
+	        if (!changed) this.differ._new_.node = this.differ._old_.node;
+
+	        if (typeof dragEnd === 'function') {
+	          dragEnd(_old_, _new_, changed);
+	        } else {
+	          throw new Error("Sortable-dnd Error: dragEnd expected \"function\" but received \"".concat(_typeof(dragEnd), "\""));
+	        }
+	      }
+
+	      this.differ.destroy();
+	      this.ghost.destroy();
+
+	      this._removeWindowState();
+	    },
+	    // -------------------------------- auto destroy ----------------------------------
+	    _handleDestroy: function _handleDestroy() {
+	      var _this = this;
+
+	      var observer = null;
+	      var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+
+	      if (MutationObserver) {
+	        var ownerDocument = this.options.ownerDocument;
+	        if (!ownerDocument) return;
+	        observer = new MutationObserver(function () {
+	          if (!ownerDocument.body.contains(_this.$el)) {
+	            observer.disconnect();
+	            observer = null;
+
+	            _this._unbindEventListener();
+
+	            _this._resetState();
+	          }
+	        });
+	        observer.observe(this.$el.parentNode, {
+	          childList: true,
+	          // 观察目标子节点的变化，是否有添加或者删除
+	          attributes: false,
+	          // 观察属性变动
+	          subtree: false // 观察后代节点，默认为 false
+
+	        });
+	      }
+
+	      window.onbeforeunload = function () {
+	        if (observer) observer.disconnect();
+	        observer = null;
+
+	        _this._unbindEventListener();
+
+	        _this._resetState();
+	      };
+	    },
+	    // -------------------------------- reset state ----------------------------------
+	    _resetState: function _resetState() {
+	      this.dragEl = null;
+	      this.dropEl = null;
+	      this.ghost.destroy();
+	      this.differ.destroy();
 	      this.calcXY = {
 	        x: 0,
 	        y: 0
 	      };
-	      utils.debounce(this.init(), 50); // 避免重复执行多次
+
+	      this._removeWindowState();
+	    },
+	    _removeWindowState: function _removeWindowState() {
+	      window.sortableDndOnDown = null;
+	      window.sortableDndOnMove = null;
+	      delete window.sortableDndOnDown;
+	      delete window.sortableDndOnMove;
 	    }
-
-	    _createClass(Sortable, [{
-	      key: "init",
-	      value: function init() {
-	        if (!this.group) {
-	          console.error('Error: group is required');
-	          return;
-	        }
-
-	        this._bindEventListener();
-	      }
-	    }, {
-	      key: "destroy",
-	      value: function destroy() {
-	        this._unbindEventListener();
-
-	        this._resetState();
-	      }
-	    }, {
-	      key: "_onStart",
-	      value: function _onStart(e) {
-	        if (e.button !== 0) return true;
-	        if (e.target === this.group) return true;
-
-	        try {
-	          // 获取拖拽元素
-	          var element = this.dragging ? this.dragging(e) : e.target; // 不存在拖拽元素时不允许拖拽
-
-	          if (!element) return true;
-	          if (element.animated) return;
-	          this.dragEl = element;
-	        } catch (e) {
-	          //
-	          return true;
-	        }
-
-	        this.isMousedown = true; // 获取当前元素在列表中的位置
-
-	        var _utils$getElement = utils.getElement(this.group, this.dragEl),
-	            index = _utils$getElement.index,
-	            el = _utils$getElement.el,
-	            rect = _utils$getElement.rect;
-
-	        if (!el || index < 0) return true; // 将拖拽元素克隆一份作为蒙版
-
-	        var ghostEl = this.dragEl.cloneNode(true);
-	        this.ghost.init(ghostEl, rect);
-	        this.diff.old.rect = rect;
-	        this.ghost.set('x', rect.left);
-	        this.ghost.set('y', rect.top); // 记录拖拽移动时坐标
-
-	        this.calcXY = {
-	          x: e.clientX,
-	          y: e.clientY
-	        };
-
-	        this._onMoveEvents();
-
-	        this._onUpEvents();
-	      }
-	    }, {
-	      key: "_onMove",
-	      value: function _onMove(e) {
-	        this.ghost.move();
-	        e.preventDefault();
-	        if (!this.isMousedown) return;
-	        if (e.clientX < 0 || e.clientY < 0) return;
-	        document.body.style.cursor = 'grabbing';
-	        this.isMousemove = true;
-	        this.ghost.set('x', this.ghost.x + e.clientX - this.calcXY.x);
-	        this.ghost.set('y', this.ghost.y + e.clientY - this.calcXY.y);
-	        this.calcXY = {
-	          x: e.clientX,
-	          y: e.clientY
-	        };
-	        this.ghost.move();
-
-	        this._checkRange(e);
-
-	        var _utils$getElement2 = utils.getElement(this.group, e.target),
-	            index = _utils$getElement2.index,
-	            el = _utils$getElement2.el,
-	            rect = _utils$getElement2.rect;
-
-	        var left = rect.left,
-	            right = rect.right,
-	            top = rect.top,
-	            bottom = rect.bottom;
-	        if (!el || index < 0) return;
-	        if (top < 0 || top - this.ghost.rect.height / 3 < 0) return;
-
-	        if (e.clientX > left && e.clientX < right && e.clientY > top && e.clientY < bottom) {
-	          this.dropEl = el; // 拖拽前后元素不一致时交换
-
-	          if (this.dropEl !== this.dragEl) {
-	            var dragRect = this.dragEl.getBoundingClientRect();
-	            var dropRect = this.dropEl.getBoundingClientRect();
-	            if (this.dropEl.animated) return;
-
-	            if (utils.index(this.group, this.dragEl) < index) {
-	              this.group.insertBefore(this.dragEl, this.dropEl.nextElementSibling);
-	            } else {
-	              this.group.insertBefore(this.dragEl, this.dropEl);
-	            } // 设置动画
-
-
-	            utils.animate(this.dragEl, dragRect, this.animation);
-	            utils.animate(this.dropEl, dropRect, this.animation);
-	            this.diff.old.node = this.dragEl;
-	            this.diff["new"].node = this.dropEl;
-	          }
-
-	          this.diff["new"].rect = this.dropEl.getBoundingClientRect();
-	        }
-	      }
-	    }, {
-	      key: "_onDrop",
-	      value: function _onDrop() {
-	        this._offMoveEvents();
-
-	        this._offUpEvents();
-
-	        document.body.style.cursor = '';
-
-	        if (this.isMousedown && this.isMousemove) {
-	          // 拖拽完成触发回调函数
-	          if (this.dragEnd && typeof this.dragEnd === 'function') this.dragEnd(this.diff.old, this.diff["new"]);
-	        }
-
-	        this.isMousedown = false;
-	        this.isMousemove = false;
-	        this.diff.destroy();
-	        this.ghost.destroy();
-	      }
-	    }, {
-	      key: "_checkRange",
-	      value: function _checkRange(e) {
-	        var _this$group$getBoundi = this.group.getBoundingClientRect(),
-	            top = _this$group$getBoundi.top,
-	            left = _this$group$getBoundi.left,
-	            right = _this$group$getBoundi.right,
-	            bottom = _this$group$getBoundi.bottom;
-
-	        if (e.clientX < left || e.clientX > right || e.clientY < top || e.clientY > bottom) {
-	          document.body.style.cursor = 'not-allowed';
-	        }
-	      }
-	    }, {
-	      key: "_resetState",
-	      value: function _resetState() {
-	        this.isMousedown = false;
-	        this.isMousemove = false;
-	        this.dragEl = null;
-	        this.dropEl = null;
-	        this.ghost.destroy();
-	        this.diff = new Diff();
-	      }
-	    }, {
-	      key: "_bindEventListener",
-	      value: function _bindEventListener() {
-	        this._onStart = this._onStart.bind(this);
-	        this._onMove = this._onMove.bind(this);
-	        this._onDrop = this._onDrop.bind(this);
-
-	        if (this.supportPointer) {
-	          utils.on(this.group, 'pointerdown', this._onStart);
-	        } else {
-	          utils.on(this.group, 'mousedown', this._onStart);
-	        }
-	      }
-	    }, {
-	      key: "_onMoveEvents",
-	      value: function _onMoveEvents() {
-	        if (this.supportPointer) {
-	          utils.on(document, 'pointermove', this._onMove);
-	        } else {
-	          utils.on(document, 'mousemove', this._onMove);
-	        }
-	      }
-	    }, {
-	      key: "_onUpEvents",
-	      value: function _onUpEvents() {
-	        if (this.supportPointer) {
-	          utils.on(document, 'pointerup', this._onDrop);
-	        } else {
-	          utils.on(document, 'mouseup', this._onDrop);
-	        }
-	      }
-	    }, {
-	      key: "_unbindEventListener",
-	      value: function _unbindEventListener() {
-	        utils.off(this.group, 'mousedown', this._onStart);
-	        utils.off(this.group, 'pointerdown', this._onStart);
-	      }
-	    }, {
-	      key: "_offMoveEvents",
-	      value: function _offMoveEvents() {
-	        utils.off(document, 'mousemove', this._onMove);
-	        utils.off(document, 'pointermove', this._onMove);
-	      }
-	    }, {
-	      key: "_offUpEvents",
-	      value: function _offUpEvents() {
-	        utils.off(document, 'mouseup', this._onDrop);
-	        utils.off(document, 'pointerup', this._onDrop);
-	      }
-	    }]);
-
-	    return Sortable;
-	  }();
-
+	  };
 	  return Sortable;
 	});
 	});
@@ -716,7 +1126,7 @@
 	const STYLE = { overflow: 'hidden auto', position: 'relative' }; // 列表默认样式
 	const MASKIMAGE = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)'; // 拖拽时默认背景样式
 	function Virtual(props, ref) {
-	    const { header, footer, children, dataSource = [], dataKey, keeps = 30, size = 50, height = '100%', delay = 10, draggable = true, draggableOnly = true, dragStyle = { backgroundImage: MASKIMAGE } } = props;
+	    const { header, footer, children, dataSource = [], dataKey, keeps = 30, size = 50, height = '100%', delay = 10, disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = { backgroundImage: MASKIMAGE }, chosenClass = '', animation = 150 } = props;
 	    // =============================== State ===============================
 	    const [cloneList, setCloneList] = React.useState([]);
 	    const [sizeStack, setSizeStack] = React.useState(new Map());
@@ -954,28 +1364,16 @@
 	    // =============================== drag ===============================
 	    const initDraggable = () => {
 	        destroyDraggable();
-	        dragRef.current = new sortable({
-	            group: groupRef.current,
-	            ghostStyle: dragStyle,
-	            dragging: (e) => {
-	                const draggable = e.target.getAttribute('draggable');
-	                if (draggableOnly && !draggable)
-	                    return null;
-	                if (props.dragElement) {
-	                    return props.dragElement(e, groupRef.current);
-	                }
-	                else {
-	                    let result = e.target;
-	                    while ([].indexOf.call(groupRef.current.children, result) < 0) {
-	                        result = result.parentNode;
-	                    }
-	                    return result;
-	                }
-	            },
-	            dragEnd: (pre, cur) => {
+	        dragRef.current = new sortable(groupRef.current, {
+	            disabled,
+	            animation,
+	            draggable,
+	            dragging,
+	            ghostStyle,
+	            ghostClass,
+	            chosenClass,
+	            dragEnd: (pre, cur, changed) => {
 	                if (!(pre && cur))
-	                    return;
-	                if (pre.rect.top === cur.rect.top)
 	                    return;
 	                const dragState = {
 	                    oldNode: pre.node, oldItem: null, oldIndex: null,
@@ -994,12 +1392,14 @@
 	                    }
 	                });
 	                const newArr = [...dragList.current];
-	                newArr.splice(dragState.oldIndex, 1);
-	                newArr.splice(dragState.newIndex, 0, dragState.oldItem);
-	                setCloneList(() => [...newArr]);
-	                dragList.current = [...newArr];
+	                if (changed) {
+	                    newArr.splice(dragState.oldIndex, 1);
+	                    newArr.splice(dragState.newIndex, 0, dragState.oldItem);
+	                    setCloneList(() => [...newArr]);
+	                    dragList.current = [...newArr];
+	                }
 	                const callback = props[CALLBACKS.dragend];
-	                callback && callback(newArr);
+	                callback && callback(newArr, { ...pre, item: dragState.oldItem, index: dragState.oldIndex }, { ...pre, item: dragState.newItem, index: dragState.newIndex }, changed);
 	            }
 	        });
 	    };
