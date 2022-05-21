@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>react-virtual-drag-list</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="./dist/draglist.js"></script>
+  <script src="../test/mock.js"></script>
+  <script src="../test/sentences.js"></script>
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      color: rgba(0, 0, 0, 0.65);
+      font-size: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+      font-variant: tabular-nums;
+      line-height: 1.5;
+      background-color: #fff;
+      font-feature-settings: 'tnum';
+    }
+    #app {
+      height: 100%;
+    }
+    .virtual-list {
+      width: 1000px;
+      height: 500px;
+      margin: 20px auto 50px;
+      border: 1px solid #ccc;
+    }
+    .horizontal-virtual-list {
+      width: 1000px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    .horizontal {
+      display: flex;
+      flex-direction: column;
+      height: 100px;
+      width: 100px;
+      margin: 10px;
+      overflow: hidden;
+      border: 1px dashed #1984ff;
+    }
+    .horizontal span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .drag {
+      color: #1984ff;
+      cursor: grab;
+    }
+    .item {
+      padding: 16px;
+      border-bottom: 1px solid #1984ff;
+    }
+    .loading {
+      font-size: 16px;
+      height: 20px;
+      text-align: center;
+      -webkit-text-stroke-width: thick;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="text/babel">
+    const VirtualList = VirtualDragList['default'];
+    function Virtual() {
+
+      const list = getPageData(60, 0);
+
+      const virtualRef = React.useRef();
+
+      const toBottom = () => {
+        virtualRef.current.scrollToBottom();
+      };
+      const toTop = () => {
+        virtualRef.current.scrollToTop();
+      };
+      const handleToTop = () => {
+        console.log('istop');
+      };
+      const handleToBottom = () => {
+        console.log('isbottom');
+      };
+      const handleDragEnd = (arr, _old, _new, changed) => {
+        console.log(arr, _old, _new, changed, 'new states after drag end');
+      };
+
+      // horizontalRef
+      const horizontalRef = React.useRef();
+
+      const horizontaltoBottom = () => {
+        horizontalRef.current.scrollToBottom();
+      };
+      const horizontaltoTop = () => {
+        horizontalRef.current.scrollToTop();
+      };
+      const horizontalhandleToTop = () => {
+        console.log('istop');
+      };
+      const horizontalhandleToBottom = () => {
+        console.log('isbottom');
+      };
+      const horizontalhandleDragEnd = (arr, _old, _new, changed) => {
+        console.log(arr, _old, _new, changed, 'new states after drag end');
+      };
+
+      return (
+        <div>
+          <div className="virtual-list">
+            <div>
+              <button onClick={ toBottom }>to bottom</button>
+              <button onClick={ toTop }>to top</button>
+            </div>
+            <VirtualList
+              ref={ virtualRef }
+              dataKey="id"
+              dataSource={ list }
+              draggable=".drag"
+              header={ <div className="loading">top loading...</div> }
+              footer={ <div className="loading">bottom loading...</div> }
+              v-top={ handleToTop }
+              v-bottom={ handleToBottom }
+              v-dragend={ handleDragEnd }
+            >
+              {
+                (record, index, uniqueKey) => {
+                  return (
+                    <div className="item">
+                      <div className="drag">{ uniqueKey }</div>
+                      { record.desc }
+                    </div>
+                  );
+                }
+              }
+            </VirtualList>
+          </div>
+
+          <div className="horizontal-virtual-list">
+            <div>
+              <button onClick={ horizontaltoBottom }>to bottom</button>
+              <button onClick={ horizontaltoTop }>to top</button>
+            </div>
+            <VirtualList
+              ref={ horizontalRef }
+              dataKey="id"
+              dataSource={ list }
+              draggable=".drag"
+              direction="horizontal"
+              wrapStyle={{ display: "flex" }}
+              rootStyle={{ display: "flex" }}
+              header={ <div className="loading">top loading...</div> }
+              footer={ <div className="loading">bottom loading...</div> }
+              v-top={ horizontalhandleToTop }
+              v-bottom={ horizontalhandleToBottom }
+              v-dragend={ horizontalhandleDragEnd }
+            >
+              {
+                (record, index, uniqueKey) => {
+                  return (
+                    <div className="item horizontal">
+                      <div className="drag">{ uniqueKey }</div>
+                      { record.desc }
+                    </div>
+                  );
+                }
+              }
+            </VirtualList>
+          </div>
+        </div>
+      )
+    };
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(<Virtual />);
+  </script>
+</body>
+</html>

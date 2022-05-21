@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Sortable from 'sortable-dnd'
+import Virtual from './virtual'
 import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 
 import type { RenderFunc, GetKey } from './interface'
@@ -8,22 +9,30 @@ import utils from './utils'
 
 const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 组件传入的事件回调
 const STYLE = { overflow: 'hidden auto', position: 'relative' } // 列表默认样式
-const MASKIMAGE = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.1) 98%, #FFFFFF 100%)' // 拖拽时默认背景样式
 
 export interface VirtualProps<T> {
   dataSource: T[];
   dataKey: string;
+  direction?: string; // scroll direction
   keeps?: number; // the number of lines rendered by the virtual scroll
   size?: number; // estimated height of each row
-  height?: string;
+
+  delay?: number; // Delay time of debounce function
+  height?: string; // list wrapper height
+
+  rootStyle?: object;
+  rootClass?: string;
+  wrapStyle?: object;
+  wrapClass?: string;
 
   disabled?: Boolean; // Disables the sortable if set to true
   draggable?: Function | string; // Specifies which items inside the element should be draggable, the function type must return a boolean
   dragging?: Function; // Specifies the drag element, which must return an HTMLElement, such as (e) => e.target
+
   ghostStyle?: object; // The style of the mask element when dragging
   ghostClass?: string; // The class of the mask element when dragging
   chosenClass?: string; // The class of the selected element when dragging
-  animation?: number; // Animation delay
+  animation?: number; // Animation time
   
   children: RenderFunc<T>;
   header: RenderFunc<T>;
@@ -32,76 +41,67 @@ export interface VirtualProps<T> {
   'v-top'?: Function;
   'v-bottom'?: Function;
   'v-dragend'?: Function;
-
-  delay?: number;
 }
 
-export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
+export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
     header,
     footer,
     children,
+
     dataSource = [],
     dataKey,
+    direction = 'vertical',
     keeps = 30,
     size = 50,
+
     height = '100%',
     delay = 10,
+
+    rootStyle = {},
+    rootClass = '',
+    wrapStyle = {},
+    wrapClass = '',
+    
     disabled = false,
     draggable = undefined,
     dragging = undefined,
     ghostClass = '',
-    ghostStyle = { backgroundImage: MASKIMAGE },
+    ghostStyle = {},
     chosenClass = '',
     animation = 150
   } = props
 
   // =============================== State ===============================
   const [cloneList, setCloneList] = useState([])
-  const [sizeStack, setSizeStack] = useState(new Map())
 
   const dragList = useRef([])
+  const uniqueKeys = useRef([])
 
   const [range, setRange] = useState({ start: 0, end: keeps }) // 当前可见范围
 
-  const dragRef = useRef(null)
-  
-  const offsetRef = useRef(0) // 记录当前滚动高度
+  const root_ref = useRef<Element>(null)
+  const wrap_ref = useRef<Element>(null) // 列表ref
+  const last_ref = useRef<Element>(null) // 列表元素外的dom，总是存在于列表最后
 
-  const virtualRef = useRef<Element>(null)
-  const groupRef = useRef<Element>(null) // 列表ref
-  const bottomRef = useRef<Element>(null) // 列表元素外的dom，总是存在于列表最后
-
-  // 记录顶部 | 底部高度，以及列表中每一行的高度，和列表的总高度
-  const calcSizeRef = useRef<Object>({ header: 0, footer: 0, total: 0, average: 0, fixed: 0 })
-
-  const calcTypeRef = useRef<String>('INIT') // 判断列表每一行高度是否固定
-  const lastIndexRef = useRef<Number>(0) // 记录上一次计算的 index 值
-
-  const isFixedSize: boolean = React.useMemo(() => {
-    return calcTypeRef.current === 'FIXED'
-  }, [calcTypeRef])
-
-  useEffect(() => {
-    setCloneList(() => [...dataSource])
-    dragList.current = [...dataSource]
-  }, [dataSource])
+  const sortable = useRef()
+  const virtual = useRef()
 
   // =============================== ref methods ===============================
   const scrollToBottom = () => {
-    if (bottomRef) {
-      const offset = bottomRef.current.offsetTop
-      virtualRef.current.scrollTop = offset
+    if (last_ref) {
+      const offset = last_ref.current.offsetTop
+      root_ref.current.scrollTop = offset
     }
     setTimeout(() => {
       // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
-      const { scrollTop, scrollHeight, clientHeight } = virtualRef.current
+      const { scrollTop, scrollHeight, clientHeight } = root_ref.current
       if (scrollTop + clientHeight < scrollHeight) scrollToBottom()
     }, 0)
   }
   React.useImperativeHandle(ref, () => ({
     reset() {
-      virtualRef.current.scrollTop = 0
+      root_ref.current.scrollTop = 0
       setCloneList(() => [...dataSource])
     },
     getSize(key: string | number) {
@@ -115,19 +115,54 @@ export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
         scrollToBottom()
       } else {
         const offset = getOffsetByIndex(index)
-        virtualRef.current.scrollTop = offset
+        root_ref.current.scrollTop = offset
       }
     },
     scrollToOffset(offset: number) {
-      virtualRef.current.scrollTop = offset
+      root_ref.current.scrollTop = offset
     },
     scrollToTop() {
-      virtualRef.current.scrollTop = 0
+      root_ref.current.scrollTop = 0
     },
     scrollToBottom,
   }))
 
-  // =============================== Item Key ===============================
+  // =============================== init ===============================
+  useEffect(() => {
+    setCloneList(() => [...dataSource])
+    dragList.current = [...dataSource]
+    setUniqueKeys()
+
+    virtual.current = new Virtual(
+      {
+        size,
+        keeps,
+        uniqueKeys: [],
+        isHorizontal: direction === 'vertical'
+      },
+      (range) => {
+        setRange(range)
+      }
+    )
+    virtual.current.updateRange()
+    virtual.current.updateSizes(this.uniqueKeys)
+  }, [dataSource])
+
+  const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React.useMemo(() => {
+    const isHorizontal = direction !== 'vertical'
+    return {
+      offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
+      scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
+      clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
+      scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+    }
+  }, [direction])
+
+  // =============================== methods ===============================
+  const setUniqueKeys = () => {
+    uniqueKeys.current = dragList.current.map(item => getKey(item))
+  }
+
   // 获取 item 中的 dateKey 值
   const getKey = React.useCallback<GetKey<T>>(
     (item: T) => {
@@ -138,177 +173,78 @@ export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
     [dataKey]
   )
 
-  // 源数据中所有的 dataKey 值
-  const dataKeys: Array<T> = React.useMemo(() => {
-    return cloneList.map(item => getKey(item))
-  }, [cloneList, getKey])
-
-  const dataKeyLen: number = React.useMemo(() => {
-    return dataKeys.length - 1
-  }, [dataKeys])
+  const getOffset = () => {
+    const root = root_ref.current
+    return root ? Math.ceil(root[scrollDirectionKey]) : 0
+  }
 
   // =============================== Scroll ===============================
   const handleScroll = (e: any) => {
-    const scrollTop = Math.ceil(e.target.scrollTop)
-    const scrollHeight = Math.ceil(e.target.scrollHeight)
-    const clientHeight = Math.ceil(e.target.clientHeight)
+    const root = root_ref.current
+    const offset = getOffset()
+    const clientSize = Math.ceil(root[this.clientSizeKey])
+    const scrollSize = Math.ceil(root[this.scrollSizeKey])
     // 如果不存在滚动元素 | 滚动高度小于0 | 超出最大滚动距离
-    if (!scrollHeight || scrollTop < 0 || (scrollTop + clientHeight > scrollHeight + 1)) return
-    // 通过上一次滚动的距离，判断当前滚动方向
-    const direction = scrollTop < offsetRef.current ? 'FRONT' : 'BEHIND'
-    // 记录当前滚动高度
-    offsetRef.current = scrollTop
+    if (offset < 0 || (offset + clientSize > scrollSize + 1) || !scrollSize) return
+
     // 判断当前应该触发的回调函数，滚动到顶部时触发 `v-top`，滚动到底部时触发 `v-bottom`
     const callback = direction === 'FRONT' ? props[CALLBACKS.top] : props[CALLBACKS.bottom]
-    const scrollOvers = getScrollOvers()
-    if (direction === 'FRONT') {
-      handleScrollFront(scrollOvers)
-      if (!!cloneList.length && offsetRef.current <= 0) callback && callback()
-    } else if (direction === 'BEHIND') {
-      handleScrollBehind(scrollOvers)
-      if (clientHeight + scrollTop >= scrollHeight) callback && callback()
+
+    virtual.current.handleScroll(offset)
+    
+    if (virtual.current.isFront()) {
+      if (!!this.list.length && offset <= 0) this.handleToTop(this)
+    } else if (virtual.current.isBehind()) {
+      if (clientSize + offset >= scrollSize) this.handleToBottom(this)
     }
+    // const scrollOvers = getScrollOvers()
+    // if (direction === 'FRONT') {
+    //   handleScrollFront(scrollOvers)
+    //   if (!!cloneList.length && offsetRef.current <= 0) callback && callback()
+    // } else if (direction === 'BEHIND') {
+    //   handleScrollBehind(scrollOvers)
+    //   if (clientHeight + scrollTop >= scrollHeight) callback && callback()
+    // }
   }
 
-  const handleScrollFront = (overs: number) => {
-    if (overs > range.start) return
-    const start = Math.max(overs - Math.round(keeps / 3), 0)
-    handleCheck(start, getEndByStart(start))
-  }
-
-  const handleScrollBehind = (overs: number) => {
-    if (overs < range.start + Math.round(keeps / 3)) return
-    handleCheck(overs, getEndByStart(overs))
-  }
-
-  const handleCheck = (start: number, end: number) => {
-    const total = dataKeys.length
-    if (total <= keeps) {
-      start = 0
-      end = dataKeyLen
-    } else if (end - start < keeps - 1) {
-      start = end - keeps + 1
-    }
-    if (range.start !== start) setRange(() => { return { start, end } }) 
-  }
-
-  // =============================== methods ===============================
-  // 获取当前滚动高度经过了多少个列表项
-  const getScrollOvers = () => {
-    // 如果有 header 插槽，需要减去 header 的高度
-    const { header, fixed } = calcSizeRef.current
-    const offset = offsetRef.current - header
-    if (offset <= 0) return 0
-    if (isFixedSize) return Math.floor(offset / fixed)
-
-    let low: number = 0
-    let high: number = dataKeys.length
-    let middle: number = 0
-    let middleOffset: number = 0
-    while(low <= high) {
-      middle = low + Math.floor((high - low) / 2)
-      middleOffset = getOffsetByIndex(middle)
-      if (middleOffset === offset) {
-        return middle
-      } else if (middleOffset < offset) {
-        low = middle + 1
-      } else if (middleOffset > offset) {
-        high = middle - 1
-      } else {
-        break
-      }
-    }
-    return low > 0 ? --low : 0
-  }
-
-  const getOffsetByIndex = (index: number) => {
-    if (!index) return 0
-    let offset: number = 0
-    let indexSize: number = 0
-    for(let i = 0; i < index; i++) {
-      indexSize = sizeStack.get(dataKeys[i])
-      offset += typeof indexSize === 'number' ? indexSize : getItemSize()
-    }
-    lastIndexRef.current = Math.max(lastIndexRef.current, index - 1)
-    lastIndexRef.current = Math.min(lastIndexRef.current, dataKeyLen)
-    return offset
-  }
-
-  const getEndByStart = (start: number) => {
-    const end = start + keeps
-    return dataKeyLen > 0 ? Math.min(end, dataKeyLen) : end
-  }
-
-  const getItemSize = (): number => {
-    const { fixed, average } = calcSizeRef.current
-    return isFixedSize ? fixed : (average || size)
-  }
+  
 
   // ======================= size observe =======================
-  const onItemSizeChange = (size: number, key: string | number) => {
-    setSizeStack(sizeStack.set(key, size))
-    // 初始为固定高度fixedSizeValue, 如果大小没有变更不做改变，如果size发生变化，认为是动态大小，去计算平均值
-    if (calcTypeRef.current === 'INIT') {
-      calcTypeRef.current = 'FIXED'
-      calcSizeRef.current = {...calcSizeRef.current, fixed: size}
-    } else if (calcTypeRef.current === 'FIXED' && calcSizeRef.current.fixed !== size) {
-      calcTypeRef.current = 'DYNAMIC'
-      calcSizeRef.current = {...calcSizeRef.current, fixed: undefined}
-    }
-    if (calcTypeRef.current !== 'FIXED' && calcSizeRef.current.total !== 'undefined') {
-      if (sizeStack.size < Math.min(keeps, dataKeys.length)) {
-        const total = [...sizeStack.values()].reduce((acc, cur) => acc + cur, 0)
-        const average = Math.round(total / sizeStack.size)
-        calcSizeRef.current = {...calcSizeRef.current, total, average}
-      } else {
-        calcSizeRef.current = {...calcSizeRef.current, total: undefined}
-      }
-    }
+  const onItemSizeChange = (key: string | number, size: number) => {
+    virtual.current.handleItemSizeChange(key, size)
   }
 
-  const onSlotSizeChange = (size: number, key: string) => {
-    calcSizeRef.current[key] = size
+  const onSlotSizeChange = (key: string | number, size: number) => {
+    if (key === 'header') virtual.currrent.handleHeaderSizeChange(size)
+    if (key === 'footer') virtual.currrent.handleFooterSizeChange(size)
   }
 
   // =============================== Range ===============================
-  const { start, end, front, behind } = React.useMemo(() => {
-    const { start, end } = range
-    let front: number
-    let behind: number
-    if (isFixedSize) {
-      front = calcSizeRef.current.fixed * start
-      behind = calcSizeRef.current.fixed * (dataKeyLen - end)
-    } else {
-      front = getOffsetByIndex(start)
-      if (lastIndexRef.current === dataKeyLen) {
-        behind = getOffsetByIndex(dataKeyLen) - getOffsetByIndex(end)
-      } else {
-        behind = (dataKeyLen - end) * getItemSize()
-      }
-    }
-    return { front, behind, start, end }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range, dataKeyLen])
+  // const { start, end, front, behind } = React.useMemo(() => {
+  //   const { start, end } = range
+  //   let front: number
+  //   let behind: number
+  //   if (isFixedSize) {
+  //     front = calcSizeRef.current.fixed * start
+  //     behind = calcSizeRef.current.fixed * (dataKeyLen - end)
+  //   } else {
+  //     front = getOffsetByIndex(start)
+  //     if (lastIndexRef.current === dataKeyLen) {
+  //       behind = getOffsetByIndex(dataKeyLen) - getOffsetByIndex(end)
+  //     } else {
+  //       behind = (dataKeyLen - end) * getItemSize()
+  //     }
+  //   }
+  //   return { front, behind, start, end }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [range, dataKeyLen])
 
-  // =============================== init ===============================
 
-  useEffect(() => {
-    const start = Math.max(range.start, 0)
-    handleCheck(start, getEndByStart(start))
-
-    sizeStack.forEach((v: any, key: any) => {
-      if (!dataKeys.includes(key)) {
-        sizeStack.delete(key)
-      }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataSource])
-
-  // =============================== drag ===============================
+  // =============================== sortable ===============================
   const initDraggable = () => {
     destroyDraggable()
-    dragRef.current = new Sortable(
-      groupRef.current,
+    sortable.current = new Sortable(
+      wrap_ref.current,
       {
         disabled,
         animation,
@@ -355,8 +291,8 @@ export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
   }
 
   const destroyDraggable = () => {
-    dragRef.current && dragRef.current.destroy()
-    dragRef.current = null
+    sortable.current && sortable.current.destroy()
+    sortable.current = null
   }
 
   useLayoutEffect(() => {
@@ -377,11 +313,11 @@ export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
   // ================================ Render ================================
 
   return (
-    <div ref={ virtualRef } style={{ ...STYLE, height }} onScroll={ utils.debounce(handleScroll, delay) }>
+    <div ref={ root_ref } style={{ ...STYLE, height }} onScroll={ utils.debounce(handleScroll, delay) }>
 
       <Slot children={ header } roleId="header" onSizeChange={ onSlotSizeChange }></Slot>
 
-      <div ref={ groupRef } v-role="content" v-start={ start } style={{ padding: `${front}px 0 ${behind}px` }}>
+      <div ref={ wrap_ref } v-role="content" v-start={ start } style={{ padding: `${front}px 0 ${behind}px` }}>
         {
           cloneList.slice(start, end + 1).map(item => {
             const key = getKey(item)
@@ -401,9 +337,9 @@ export function Virtual<T>(props: VirtualProps<T>, ref: React.ref) {
       </div>
 
       <Slot children={ footer } roleId="footer" onSizeChange={ onSlotSizeChange }></Slot>
-      <div ref={ bottomRef }></div>
+      <div ref={ last_ref }></div>
     </div>
   )
 }
 
-export default React.forwardRef(Virtual)
+export default React.forwardRef(VirtualDragList)

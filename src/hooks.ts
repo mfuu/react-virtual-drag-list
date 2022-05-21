@@ -22,7 +22,7 @@ export function Observer(props: ObserverProps) {
     if (typeof ResizeObserver !== undefined) {
       observer = new ResizeObserver(() => {
         const size = elementRef.current.clientHeight
-        onSizeChange && onSizeChange(size, uniqueKey)
+        onSizeChange && onSizeChange(uniqueKey, size)
       })
       elementRef.current && observer.observe(elementRef.current)
     }

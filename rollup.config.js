@@ -22,7 +22,7 @@ export default [
     output: {
       format: 'umd',
       file: 'dist/draglist.js',
-      name: 'virtualDragList',
+      name: 'VirtualDragList',
       sourcemap: false,
       globals: {
         react: 'React'
@@ -42,7 +42,7 @@ export default [
     output: {
       format: 'umd',
       file: 'dist/draglist.min.js',
-      name: 'virtualDragList',
+      name: 'VirtualDragList',
       sourcemap: false,
       globals: {
         react: 'React'
