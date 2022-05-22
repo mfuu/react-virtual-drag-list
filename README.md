@@ -68,24 +68,36 @@ function Virtual() {
 
 ## Props
 
+**common used**
+
 |     **Prop**    |   **Type**   | **Required?** | **Description**  |    **Default**   |
 |-----------------|--------------|---------------|------------------|------------------|
 | `dataKey`       | `String`     |   ✓   | the unique identifier of each piece of data, in the form of `'a.b.c'` | - |
 | `dataSource`    | `Array`      |   ✓   | data list            | `[]` |
-| `size`          | `Number`     |   ✓   | estimated height of each row  | `50` |
+| `size`          | `Number`     |       | estimated height of each row  | `50` |
 | `keeps`         | `Number`     |       | the number of lines rendered by the virtual scroll  | `30` |
-| `delay`         | `Number`     |       | Delay time of debounce function  | `10` |
-| `header`        | `JSX.Element`|       | top of list            | - |
-| `footer`        | `JSX.Element`|       | bottom of list            | - |
+| `direction`     | `String`     |       | `vertical/horizontal`, scroll direction  | `vertical` |
 | `v-top`         | `Function`   |       | callback function that fires when scrolling to the top  | - |
 | `v-bottom`      | `Function`   |       | callback function that fires when scrolling to the bottom  | - |
 | `v-dragend`     | `Function`   |       | event when drag is complete  | - |
-| `itemStyle`     | `Object`     |       | style for each line  | `{}` |
-| `itemClass`     | `String`     |       | class for each line  | `''` |
-| `disabled`      | `Boolean`    |       | Disables the sortable if set to true | `false` |
-| `animation`     | `Number`     |       | Drag-and-drop's animation delay | `150` |
 | `draggable`     | `Function/String` |  | Specifies which items inside the element should be draggable, the function type must return a boolean | `undefined` |
 | `dragging`      | `Function`   |       | Specifies the drag element, which must return an HTMLElement, such as `(e) => e.target` | `undefined` |
+
+**Uncommonly used**
+
+|     **Prop**    |   **Type**   | **Required?** | **Description**  |    **Default**   |
+|-----------------|--------------|---------------|------------------|------------------|
+| `disabled`      | `Boolean`    |       | Disables the sortable if set to true | `false` |
+| `delay`         | `Number`     |       | Delay time of debounce function  | `0` |
+| `header`        | `JSX.Element`|       | top of list            | - |
+| `footer`        | `JSX.Element`|       | bottom of list            | - |
+| `itemStyle`     | `Object`     |       | style for each line  | `{}` |
+| `itemClass`     | `String`     |       | class for each line  | `''` |
+| `rootStyle`     | `Object`     |       | Root element style  | `{}` |
+| `rootClass`     | `String`     |       | Root element class  | `''` |
+| `wrapStyle`     | `Object`     |       | List wrapper element style  | `{}` |
+| `wrapClass`     | `String`     |       | List wrapper element class  | `''` |
+| `animation`     | `Number`     |       | Drag-and-drop's animation delay | `150` |
 | `ghostStyle`    | `Object`     |       | The style of the mask element when dragging | `{}` |
 | `ghostClass`    | `String`     |       | The class of the mask element when dragging | `''` |
 | `chosenClass`   | `String`     |       | The class of the selected element when dragging | `''` |
