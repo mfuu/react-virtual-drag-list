@@ -9,8 +9,8 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   <script src="./dist/draglist.js"></script>
-  <script src="../test/mock.js"></script>
-  <script src="../test/sentences.js"></script>
+  <script src="./test/mock.js"></script>
+  <script src="./test/sentences.js"></script>
   <style>
     html, body {
       height: 100%;
@@ -116,11 +116,11 @@
 
       return (
         <div>
+          <div>
+            <button onClick={ toBottom }>to bottom</button>
+            <button onClick={ toTop }>to top</button>
+          </div>
           <div className="virtual-list">
-            <div>
-              <button onClick={ toBottom }>to bottom</button>
-              <button onClick={ toTop }>to top</button>
-            </div>
             <VirtualList
               ref={ virtualRef }
               dataKey="id"
@@ -145,11 +145,11 @@
             </VirtualList>
           </div>
 
+          <div>
+            <button onClick={ horizontaltoBottom }>to bottom</button>
+            <button onClick={ horizontaltoTop }>to top</button>
+          </div>
           <div className="horizontal-virtual-list">
-            <div>
-              <button onClick={ horizontaltoBottom }>to bottom</button>
-              <button onClick={ horizontaltoTop }>to top</button>
-            </div>
             <VirtualList
               ref={ horizontalRef }
               dataKey="id"
