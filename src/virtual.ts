@@ -49,7 +49,7 @@ class Virtual<T> {
   offset: number; // 记录滚动距离
 
   constructor(options: VirtualOptions<T>, callback: Function) {
-    this.options = options
+    this.options = { ...options }
     this.callback = callback
 
     this.sizes = new Map()
@@ -66,7 +66,7 @@ class Virtual<T> {
     if (options) this.checkIfUpdate(0, options.keeps - 1)
   }
 
-    // --------------------------- update ------------------------------
+  // --------------------------- update ------------------------------
   updateUniqueKeys(value: any) {
     this.options.uniqueKeys = value
   }
@@ -202,7 +202,7 @@ class Virtual<T> {
   }
 
   // 列表项高度变化
-  handleItemSizeChange(id: string | number, size: number) {
+  handleItemSizeChange(id: T, size: number) {
     this.sizes.set(id, size)
 
     // 'INIT' 状态表示每一项的高度都相同

@@ -10,6 +10,8 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.VirtualDragList = {}, global.React));
 })(this, (function (exports, React) { 'use strict';
 
+  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
   function _interopNamespace(e) {
     if (e && e.__esModule) return e;
     var n = Object.create(null);
@@ -29,9 +31,10 @@
   }
 
   var React__namespace = /*#__PURE__*/_interopNamespace(React);
+  var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
   function Observer(props) {
-      const { uniqueKey, children, onSizeChange } = props;
+      const { dataKey, children, onSizeChange } = props;
       const elementRef = React__namespace.useRef(null);
       const isRenderProps = typeof children === 'function';
       const mergedChildren = isRenderProps ? children(elementRef) : children;
@@ -40,7 +43,7 @@
           if (typeof ResizeObserver !== undefined) {
               observer = new ResizeObserver(() => {
                   const size = elementRef.current.clientHeight;
-                  onSizeChange && onSizeChange(uniqueKey, size);
+                  onSizeChange && onSizeChange(dataKey, size);
               });
               elementRef.current && observer.observe(elementRef.current);
           }
@@ -58,15 +61,15 @@
   }
 
   function Item(props) {
-      const { children, uniqueKey, itemClass, itemStyle } = props;
+      const { children, dataKey, Class, Style, Tag = 'div' } = props;
       const { record, index, onSizeChange } = props;
-      return (React__namespace.createElement(Observer, { uniqueKey: uniqueKey, onSizeChange: onSizeChange },
-          React__namespace.createElement("div", { className: itemClass, style: itemStyle, "data-key": uniqueKey }, typeof children === 'function' ? children(record, index, uniqueKey) : children)));
+      return (React__namespace.createElement(Observer, { dataKey: dataKey, onSizeChange: onSizeChange },
+          React__namespace.createElement(Tag, { className: Class, style: Style, "data-key": dataKey }, typeof children === 'function' ? children(record, index, dataKey) : children)));
   }
   function Slot(props) {
-      const { children, roleId, onSizeChange } = props;
-      return children ? (React__namespace.createElement(Observer, { uniqueKey: roleId, onSizeChange: onSizeChange },
-          React__namespace.createElement("div", { "v-role": roleId }, children))) : React__namespace.createElement(React__namespace.Fragment, null);
+      const { Tag = 'div', Style, Class, children, roleId, onSizeChange } = props;
+      return children ? (React__namespace.createElement(Observer, { dataKey: roleId, onSizeChange: onSizeChange },
+          React__namespace.createElement(Tag, { "v-role": roleId, style: Style, className: Class }, children))) : React__namespace.createElement(React__namespace.Fragment, null);
   }
 
   /**
@@ -138,7 +141,7 @@
       direction; // 滚动方向
       offset; // 记录滚动距离
       constructor(options, callback) {
-          this.options = options;
+          this.options = { ...options };
           this.callback = callback;
           this.sizes = new Map();
           this.isHorizontal = options.isHorizontal;
@@ -882,21 +885,27 @@
   class DragState {
       from;
       to;
+      constructor() {
+          this.from = { key: null, item: null, index: null };
+          this.to = { key: null, item: null, index: null };
+      }
   }
   class Sortable {
       getKey;
-      callback;
+      onDrag;
+      onDrop;
       dragState;
-      dragIndex; // drag element's index in list
+      dragKey;
       dragElement;
       drag;
       options;
       cloneList;
       dataSource;
       rangeIsChanged;
-      constructor(options, callback) {
+      constructor(options, onDrag, onDrop) {
           this.options = options;
-          this.callback = callback;
+          this.onDrag = onDrag;
+          this.onDrop = onDrop;
           this.getKey = options.getKey;
           this.dragState = new DragState;
           this.dataSource = options.dataSource;
@@ -909,7 +918,6 @@
       }
       init() {
           this.destroy();
-          let flag = false;
           this.drag = new sortable_min(this.options.scrollEl, {
               disabled: this.options.disabled,
               draggable: this.options.draggable,
@@ -921,42 +929,42 @@
               onDrag: (dragEl) => {
                   this.dragElement = dragEl;
                   this.cloneList = [...this.dataSource];
-                  const key = dragEl.getAttribute('data-key');
-                  this.dragIndex = this.dataSource.findIndex(el => this.getKey(el) === key);
-                  this.dragState.from.index = this.dragIndex;
-                  this.dragState.from.key = key;
+                  this.dragKey = dragEl.getAttribute('data-key');
+                  this.dataSource.forEach((item, index) => {
+                      const key = this.getKey(item);
+                      if (key == this.dragKey)
+                          Object.assign(this.dragState.from, { item, index, key });
+                  });
                   this.rangeIsChanged = false;
+                  this.onDrag(this.dragKey, this.rangeIsChanged);
               },
               onChange: (_old_, _new_) => {
-                  if (!flag && this.rangeIsChanged) {
-                      flag = true;
-                      this.dataSource.splice(this.dragIndex, 1);
-                  }
                   const oldKey = this.dragState.from.key;
                   const newKey = _new_.node.getAttribute('data-key');
                   this.dragState.to.key = newKey;
+                  const from = { item: null, index: -1 };
+                  const to = { item: null, index: -1 };
                   this.cloneList.forEach((el, index) => {
                       const key = this.getKey(el);
-                      if (key === oldKey)
-                          Object.assign(this.dragState.from, { item: el, index });
-                      if (key === newKey)
-                          Object.assign(this.dragState.to, { item: el, index });
+                      if (key == oldKey)
+                          Object.assign(from, { item: el, index });
+                      if (key == newKey)
+                          Object.assign(to, { item: el, index });
                   });
-                  const { from, to } = this.dragState;
                   this.cloneList.splice(from.index, 1);
                   this.cloneList.splice(to.index, 0, from.item);
               },
               onDrop: (changed) => {
-                  this.dragState.to.index = this.cloneList.findIndex(el => this.getKey(el) === this.dragState.from.key);
-                  const { from, to } = this.dragState;
-                  if (flag && this.rangeIsChanged && this.dragElement)
+                  const index = this.cloneList.findIndex(el => this.getKey(el) == this.dragState.from.key);
+                  const item = this.dataSource[index];
+                  this.dragState.to = { item, index, key: this.getKey(item) };
+                  if (this.rangeIsChanged && this.dragElement)
                       this.dragElement.remove();
-                  this.callback(this.cloneList, from, to, changed);
+                  const { from, to } = this.dragState;
+                  this.onDrop(this.cloneList, from, to, changed);
                   this.dataSource = [...this.cloneList];
                   this.rangeIsChanged = false;
                   this.dragElement = null;
-                  this.dragIndex = -1;
-                  flag = false;
               }
           });
       }
@@ -968,17 +976,27 @@
 
   const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' }; // 组件传入的事件回调
   function VirtualDragList(props, ref) {
-      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = 50, height = '100%', delay = 0, rootStyle = {}, rootClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
+      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = 50, height = '100%', delay = 0, wrapTag = 'div', rootTag = 'div', itemTag = 'div', headerTag = 'div', footerTag = 'div', itemStyle = {}, itemClass = '', rootStyle = {}, rootClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
       // =============================== State ===============================
       const [list, setList] = React.useState([]);
       const cloneList = React.useRef([]);
       const uniqueKeys = React.useRef([]);
       const [range, setRange] = React.useState({ start: 0, end: keeps - 1, front: 0, behind: 0 }); // 当前可见范围
+      const [drag, setDrag] = React.useState({ key: null, changed: false });
       const root_ref = React.useRef(null);
       const wrap_ref = React.useRef(null); // 列表ref
       const last_ref = React.useRef(null); // 列表元素外的dom，总是存在于列表最后
       const sortable = React.useRef(null);
-      const virtual = React.useRef(null);
+      const virtual = React.useRef(new Virtual({
+          size,
+          keeps,
+          uniqueKeys: uniqueKeys.current,
+          isHorizontal: direction === 'vertical'
+      }, (range) => {
+          setRange(() => range);
+          setDrag((pre) => { return { ...pre, changed: true }; });
+          sortable.current.set('rangeIsChanged', true);
+      }));
       // =============================== ref methods ===============================
       /**
        * reset component
@@ -1040,7 +1058,7 @@
       const scrollToBottom = () => {
           if (last_ref.current) {
               const offset = last_ref.current[offsetSizeKey];
-              root_ref.current.scrollTop = offset;
+              root_ref.current[scrollDirectionKey] = offset;
               // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
               setTimeout(() => {
                   const root = root_ref.current;
@@ -1052,7 +1070,7 @@
               }, 5);
           }
       };
-      React__namespace.useImperativeHandle(ref, () => ({
+      React__default["default"].useImperativeHandle(ref, () => ({
           reset,
           getSize,
           getOffset,
@@ -1065,30 +1083,27 @@
       React.useEffect(() => {
           cloneList.current = [...dataSource];
           setUniqueKeys();
-          virtual.current = new Virtual({
-              size,
-              keeps,
-              uniqueKeys: uniqueKeys.current,
-              isHorizontal: direction === 'vertical'
-          }, (changedRange) => {
-              setRange(() => changedRange);
-              sortable.current.set('rangeIsChanged', true);
-          });
-          virtual.current.updateRange();
+          virtual.current.updateUniqueKeys(uniqueKeys.current);
           virtual.current.updateSizes(uniqueKeys.current);
+          virtual.current.updateRange();
           if (sortable.current)
               sortable.current.set('dataSource', dataSource);
           setList(() => [...dataSource]);
       }, [dataSource]);
-      const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React__namespace.useMemo(() => {
-          const isHorizontal = direction !== 'vertical';
-          return {
-              offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
-              scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
-              clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
-              scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+      React.useEffect(() => {
+          return () => {
+              destroyDraggable();
           };
-      }, [direction]);
+      }, []);
+      React.useLayoutEffect(() => {
+          if (draggable) {
+              initDraggable();
+          }
+          else {
+              destroyDraggable();
+          }
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [draggable]);
       // =============================== sortable ===============================
       const initDraggable = () => {
           destroyDraggable();
@@ -1103,32 +1118,23 @@
               ghostClass,
               chosenClass,
               animation,
+          }, (key, changed) => {
+              setDrag(() => { return { key, changed }; });
           }, (list, from, to, changed) => {
               const callback = props[CALLBACKS.dragend];
               callback && callback(list, from, to, changed);
-              cloneList.current = [...list];
-              setList(() => [...list]);
-              setUniqueKeys();
+              setDrag(() => { return { key: null, changed: false }; });
+              if (changed) {
+                  cloneList.current = [...list];
+                  setList(() => [...list]);
+                  setUniqueKeys();
+              }
           });
       };
       const destroyDraggable = () => {
           sortable.current && sortable.current.destroy();
           sortable.current = null;
       };
-      React.useLayoutEffect(() => {
-          if (draggable) {
-              initDraggable();
-          }
-          else {
-              destroyDraggable();
-          }
-          // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [draggable]);
-      React.useEffect(() => {
-          return () => {
-              destroyDraggable();
-          };
-      }, []);
       // =============================== methods ===============================
       const setUniqueKeys = () => {
           uniqueKeys.current = cloneList.current.map(item => getKey(item));
@@ -1137,9 +1143,18 @@
           return cloneList.current.findIndex(el => getKey(el) === getKey(item));
       };
       // 获取 item 中的 dateKey 值
-      const getKey = React__namespace.useCallback((item) => {
-          return (dataKey.replace(/\[/g, '.').replace(/\]/g, '').split('.').reduce((o, k) => (o || {})[k], item)) || '';
+      const getKey = React__default["default"].useCallback((item) => {
+          return (dataKey.replace(/\[/g, '.').replace(/\]/g, '').split('.').reduce((o, k) => (o || {})[k], item));
       }, [dataKey]);
+      const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React__default["default"].useMemo(() => {
+          const isHorizontal = direction !== 'vertical';
+          return {
+              offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
+              scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
+              clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
+              scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+          };
+      }, [direction]);
       // =============================== Scroll ===============================
       const handleScroll = (e) => {
           const root = root_ref.current;
@@ -1153,25 +1168,21 @@
           // 判断当前应该触发的回调函数，滚动到顶部时触发 `v-top`，滚动到底部时触发 `v-bottom`
           if (virtual.current.isFront()) {
               if (!!dataSource.length && offset <= 0)
-                  handleToTop();
+                  handleToTop(props);
           }
           else if (virtual.current.isBehind()) {
               if (clientSize + offset >= scrollSize)
-                  handleToBottom();
+                  handleToBottom(props);
           }
       };
-      const handleToTop = () => {
-          return debounce(() => {
-              const callback = props[CALLBACKS.top];
-              callback && callback();
-          });
-      };
-      const handleToBottom = () => {
-          return debounce(() => {
-              const callback = props[CALLBACKS.bottom];
-              callback && callback();
-          });
-      };
+      const handleToTop = debounce(function (props) {
+          const callback = props[CALLBACKS.top];
+          callback && callback();
+      });
+      const handleToBottom = debounce(function (props) {
+          const callback = props[CALLBACKS.bottom];
+          callback && callback();
+      });
       // ======================= size observe =======================
       const onItemSizeChange = (key, size) => {
           virtual.current.handleItemSizeChange(key, size);
@@ -1183,22 +1194,31 @@
               virtual.current.handleFooterSizeChange(size);
       };
       // ================================ Render ================================
-      const { start, end, front, behind } = React__namespace.useMemo(() => {
+      const { start, end, front, behind } = React__default["default"].useMemo(() => {
           return { ...range };
       }, [range]);
+      const { dragKey, rangeIsChanged } = React__default["default"].useMemo(() => {
+          return {
+              dragKey: drag.key,
+              rangeIsChanged: drag.changed
+          };
+      }, [drag]);
       const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' };
       const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
-      return (React__namespace.createElement("div", { ref: root_ref, className: rootClass, style: RootStyle, onScroll: debounce(handleScroll, delay) },
-          React__namespace.createElement(Slot, { children: header, roleId: "header", onSizeChange: onSlotSizeChange }),
-          React__namespace.createElement("div", { ref: wrap_ref, "v-role": "content", className: wrapClass, style: WrapStyle }, list.slice(start, end + 1).map(item => {
+      const WrapTag = wrapTag;
+      const RootTag = rootTag;
+      return (React__default["default"].createElement(RootTag, { ref: root_ref, className: rootClass, style: RootStyle, onScroll: debounce(handleScroll, delay) },
+          React__default["default"].createElement(Slot, { children: header, roleId: "header", Tag: headerTag, onSizeChange: onSlotSizeChange }),
+          React__default["default"].createElement(WrapTag, { ref: wrap_ref, "v-role": "content", className: wrapClass, style: WrapStyle }, list.slice(start, end + 1).map(item => {
               const key = getKey(item);
               const index = getItemIndex(item);
-              return (React__namespace.createElement(Item, { key: key, uniqueKey: key, children: children, record: item, index: index, onSizeChange: onItemSizeChange }));
+              const hidden = key == dragKey && rangeIsChanged;
+              return (React__default["default"].createElement(Item, { key: key, Tag: itemTag, record: item, index: index, dataKey: key, children: children, Class: itemClass, Style: { ...itemStyle, display: hidden ? 'none' : '' }, onSizeChange: onItemSizeChange }));
           })),
-          React__namespace.createElement(Slot, { children: footer, roleId: "footer", onSizeChange: onSlotSizeChange }),
-          React__namespace.createElement("div", { ref: last_ref })));
+          React__default["default"].createElement(Slot, { children: footer, roleId: "footer", Tag: footerTag, onSizeChange: onSlotSizeChange }),
+          React__default["default"].createElement("div", { ref: last_ref })));
   }
-  var index = React__namespace.forwardRef(VirtualDragList);
+  var index = React__default["default"].forwardRef(VirtualDragList);
 
   exports.VirtualDragList = VirtualDragList;
   exports["default"] = index;

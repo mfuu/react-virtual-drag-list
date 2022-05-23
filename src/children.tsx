@@ -6,26 +6,24 @@ export interface ItemProps<T> extends BaseProps {
   key: any;
   record: T;
   index: number;
-  uniqueKey: string | number;
-  itemClass?: string;
-  itemStyle?: object;
+  dataKey: string | number;
 }
 
 export function Item<T>(props: ItemProps<T>) {
 
-  const { children, uniqueKey, itemClass, itemStyle } = props
+  const { children, dataKey, Class, Style, Tag = 'div' } = props
 
   const { record, index, onSizeChange } = props
 
   return (
-    <Observer uniqueKey={ uniqueKey } onSizeChange={ onSizeChange }>
-      <div
-        className={ itemClass }
-        style={ itemStyle }
-        data-key={ uniqueKey }
+    <Observer dataKey={ dataKey } onSizeChange={ onSizeChange }>
+      <Tag
+        className={ Class }
+        style={ Style }
+        data-key={ dataKey }
       >
-        { typeof children === 'function' ? children(record, index, uniqueKey) : children }
-      </div>
+        { typeof children === 'function' ? children(record, index, dataKey) : children }
+      </Tag>
     </Observer>
   )
 }
@@ -36,11 +34,17 @@ export interface SlotProps<T> extends BaseProps {
 
 export function Slot<T>(props: SlotProps<T>) {
   
-  const { children, roleId, onSizeChange } = props
+  const { Tag = 'div', Style, Class, children, roleId, onSizeChange } = props
 
   return children ? (
-    <Observer uniqueKey={ roleId } onSizeChange={ onSizeChange }>
-      <div v-role={ roleId }>{ children }</div>
+    <Observer dataKey={ roleId } onSizeChange={ onSizeChange }>
+      <Tag
+        v-role={ roleId }
+        style={ Style }
+        className={ Class }
+      >
+        { children }
+      </Tag>
     </Observer>
   ) : <></>
 }

@@ -11,6 +11,10 @@ class DragState {
     item: any, // 拖拽结束节点数据
     index: number // 拖拽结束节点索引
   }
+  constructor() {
+    this.from = { key: null, item: null, index: null }
+    this.to = { key: null, item: null, index: null }
+  }
 }
 
 interface SortableOptions<T> {
@@ -28,9 +32,10 @@ interface SortableOptions<T> {
 
 class Sortable<T> {
   getKey: Function;
-  callback: Function;
+  onDrag: Function;
+  onDrop: Function;
   dragState: DragState;
-  dragIndex: number; // drag element's index in list
+  dragKey: any;
   dragElement: HTMLElement;
   drag: SortableDnd;
   options: SortableOptions<T>;
@@ -38,9 +43,10 @@ class Sortable<T> {
   dataSource: T[];
   rangeIsChanged: boolean;
 
-  constructor(options: SortableOptions<T>, callback: Function) {
+  constructor(options: SortableOptions<T>, onDrag:Function, onDrop: Function) {
     this.options = options
-    this.callback = callback
+    this.onDrag = onDrag
+    this.onDrop = onDrop
     this.getKey = options.getKey
 
     this.dragState = new DragState
@@ -56,7 +62,6 @@ class Sortable<T> {
 
   init() {
     this.destroy()
-    let flag = false
     this.drag = new SortableDnd(
       this.options.scrollEl,
       {
@@ -68,52 +73,54 @@ class Sortable<T> {
         chosenClass: this.options.chosenClass,
         animation: this.options.animation,
 
-        onDrag: (dragEl) => {
+        onDrag: (dragEl: HTMLElement) => {
           this.dragElement = dragEl
           this.cloneList = [...this.dataSource]
 
-          const key = dragEl.getAttribute('data-key')
-          this.dragIndex = this.dataSource.findIndex(el => this.getKey(el) === key)
+          this.dragKey = dragEl.getAttribute('data-key')
 
-          this.dragState.from.index = this.dragIndex
-          this.dragState.from.key = key
+          this.dataSource.forEach((item, index) => {
+            const key = this.getKey(item)
+            if (key == this.dragKey) Object.assign(this.dragState.from, { item, index, key })
+          })
+
           this.rangeIsChanged = false
+          this.onDrag(this.dragKey, this.rangeIsChanged)
         },
         onChange: (_old_, _new_) => {
-          if (!flag && this.rangeIsChanged) {
-            flag = true
-            this.dataSource.splice(this.dragIndex, 1)
-          }
           const oldKey = this.dragState.from.key
           const newKey = _new_.node.getAttribute('data-key')
 
           this.dragState.to.key = newKey
 
+          const from = { item: null, index: -1 }
+          const to = { item: null, index: -1 }
+
           this.cloneList.forEach((el, index) => {
             const key = this.getKey(el)
-            if (key === oldKey) Object.assign(this.dragState.from, { item: el, index })
-            if (key === newKey) Object.assign(this.dragState.to, { item: el, index })
+            if (key == oldKey) Object.assign(from, { item: el, index })
+            if (key == newKey) Object.assign(to, { item: el, index })
           })
 
-          const { from, to } = this.dragState
           this.cloneList.splice(from.index, 1)
           this.cloneList.splice(to.index, 0, from.item)
         },
-        onDrop: (changed) => {
-          this.dragState.to.index = this.cloneList.findIndex(el =>
-            this.getKey(el) === this.dragState.from.key
+        onDrop: (changed: boolean) => {
+          const index = this.cloneList.findIndex(el =>
+            this.getKey(el) == this.dragState.from.key
           )
+          const item = this.dataSource[index]
+
+          this.dragState.to = { item, index, key: this.getKey(item) }
+
+          if (this.rangeIsChanged && this.dragElement) this.dragElement.remove()
 
           const { from, to } = this.dragState
-          if (flag && this.rangeIsChanged && this.dragElement) this.dragElement.remove()
-
-          this.callback(this.cloneList, from, to, changed)
+          this.onDrop(this.cloneList, from, to, changed)
 
           this.dataSource = [...this.cloneList]
           this.rangeIsChanged = false
           this.dragElement = null
-          this.dragIndex = -1
-          flag = false
         }
       }
     )

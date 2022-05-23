@@ -52,7 +52,7 @@ function Virtual() {
       v-dragend={ handleDragEnd }
     >
       {
-        (record, index, uniqueKey) => {
+        (record, index, dataKey) => {
           return (
             <div>
               <span class=".drag">{ index }</span>
@@ -91,6 +91,11 @@ function Virtual() {
 | `delay`         | `Number`     |       | Delay time of debounce function  | `0` |
 | `header`        | `JSX.Element`|       | top of list            | - |
 | `footer`        | `JSX.Element`|       | bottom of list            | - |
+| `wrapTag`       | `String`     |       | Label type for list wrap element  | `div` |
+| `rootTag`       | `String`     |       | Label type for root element  | `div` |
+| `itemTag`       | `String`     |       | Label type for list item element  | `div` |
+| `headerTag`     | `String`     |       | Label type for header slot element  | `div` |
+| `footerTag`     | `String`     |       | Label type for footer slot element  | `div` |
 | `itemStyle`     | `Object`     |       | style for each line  | `{}` |
 | `itemClass`     | `String`     |       | class for each line  | `''` |
 | `rootStyle`     | `Object`     |       | Root element style  | `{}` |

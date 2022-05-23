@@ -8,7 +8,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  <script src="./dist/draglist.js"></script>
+  <script src="./dist/draglist.min.js"></script>
   <script src="./test/mock.js"></script>
   <script src="./test/sentences.js"></script>
   <style>
@@ -27,6 +27,12 @@
     }
     #app {
       height: 100%;
+    }
+    .header {
+      height: 50px;
+      line-height: 48px;
+      background: antiquewhite;
+      text-align: center;
     }
     .virtual-list {
       width: 1000px;
@@ -78,12 +84,19 @@
       const list = getPageData(60, 0);
 
       const virtualRef = React.useRef();
+      const horizontalRef = React.useRef();
 
+      const reset = () => {
+        virtualRef.current.reset();
+      };
       const toBottom = () => {
         virtualRef.current.scrollToBottom();
       };
       const toTop = () => {
         virtualRef.current.scrollToTop();
+      };
+      const toIndex = () => {
+        virtualRef.current.scrollToIndex(30);
       };
       const handleToTop = () => {
         console.log('istop');
@@ -96,13 +109,17 @@
       };
 
       // horizontalRef
-      const horizontalRef = React.useRef();
-
+      const horizontalreset = () => {
+        horizontalRef.current.reset();
+      };
       const horizontaltoBottom = () => {
         horizontalRef.current.scrollToBottom();
       };
       const horizontaltoTop = () => {
         horizontalRef.current.scrollToTop();
+      };
+      const horizontaltoIndex = () => {
+        horizontalRef.current.scrollToIndex(30);
       };
       const horizontalhandleToTop = () => {
         console.log('istop');
@@ -116,9 +133,11 @@
 
       return (
         <div>
-          <div>
+          <div className="header">
+            <button onClick={ reset }>reset</button>
             <button onClick={ toBottom }>to bottom</button>
             <button onClick={ toTop }>to top</button>
+            <button onClick={ toIndex }>toIndex30</button>
           </div>
           <div className="virtual-list">
             <VirtualList
@@ -126,8 +145,8 @@
               dataKey="id"
               dataSource={ list }
               draggable=".drag"
-              header={ <div className="loading">top loading...</div> }
-              footer={ <div className="loading">bottom loading...</div> }
+              header={ <div className="loading">header</div> }
+              footer={ <div className="loading">footer</div> }
               v-top={ handleToTop }
               v-bottom={ handleToBottom }
               v-dragend={ handleDragEnd }
@@ -145,9 +164,11 @@
             </VirtualList>
           </div>
 
-          <div>
+          <div className="header">
+            <button onClick={ horizontalreset }>reset</button>
             <button onClick={ horizontaltoBottom }>to bottom</button>
             <button onClick={ horizontaltoTop }>to top</button>
+            <button onClick={ horizontaltoIndex }>toIndex30</button>
           </div>
           <div className="horizontal-virtual-list">
             <VirtualList
@@ -158,8 +179,8 @@
               direction="horizontal"
               wrapStyle={{ display: "flex" }}
               rootStyle={{ display: "flex" }}
-              header={ <div className="loading">top loading...</div> }
-              footer={ <div className="loading">bottom loading...</div> }
+              header={ <div className="loading">header</div> }
+              footer={ <div className="loading">footer</div> }
               v-top={ horizontalhandleToTop }
               v-bottom={ horizontalhandleToBottom }
               v-dragend={ horizontalhandleDragEnd }

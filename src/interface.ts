@@ -9,6 +9,9 @@ export type RenderFunc<T> = (
 export type GetKey<T> = (item: T) => React.Key
 
 export interface BaseProps {
+  Tag?: string;
+  Class?: string;
+  Style?: object;
   onSizeChange?: Function;
   children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }

@@ -1,6 +1,4 @@
-import * as React from 'react'
-import { useRef, useState, useEffect, useLayoutEffect } from 'react'
-
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import type { RenderFunc, GetKey } from './interface'
 import { Item, Slot } from './children'
 import { debounce } from './utils'
@@ -19,6 +17,14 @@ export interface VirtualProps<T> {
   delay?: number; // Delay time of debounce function
   height?: string; // list wrapper height
 
+  rootTag?: string;
+  wrapTag?: string;
+  itemTag?: string;
+  headerTag?: string;
+  footerTag?: string;
+
+  itemStyle?: object;
+  itemClass?: string;
   rootStyle?: object;
   rootClass?: string;
   wrapStyle?: object;
@@ -57,11 +63,19 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     height = '100%',
     delay = 0,
 
+    wrapTag = 'div',
+    rootTag = 'div',
+    itemTag = 'div',
+    headerTag = 'div',
+    footerTag = 'div',
+
+    itemStyle = {},
+    itemClass = '',
     rootStyle = {},
     rootClass = '',
     wrapStyle = {},
     wrapClass = '',
-    
+
     disabled = false,
     draggable = undefined,
     dragging = undefined,
@@ -77,13 +91,26 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const uniqueKeys = useRef([])
 
   const [range, setRange] = useState({ start: 0, end: keeps - 1, front: 0, behind: 0 }) // 当前可见范围
+  const [drag, setDrag] = useState({ key: null, changed: false })
 
   const root_ref = useRef<Element>(null)
   const wrap_ref = useRef<Element>(null) // 列表ref
   const last_ref = useRef<Element>(null) // 列表元素外的dom，总是存在于列表最后
 
   const sortable = useRef<Sortable<T>>(null)
-  const virtual = useRef<Virtual<T>>(null)
+  const virtual = useRef<Virtual<T>>(new Virtual(
+    {
+      size,
+      keeps,
+      uniqueKeys: uniqueKeys.current,
+      isHorizontal: direction === 'vertical'
+    },
+    (range: object) => {
+      setRange(() => range)
+      setDrag((pre) => { return { ...pre, changed: true } })
+      sortable.current.set('rangeIsChanged', true)
+    }
+  ))
 
   // =============================== ref methods ===============================
   /**
@@ -145,7 +172,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const scrollToBottom = () => {
     if (last_ref.current) {
       const offset = last_ref.current[offsetSizeKey]
-      root_ref.current.scrollTop = offset
+      root_ref.current[scrollDirectionKey] = offset
 
       // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
       setTimeout(() => {
@@ -173,35 +200,29 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     cloneList.current = [...dataSource]
     setUniqueKeys()
 
-    virtual.current = new Virtual(
-      {
-        size,
-        keeps,
-        uniqueKeys: uniqueKeys.current,
-        isHorizontal: direction === 'vertical'
-      },
-      (changedRange) => {
-        setRange(() => changedRange)
-        sortable.current.set('rangeIsChanged', true)
-      }
-    )
-    virtual.current.updateRange()
+    virtual.current.updateUniqueKeys(uniqueKeys.current)
     virtual.current.updateSizes(uniqueKeys.current)
+    virtual.current.updateRange()
 
     if (sortable.current) sortable.current.set('dataSource', dataSource)
 
     setList(() => [...dataSource])
   }, [dataSource])
 
-  const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React.useMemo(() => {
-    const isHorizontal = direction !== 'vertical'
-    return {
-      offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
-      scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
-      clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
-      scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+  useEffect(() => {
+    return () => {
+      destroyDraggable()
     }
-  }, [direction])
+  }, [])
+
+  useLayoutEffect(() => {
+    if (draggable) {
+      initDraggable()
+    } else {
+      destroyDraggable()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggable])
 
   // =============================== sortable ===============================
   const initDraggable = () => {
@@ -219,12 +240,18 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         chosenClass,
         animation,
       },
-      (list, from, to, changed) => {
+      (key, changed) => {
+        setDrag(() => { return { key, changed } })
+      },
+      (list: T[], from: object, to: object, changed: boolean) => {
         const callback = props[CALLBACKS.dragend]
         callback && callback(list, from, to, changed)
-        cloneList.current = [...list]
-        setList(() => [...list])
-        setUniqueKeys()
+        setDrag(() => { return { key: null, changed: false } })
+        if (changed) {
+          cloneList.current = [...list]
+          setList(() => [...list])
+          setUniqueKeys()
+        }
       }
     )
   }
@@ -233,21 +260,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     sortable.current && sortable.current.destroy()
     sortable.current = null
   }
-
-  useLayoutEffect(() => {
-    if (draggable) {
-      initDraggable()
-    } else {
-      destroyDraggable()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draggable])
-
-  useEffect(() => {
-    return () => {
-      destroyDraggable()
-    }
-  }, [])
 
   // =============================== methods ===============================
   const setUniqueKeys = () => {
@@ -263,13 +275,23 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     (item: T) => {
       return (
         dataKey.replace(/\[/g, '.').replace(/\]/g, '').split('.').reduce((o, k) => (o || {})[k], item)
-      ) || ''
+      )
     },
     [dataKey]
   )
 
+  const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React.useMemo(() => {
+    const isHorizontal = direction !== 'vertical'
+    return {
+      offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
+      scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
+      clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
+      scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+    }
+  }, [direction])
+
   // =============================== Scroll ===============================
-  const handleScroll = (e: any) => {
+  const handleScroll = (e: Event) => {
     const root = root_ref.current
     const offset = getOffset()
     const clientSize = Math.ceil(root[clientSizeKey])
@@ -280,25 +302,21 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtual.current.handleScroll(offset)
     // 判断当前应该触发的回调函数，滚动到顶部时触发 `v-top`，滚动到底部时触发 `v-bottom`
     if (virtual.current.isFront()) {
-      if (!!dataSource.length && offset <= 0) handleToTop()
+      if (!!dataSource.length && offset <= 0) handleToTop(props)
     } else if (virtual.current.isBehind()) {
-      if (clientSize + offset >= scrollSize) handleToBottom()
+      if (clientSize + offset >= scrollSize) handleToBottom(props)
     }
   }
 
-  const handleToTop = () => {
-    return debounce(() => {
-      const callback = props[CALLBACKS.top]
-      callback && callback()
-    })
-  }
+  const handleToTop = debounce(function (props: VirtualProps<T>) {
+    const callback = props[CALLBACKS.top]
+    callback && callback()
+  })
 
-  const handleToBottom = () => {
-    return debounce(() => {
-      const callback = props[CALLBACKS.bottom]
-      callback && callback()
-    })
-  }
+  const handleToBottom = debounce(function (props: VirtualProps<T>) {
+    const callback = props[CALLBACKS.bottom]
+    callback && callback()
+  })
 
   // ======================= size observe =======================
   const onItemSizeChange = (key: string | number, size: number) => {
@@ -315,35 +333,50 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     return { ...range }
   }, [range])
 
+  const { dragKey, rangeIsChanged } = React.useMemo(() => {
+    return {
+      dragKey: drag.key,
+      rangeIsChanged: drag.changed
+    }
+  }, [drag])
+
   const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' }
   const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` }
+
+  const WrapTag = wrapTag
+  const RootTag = rootTag
+
   return (
-    <div ref={ root_ref } className={ rootClass } style={ RootStyle } onScroll={ debounce(handleScroll, delay) }>
+    <RootTag ref={ root_ref } className={ rootClass } style={ RootStyle } onScroll={ debounce(handleScroll, delay) }>
 
-      <Slot children={ header } roleId="header" onSizeChange={ onSlotSizeChange }></Slot>
+      <Slot children={ header } roleId="header" Tag={ headerTag } onSizeChange={ onSlotSizeChange }></Slot>
 
-      <div ref={ wrap_ref } v-role="content" className={ wrapClass } style={ WrapStyle }>
+      <WrapTag ref={ wrap_ref } v-role="content" className={ wrapClass } style={ WrapStyle }>
         {
           list.slice(start, end + 1).map(item => {
             const key = getKey(item)
             const index = getItemIndex(item)
+            const hidden = key == dragKey && rangeIsChanged
             return (
               <Item
                 key={ key }
-                uniqueKey={ key }
-                children={ children }
+                Tag={ itemTag }
                 record={ item }
                 index={ index }
+                dataKey={ key }
+                children={ children }
+                Class={ itemClass }
+                Style={{ ...itemStyle, display: hidden ? 'none' : '' }}
                 onSizeChange={ onItemSizeChange }
               />
             )
           })
         }
-      </div>
+      </WrapTag>
 
-      <Slot children={ footer } roleId="footer" onSizeChange={ onSlotSizeChange }></Slot>
+      <Slot children={ footer } roleId="footer" Tag={ footerTag } onSizeChange={ onSlotSizeChange }></Slot>
       <div ref={ last_ref }></div>
-    </div>
+    </RootTag>
   )
 }
 

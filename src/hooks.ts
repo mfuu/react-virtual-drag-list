@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 export interface ObserverProps {
-  uniqueKey: string | number;
+  dataKey: string | number;
 
   onSizeChange?: Function;
 
@@ -10,7 +10,7 @@ export interface ObserverProps {
 
 export function Observer(props: ObserverProps) {
 
-  const { uniqueKey, children, onSizeChange } = props
+  const { dataKey, children, onSizeChange } = props
 
   const elementRef = React.useRef<Element>(null);
 
@@ -22,7 +22,7 @@ export function Observer(props: ObserverProps) {
     if (typeof ResizeObserver !== undefined) {
       observer = new ResizeObserver(() => {
         const size = elementRef.current.clientHeight
-        onSizeChange && onSizeChange(uniqueKey, size)
+        onSizeChange && onSizeChange(dataKey, size)
       })
       elementRef.current && observer.observe(elementRef.current)
     }
