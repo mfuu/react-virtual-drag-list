@@ -131,13 +131,13 @@ return (
 )
 ```
 
-|     **Prop**     | **Description** |
-|------------------|-----------------|
-| `reset()`  | reset to initial |
-| `getSize(key)` | get the height of the specified item by key value  |
-| `getScrollTop()` | get the current scroll height  |
-| `scrollToBottom()` | scroll to the bottom of the list  |
-| `scrollToTop()` | scroll to the top of the list  |
-| `scrollToOffset(offset)` | scroll to the specified height  |
+|     **Prop**      | **Description** |
+|-------------------|-----------------|
+| `reset()`         | reset to initial |
+| `getSize(key)`    | get the height of the specified item by key value  |
+| `getOffset()`     | get the current scroll height  |
+| `scrollToTop()`   | scroll to the top of the list  |
+| `scrollToBottom()`| scroll to the bottom of the list  |
 | `scrollToIndex(index)` | scroll to the specified index value  |
+| `scrollToOffset(offset)` | scroll to the specified height  |
 
