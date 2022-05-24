@@ -91,8 +91,6 @@ class Sortable<T> {
           const oldKey = this.dragState.from.key
           const newKey = _new_.node.getAttribute('data-key')
 
-          this.dragState.to.key = newKey
-
           const from = { item: null, index: -1 }
           const to = { item: null, index: -1 }
 
@@ -106,14 +104,11 @@ class Sortable<T> {
           this.cloneList.splice(to.index, 0, from.item)
         },
         onDrop: (changed: boolean) => {
-          const index = this.cloneList.findIndex(el =>
-            this.getKey(el) == this.dragState.from.key
-          )
-          const item = this.dataSource[index]
-
-          this.dragState.to = { item, index, key: this.getKey(item) }
-
           if (this.rangeIsChanged && this.dragElement) this.dragElement.remove()
+
+          const index = this.cloneList.findIndex(el => this.getKey(el) == this.dragState.from.key)
+          const item = this.dataSource[index]
+          this.dragState.to = { item, index, key: this.getKey(item) }
 
           const { from, to } = this.dragState
           this.onDrop(this.cloneList, from, to, changed)
