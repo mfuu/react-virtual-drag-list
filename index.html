@@ -81,7 +81,7 @@
     const VirtualList = VirtualDragList['default'];
     function Virtual() {
 
-      const list = getPageData(60, 0);
+      const list = getPageData(400, 0);
 
       const virtualRef = React.useRef();
       const horizontalRef = React.useRef();
@@ -96,7 +96,7 @@
         virtualRef.current.scrollToTop();
       };
       const toIndex = () => {
-        virtualRef.current.scrollToIndex(30);
+        virtualRef.current.scrollToIndex(200);
       };
       const handleToTop = () => {
         console.log('istop');
@@ -119,7 +119,7 @@
         horizontalRef.current.scrollToTop();
       };
       const horizontaltoIndex = () => {
-        horizontalRef.current.scrollToIndex(30);
+        horizontalRef.current.scrollToIndex(200);
       };
       const horizontalhandleToTop = () => {
         console.log('istop');
@@ -137,13 +137,15 @@
             <button onClick={ reset }>reset</button>
             <button onClick={ toBottom }>to bottom</button>
             <button onClick={ toTop }>to top</button>
-            <button onClick={ toIndex }>toIndex30</button>
+            <button onClick={ toIndex }>toIndex200</button>
           </div>
           <div className="virtual-list">
             <VirtualList
               ref={ virtualRef }
-              dataKey="id"
+              dataKey="index"
               dataSource={ list }
+              size={ 70 }
+              keeps={ 20 }
               draggable=".drag"
               header={ <div className="loading">header</div> }
               footer={ <div className="loading">footer</div> }
@@ -152,11 +154,11 @@
               v-dragend={ handleDragEnd }
             >
               {
-                (record, index, uniqueKey) => {
+                (record, index, dataKey) => {
                   return (
                     <div className="item">
-                      <div className="drag">{ uniqueKey }</div>
-                      { record.desc }
+                      <div className="drag">{ dataKey }</div>
+                      <span>{ record.desc }</span>
                     </div>
                   );
                 }
@@ -168,13 +170,15 @@
             <button onClick={ horizontalreset }>reset</button>
             <button onClick={ horizontaltoBottom }>to bottom</button>
             <button onClick={ horizontaltoTop }>to top</button>
-            <button onClick={ horizontaltoIndex }>toIndex30</button>
+            <button onClick={ horizontaltoIndex }>toIndex200</button>
           </div>
           <div className="horizontal-virtual-list">
             <VirtualList
               ref={ horizontalRef }
-              dataKey="id"
+              dataKey="index"
               dataSource={ list }
+              size={ 150 }
+              keeps={ 20 }
               draggable=".drag"
               direction="horizontal"
               wrapStyle={{ display: "flex" }}
@@ -186,11 +190,11 @@
               v-dragend={ horizontalhandleDragEnd }
             >
               {
-                (record, index, uniqueKey) => {
+                (record, index, dataKey) => {
                   return (
                     <div className="item horizontal">
-                      <div className="drag">{ uniqueKey }</div>
-                      { record.desc }
+                      <div className="drag">{ dataKey }</div>
+                      <span>{ record.desc }</span>
                     </div>
                   );
                 }
