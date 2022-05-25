@@ -25,6 +25,10 @@
       background-color: #fff;
       font-feature-settings: 'tnum';
     }
+    p {
+      margin: 0;
+      padding: 0;
+    }
     #app {
       height: 100%;
     }
@@ -36,7 +40,7 @@
     }
     .virtual-list {
       width: 1000px;
-      height: 500px;
+      height: 800px;
       margin: 20px auto 50px;
       border: 1px solid #ccc;
     }
@@ -45,27 +49,38 @@
       margin: 20px auto;
       border: 1px solid #ccc;
     }
+    .drag {
+      cursor: grab;
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      padding-left: 12px;
+    }
+    .drag::before {
+      content: '\2723';
+      font-size: 16px;
+    }
+    .dataKey {
+      color: #1984ff;
+    }
+    .item {
+      position: relative;
+      margin: 10px;
+      padding: 16px;
+      border: 1px solid #1984ff;
+      border-radius: 5px;
+    }
     .horizontal {
       display: flex;
       flex-direction: column;
       height: 100px;
       width: 100px;
-      margin: 10px;
       overflow: hidden;
       border: 1px dashed #1984ff;
     }
-    .horizontal span {
-      display: block;
+    .horizontal p {
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    .drag {
-      color: #1984ff;
-      cursor: grab;
-    }
-    .item {
-      padding: 16px;
-      border-bottom: 1px solid #1984ff;
     }
     .loading {
       font-size: 16px;
@@ -157,8 +172,9 @@
                 (record, index, dataKey) => {
                   return (
                     <div className="item">
-                      <div className="drag">{ dataKey }</div>
-                      <span>{ record.desc }</span>
+                      <span title="drag to reorder" className="drag"></span>
+                      <div className="dataKey">{ dataKey }</div>
+                      <p>{ record.desc }</p>
                     </div>
                   );
                 }
@@ -193,8 +209,9 @@
                 (record, index, dataKey) => {
                   return (
                     <div className="item horizontal">
-                      <div className="drag">{ dataKey }</div>
-                      <span>{ record.desc }</span>
+                      <span title="drag to reorder" className="drag"></span>
+                      <div className="dataKey">{ dataKey }</div>
+                      <p>{ record.desc }</p>
                     </div>
                   );
                 }
