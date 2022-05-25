@@ -197,6 +197,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   // =============================== init ===============================
   useEffect(() => {
+    setList(() => [...dataSource])
     cloneList.current = [...dataSource]
     setUniqueKeys()
 
@@ -205,8 +206,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtual.current.updateRange()
 
     if (sortable.current) sortable.current.set('dataSource', dataSource)
-
-    setList(() => [...dataSource])
   }, [dataSource])
 
   useEffect(() => {
