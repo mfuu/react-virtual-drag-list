@@ -35,7 +35,6 @@ class Sortable<T> {
   onDrag: Function;
   onDrop: Function;
   dragState: DragState;
-  dragKey: any;
   dragElement: HTMLElement;
   drag: SortableDnd;
   options: SortableOptions<T>;
@@ -77,15 +76,13 @@ class Sortable<T> {
           this.dragElement = dragEl
           this.cloneList = [...this.dataSource]
 
-          this.dragKey = dragEl.getAttribute('data-key')
-
-          this.dataSource.forEach((item, index) => {
-            const key = this.getKey(item)
-            if (key == this.dragKey) Object.assign(this.dragState.from, { item, index, key })
-          })
+          const key = dragEl.getAttribute('data-key')
+          const index = this.dataSource.findIndex(el => this.getKey(el) == key)
+          const item = this.dataSource[index]
+          Object.assign(this.dragState.from, { item, index, key })
 
           this.rangeIsChanged = false
-          this.onDrag(this.dragKey, this.rangeIsChanged)
+          this.onDrag(this.dragState.from, this.rangeIsChanged)
         },
         onChange: (_old_, _new_) => {
           const oldKey = this.dragState.from.key

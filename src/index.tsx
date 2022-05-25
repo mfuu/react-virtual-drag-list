@@ -1,52 +1,11 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
-import type { RenderFunc, GetKey } from './interface'
+import type { VirtualProps, GetKey } from './interface'
 import { Item, Slot } from './children'
 import { debounce } from './utils'
 import Virtual from './virtual'
 import Sortable from './sortable'
 
 const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 组件传入的事件回调
-
-export interface VirtualProps<T> {
-  dataSource: T[];
-  dataKey: string;
-  direction?: string; // scroll direction
-  keeps?: number; // the number of lines rendered by the virtual scroll
-  size?: number; // estimated height of each row
-
-  delay?: number; // Delay time of debounce function
-  height?: string; // list wrapper height
-
-  rootTag?: string;
-  wrapTag?: string;
-  itemTag?: string;
-  headerTag?: string;
-  footerTag?: string;
-
-  itemStyle?: object;
-  itemClass?: string;
-  rootStyle?: object;
-  rootClass?: string;
-  wrapStyle?: object;
-  wrapClass?: string;
-
-  disabled?: boolean; // Disables the sortable if set to true
-  draggable?: Function | string; // Specifies which items inside the element should be draggable, the function type must return a boolean
-  dragging?: Function; // Specifies the drag element, which must return an HTMLElement, such as (e) => e.target
-
-  ghostStyle?: object; // The style of the mask element when dragging
-  ghostClass?: string; // The class of the mask element when dragging
-  chosenClass?: string; // The class of the selected element when dragging
-  animation?: number; // Animation time
-  
-  children: RenderFunc<T>;
-  header: RenderFunc<T>;
-  footer: RenderFunc<T>;
-
-  'v-top'?: Function;
-  'v-bottom'?: Function;
-  'v-dragend'?: Function;
-}
 
 export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
@@ -91,7 +50,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const uniqueKeys = useRef([])
 
   const [range, setRange] = useState({ start: 0, end: keeps - 1, front: 0, behind: 0 }) // 当前可见范围
-  const [drag, setDrag] = useState({ key: null, changed: false })
+  const [drag, setDrag] = useState({ key: null, item: null, index: null, changed: false })
 
   const root_ref = useRef<Element>(null)
   const wrap_ref = useRef<Element>(null) // 列表ref
@@ -105,9 +64,15 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       uniqueKeys: uniqueKeys.current,
       isHorizontal: direction === 'vertical'
     },
-    (range: object) => {
+    (range) => {
       setRange(() => range)
-      setDrag((pre) => { return { ...pre, changed: true } })
+      setDrag((pre) => {
+        // check if drag element is in range
+        if (!(pre.index > range.start && pre.index < range.end)) {
+          return { ...pre, changed: true }
+        }
+        return { ...pre }
+      })
       sortable.current.set('rangeIsChanged', true)
     }
   ))
@@ -239,13 +204,13 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         chosenClass,
         animation,
       },
-      (key, changed) => {
-        setDrag(() => { return { key, changed } })
+      (state, changed) => {
+        setDrag(() => { return { ...state, changed } })
       },
       (list: T[], from: object, to: object, changed: boolean) => {
         const callback = props[CALLBACKS.dragend]
         callback && callback(list, from, to, changed)
-        setDrag(() => { return { key: null, changed: false } })
+        setDrag(() => { return { key: null, item: null, index: null, changed: false } })
         if (changed) {
           cloneList.current = [...list]
           setList(() => [...list])
