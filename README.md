@@ -23,12 +23,11 @@ yarn add react-virtual-drag-list -D
 
 Root component:
 ```jsx
-import virtualList from 'react-virtual-drag-list'
+import VirtualList from 'react-virtual-drag-list'
 
 function Virtual() {
 
   const list = [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
-
 
   const handleToTop = () => {
     console.log('istop')
@@ -40,8 +39,11 @@ function Virtual() {
     console.log(arr, _old, _new, changed, 'new state after drag end')
   }
 
+  // you can use style and className as jsx used
   return (
-    <virtualList
+    <VirtualList
+      className="virtual-list"
+      style={{ height: '500px' }}
       dataKey="id"
       dataSource={ list }
       draggable=".drag"
@@ -61,7 +63,7 @@ function Virtual() {
           )
         }
       }
-    </virtualList>
+    </VirtualList>
   )
 }
 ```
@@ -91,15 +93,13 @@ function Virtual() {
 | `delay`         | `Number`     |       | Delay time of debounce function  | `0` |
 | `header`        | `JSX.Element`|       | top of list            | - |
 | `footer`        | `JSX.Element`|       | bottom of list            | - |
-| `wrapTag`       | `String`     |       | Label type for list wrap element  | `div` |
 | `rootTag`       | `String`     |       | Label type for root element  | `div` |
+| `wrapTag`       | `String`     |       | Label type for list wrap element  | `div` |
 | `itemTag`       | `String`     |       | Label type for list item element  | `div` |
 | `headerTag`     | `String`     |       | Label type for header slot element  | `div` |
 | `footerTag`     | `String`     |       | Label type for footer slot element  | `div` |
 | `itemStyle`     | `Object`     |       | style for each line  | `{}` |
 | `itemClass`     | `String`     |       | class for each line  | `''` |
-| `rootStyle`     | `Object`     |       | Root element style  | `{}` |
-| `rootClass`     | `String`     |       | Root element class  | `''` |
 | `wrapStyle`     | `Object`     |       | List wrapper element style  | `{}` |
 | `wrapClass`     | `String`     |       | List wrapper element class  | `''` |
 | `animation`     | `Number`     |       | Drag-and-drop's animation delay | `150` |
