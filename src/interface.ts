@@ -24,8 +24,10 @@ export interface VirtualProps<T> {
   size?: number; // estimated height of each row
 
   delay?: number; // Delay time of debounce function
-  height?: string; // list wrapper height
 
+  style?: object;
+  className?: string;
+  
   rootTag?: string;
   wrapTag?: string;
   itemTag?: string;

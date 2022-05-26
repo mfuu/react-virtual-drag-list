@@ -19,9 +19,10 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     direction = 'vertical',
     keeps = 30,
     size = 50,
-
-    height = '100%',
     delay = 0,
+
+    style = {},
+    className = '',
 
     wrapTag = 'div',
     rootTag = 'div',
@@ -31,8 +32,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
     itemStyle = {},
     itemClass = '',
-    rootStyle = {},
-    rootClass = '',
     wrapStyle = {},
     wrapClass = '',
 
@@ -296,10 +295,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   }
 
   // ================================ Render ================================
-  const { start, end, front, behind } = React.useMemo(() => {
-    return { ...range }
-  }, [range])
-
   // check item show or not
   const getItemStyle = React.useCallback((itemKey) => {
     const change = sortable.current && sortable.current.rangeIsChanged
@@ -308,18 +303,41 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     return {}
   }, [dragState.current])
 
-  const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' }
-  const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` }
+  // html tag name
+  const { RTag, WTag } = React.useMemo(() => {
+    return {
+      RTag: rootTag,
+      WTag: wrapTag
+    }
+  }, [wrapTag, rootTag])
 
-  const WrapTag = wrapTag
-  const RootTag = rootTag
+  // root style
+  const RStyle = React.useMemo(() => {
+    return { ...style, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' }
+  }, [style, direction, ])
+
+  // wrap style
+  const WStyle = React.useMemo(() => {
+    const { front, behind } = range
+    return {
+      ...wrapStyle,
+      padding: direction !== 'vertical'
+        ? `0px ${behind}px 0px ${front}px`
+        : `${front}px 0px ${behind}px`
+    }
+  }, [wrapStyle, direction, range])
+
+  // range
+  const { start, end } = React.useMemo(() => {
+    return { ...range }
+  }, [range])
 
   return (
-    <RootTag ref={ root_ref } className={ rootClass } style={ RootStyle } onScroll={ debounce(handleScroll, delay) }>
+    <RTag ref={ root_ref } className={ className } style={ RStyle } onScroll={ debounce(handleScroll, delay) }>
 
       <Slot children={ header } roleId="header" Tag={ headerTag } onSizeChange={ onSlotSizeChange }></Slot>
 
-      <WrapTag ref={ wrap_ref } v-role="content" className={ wrapClass } style={ WrapStyle }>
+      <WTag ref={ wrap_ref } v-role="group" className={ wrapClass } style={ WStyle }>
         {
           list.slice(start, end + 1).map(item => {
             const key = getKey(item)
@@ -339,11 +357,11 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
             )
           })
         }
-      </WrapTag>
+      </WTag>
 
       <Slot children={ footer } roleId="footer" Tag={ footerTag } onSizeChange={ onSlotSizeChange }></Slot>
-      <div ref={ last_ref }></div>
-    </RootTag>
+      <div ref={ last_ref } style={{ width: direction !== 'vertical' ? '0px' : '100%', height: direction !== 'vertical' ? '100%' : '0px' }}></div>
+    </RTag>
   )
 }
 
