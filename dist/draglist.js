@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.4.1
+ * react-virtual-drag-list v2.4.2
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -989,7 +989,7 @@
 
   const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' }; // 组件传入的事件回调
   function VirtualDragList(props, ref) {
-      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = 50, height = '100%', delay = 0, wrapTag = 'div', rootTag = 'div', itemTag = 'div', headerTag = 'div', footerTag = 'div', itemStyle = {}, itemClass = '', rootStyle = {}, rootClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
+      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = 50, delay = 0, style = {}, className = '', wrapTag = 'div', rootTag = 'div', itemTag = 'div', headerTag = 'div', footerTag = 'div', itemStyle = {}, itemClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
       // =============================== State ===============================
       const [list, setList] = React.useState([]);
       const cloneList = React.useRef([]);
@@ -1213,9 +1213,6 @@
               virtual.current.handleFooterSizeChange(size);
       };
       // ================================ Render ================================
-      const { start, end, front, behind } = React__default["default"].useMemo(() => {
-          return { ...range };
-      }, [range]);
       // check item show or not
       const getItemStyle = React__default["default"].useCallback((itemKey) => {
           const change = sortable.current && sortable.current.rangeIsChanged;
@@ -1224,19 +1221,40 @@
               return { display: 'none' };
           return {};
       }, [dragState.current]);
-      const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' };
-      const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
-      const WrapTag = wrapTag;
-      const RootTag = rootTag;
-      return (React__default["default"].createElement(RootTag, { ref: root_ref, className: rootClass, style: RootStyle, onScroll: debounce(handleScroll, delay) },
+      // html tag name
+      const { RTag, WTag } = React__default["default"].useMemo(() => {
+          return {
+              RTag: rootTag,
+              WTag: wrapTag
+          };
+      }, [wrapTag, rootTag]);
+      // root style
+      const RStyle = React__default["default"].useMemo(() => {
+          return { ...style, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' };
+      }, [style, direction,]);
+      // wrap style
+      const WStyle = React__default["default"].useMemo(() => {
+          const { front, behind } = range;
+          return {
+              ...wrapStyle,
+              padding: direction !== 'vertical'
+                  ? `0px ${behind}px 0px ${front}px`
+                  : `${front}px 0px ${behind}px`
+          };
+      }, [wrapStyle, direction, range]);
+      // range
+      const { start, end } = React__default["default"].useMemo(() => {
+          return { ...range };
+      }, [range]);
+      return (React__default["default"].createElement(RTag, { ref: root_ref, className: className, style: RStyle, onScroll: debounce(handleScroll, delay) },
           React__default["default"].createElement(Slot, { children: header, roleId: "header", Tag: headerTag, onSizeChange: onSlotSizeChange }),
-          React__default["default"].createElement(WrapTag, { ref: wrap_ref, "v-role": "content", className: wrapClass, style: WrapStyle }, list.slice(start, end + 1).map(item => {
+          React__default["default"].createElement(WTag, { ref: wrap_ref, "v-role": "group", className: wrapClass, style: WStyle }, list.slice(start, end + 1).map(item => {
               const key = getKey(item);
               const index = getItemIndex(item);
               return (React__default["default"].createElement(Item, { key: key, Tag: itemTag, record: item, index: index, dataKey: key, children: children, Class: itemClass, Style: { ...itemStyle, ...getItemStyle(key) }, onSizeChange: onItemSizeChange }));
           })),
           React__default["default"].createElement(Slot, { children: footer, roleId: "footer", Tag: footerTag, onSizeChange: onSlotSizeChange }),
-          React__default["default"].createElement("div", { ref: last_ref })));
+          React__default["default"].createElement("div", { ref: last_ref, style: { width: direction !== 'vertical' ? '0px' : '100%', height: direction !== 'vertical' ? '100%' : '0px' } })));
   }
   var index = React__default["default"].forwardRef(VirtualDragList);
 
