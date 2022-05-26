@@ -1,34 +1,5 @@
 import SortableDnd from 'sortable-dnd'
-
-class DragState {
-  from: {
-    key: string, // 拖拽起始节点唯一值
-    item: any, // 拖拽起始节点数据
-    index: number, // 拖拽起始节点索引
-  }
-  to: {
-    key: string, // 拖拽结束节点唯一值
-    item: any, // 拖拽结束节点数据
-    index: number // 拖拽结束节点索引
-  }
-  constructor() {
-    this.from = { key: null, item: null, index: null }
-    this.to = { key: null, item: null, index: null }
-  }
-}
-
-interface SortableOptions<T> {
-  getKey: Function;
-  scrollEl: HTMLElement;
-  dataSource: T[];
-  disabled: boolean;
-  draggable: string | Function;
-  dragging: Function;
-  ghostStyle: object;
-  ghostClass: string;
-  chosenClass: string;
-  animation: number;
-}
+import { SortableOptions, DragState } from './interface'
 
 class Sortable<T> {
   getKey: Function;
@@ -38,7 +9,6 @@ class Sortable<T> {
   dragElement: HTMLElement;
   drag: SortableDnd;
   options: SortableOptions<T>;
-  cloneList: T[];
   dataSource: T[];
   rangeIsChanged: boolean;
 
@@ -50,7 +20,6 @@ class Sortable<T> {
 
     this.dragState = new DragState
     this.dataSource = options.dataSource
-    this.cloneList = []
     this.rangeIsChanged = false
     this.init()
   }
@@ -61,6 +30,8 @@ class Sortable<T> {
 
   init() {
     this.destroy()
+
+    let cloneList = new Array()
     this.drag = new SortableDnd(
       this.options.scrollEl,
       {
@@ -74,7 +45,7 @@ class Sortable<T> {
 
         onDrag: (dragEl: HTMLElement) => {
           this.dragElement = dragEl
-          this.cloneList = [...this.dataSource]
+          cloneList = [...this.dataSource]
 
           const key = dragEl.getAttribute('data-key')
           const index = this.dataSource.findIndex(el => this.getKey(el) == key)
@@ -82,7 +53,7 @@ class Sortable<T> {
           Object.assign(this.dragState.from, { item, index, key })
 
           this.rangeIsChanged = false
-          this.onDrag(this.dragState.from, this.rangeIsChanged)
+          this.onDrag(this.dragState.from)
         },
         onChange: (_old_, _new_) => {
           const oldKey = this.dragState.from.key
@@ -91,31 +62,36 @@ class Sortable<T> {
           const from = { item: null, index: -1 }
           const to = { item: null, index: -1 }
 
-          this.cloneList.forEach((el, index) => {
+          cloneList.forEach((el, index) => {
             const key = this.getKey(el)
             if (key == oldKey) Object.assign(from, { item: el, index })
             if (key == newKey) Object.assign(to, { item: el, index })
           })
 
-          this.cloneList.splice(from.index, 1)
-          this.cloneList.splice(to.index, 0, from.item)
+          cloneList.splice(from.index, 1)
+          cloneList.splice(to.index, 0, from.item)
         },
         onDrop: (changed: boolean) => {
           if (this.rangeIsChanged && this.dragElement) this.dragElement.remove()
 
-          const index = this.cloneList.findIndex(el => this.getKey(el) == this.dragState.from.key)
+          const { from } = this.dragState
+          const index = cloneList.findIndex(el => this.getKey(el) == from.key)
           const item = this.dataSource[index]
           this.dragState.to = { item, index, key: this.getKey(item) }
 
-          const { from, to } = this.dragState
-          this.onDrop(this.cloneList, from, to, changed)
+          this.onDrop(cloneList, from, this.dragState.to, changed)
 
-          this.dataSource = [...this.cloneList]
-          this.rangeIsChanged = false
-          this.dragElement = null
+          this.dataSource = [...cloneList]
+          this.clear()
         }
       }
     )
+  }
+
+  clear() {
+    this.dragElement = null
+    this.rangeIsChanged = false
+    this.dragState = new DragState
   }
 
   destroy() {

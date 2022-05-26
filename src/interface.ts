@@ -56,3 +56,68 @@ export interface VirtualProps<T> {
   'v-bottom'?: Function;
   'v-dragend'?: Function;
 }
+
+export interface VirtualOptions<T> {
+  size: number;
+  keeps: number;
+  uniqueKeys: T[];
+  isHorizontal: boolean;
+}
+
+export interface SortableOptions<T> {
+  getKey: Function;
+  scrollEl: HTMLElement;
+  dataSource: T[];
+  disabled: boolean;
+  draggable: string | Function;
+  dragging: Function;
+  ghostStyle: object;
+  ghostClass: string;
+  chosenClass: string;
+  animation: number;
+}
+
+export class DragState {
+  from: {
+    key: string, // 拖拽起始节点唯一值
+    item: any, // 拖拽起始节点数据
+    index: number, // 拖拽起始节点索引
+  }
+  to: {
+    key: string, // 拖拽结束节点唯一值
+    item: any, // 拖拽结束节点数据
+    index: number // 拖拽结束节点索引
+  }
+  constructor() {
+    this.from = { key: null, item: null, index: -1 }
+    this.to = { key: null, item: null, index: -1 }
+  }
+}
+
+export class CalcSize {
+  average: number; // 计算首次加载每一项的评价高度
+  total: number; // 首次加载的总高度
+  fixed: number; // 记录固定高度值
+  header: number; // 顶部插槽高度
+  footer: number; // 底部插槽高度
+  constructor() {
+    this.average = undefined
+    this.total = undefined
+    this.fixed = undefined
+    this.header = undefined
+    this.footer = undefined
+  }
+}
+
+export class Range {
+  start: number;
+  end: number;
+  front: number;
+  behind: number;
+  constructor() {
+    this.start = 0
+    this.end = 0
+    this.front = 0
+    this.behind = 0
+  }
+}

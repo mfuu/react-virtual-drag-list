@@ -1,3 +1,5 @@
+import { VirtualOptions, CalcSize, Range } from "./interface"
+
 const CACLTYPE = {
   INIT: 'INIT',
   FIXED: 'FIXED',
@@ -8,29 +10,6 @@ const DIRECTION = {
   FRONT: 'FRONT',
   BEHIND: 'BEHIND'
 }
-
-class CalcSize {
-  average = undefined // 计算首次加载每一项的评价高度
-  total = undefined // 首次加载的总高度
-  fixed = undefined // 记录固定高度值
-  header = undefined // 顶部插槽高度
-  footer = undefined // 底部插槽高度
-}
-
-class Range {
-  start = 0
-  end = 0
-  front = 0
-  behind = 0
-}
-
-interface VirtualOptions<T> {
-  size: number;
-  keeps: number;
-  uniqueKeys: T[];
-  isHorizontal: boolean;
-}
-
 
 class Virtual<T> {
   options: VirtualOptions<T>;

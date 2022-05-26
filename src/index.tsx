@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
-import type { VirtualProps, GetKey } from './interface'
+import { VirtualProps, DragState, Range } from './interface'
+import type { GetKey } from './interface'
 import { Item, Slot } from './children'
 import { debounce } from './utils'
 import Virtual from './virtual'
@@ -49,13 +50,13 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const cloneList = useRef([])
   const uniqueKeys = useRef([])
 
-  const [range, setRange] = useState({ start: 0, end: keeps - 1, front: 0, behind: 0 }) // 当前可见范围
-  const [drag, setDrag] = useState({ key: null, item: null, index: null, changed: false })
+  const [range, setRange] = useState<Range>(new Range) // 当前可见范围
 
-  const root_ref = useRef<Element>(null)
+  const root_ref = useRef<Element>(null) // 根元素
   const wrap_ref = useRef<Element>(null) // 列表ref
-  const last_ref = useRef<Element>(null) // 列表元素外的dom，总是存在于列表最后
+  const last_ref = useRef<Element>(null) // 列表末尾dom，总是存在于列表最后
 
+  const dragState = useRef<DragState>(new DragState)
   const sortable = useRef<Sortable<T>>(null)
   const virtual = useRef<Virtual<T>>(new Virtual(
     {
@@ -66,14 +67,11 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     },
     (range) => {
       setRange(() => range)
-      setDrag((pre) => {
-        // check if drag element is in range
-        if (!(pre.index > range.start && pre.index < range.end)) {
-          return { ...pre, changed: true }
-        }
-        return { ...pre }
-      })
-      sortable.current.set('rangeIsChanged', true)
+      // check if drag element is in range
+      const { index } = dragState.current.from || {}
+      if (index > -1 && !(index >= range.start && index <= range.end)) {
+        if (sortable.current) sortable.current.set('rangeIsChanged', true)
+      }
     }
   ))
 
@@ -204,18 +202,20 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         chosenClass,
         animation,
       },
-      (state, changed) => {
-        setDrag(() => { return { ...state, changed } })
+      (state) => {
+        dragState.current.from = state
       },
       (list: T[], from: object, to: object, changed: boolean) => {
+        dragState.current.to = to
+
         const callback = props[CALLBACKS.dragend]
         callback && callback(list, from, to, changed)
-        setDrag(() => { return { key: null, item: null, index: null, changed: false } })
-        if (changed) {
-          cloneList.current = [...list]
-          setList(() => [...list])
-          setUniqueKeys()
-        }
+
+        cloneList.current = [...list]
+        setList(() => [...list])
+        setUniqueKeys()
+
+        setTimeout(() => dragState.current = new DragState, delay + 10)
       }
     )
   }
@@ -256,6 +256,9 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   // =============================== Scroll ===============================
   const handleScroll = (e: Event) => {
+    // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
+    if (dragState.current.to && dragState.current.to.key) return
+
     const root = root_ref.current
     const offset = getOffset()
     const clientSize = Math.ceil(root[clientSizeKey])
@@ -297,12 +300,13 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     return { ...range }
   }, [range])
 
-  const { dragKey, rangeIsChanged } = React.useMemo(() => {
-    return {
-      dragKey: drag.key,
-      rangeIsChanged: drag.changed
-    }
-  }, [drag])
+  // check item show or not
+  const getItemStyle = React.useCallback((itemKey) => {
+    const change = sortable.current && sortable.current.rangeIsChanged
+    const { key } = dragState.current.from || {}
+    if (change && itemKey == key) return { display: 'none' }
+    return {}
+  }, [dragState.current])
 
   const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' }
   const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` }
@@ -320,7 +324,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
           list.slice(start, end + 1).map(item => {
             const key = getKey(item)
             const index = getItemIndex(item)
-            const hidden = key == dragKey && rangeIsChanged
             return (
               <Item
                 key={ key }
@@ -330,7 +333,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
                 dataKey={ key }
                 children={ children }
                 Class={ itemClass }
-                Style={{ ...itemStyle, display: hidden ? 'none' : '' }}
+                Style={{ ...itemStyle, ...getItemStyle(key) }}
                 onSizeChange={ onItemSizeChange }
               />
             )
