@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.4.0
+ * react-virtual-drag-list v2.4.1
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -32,6 +32,41 @@
 
   var React__namespace = /*#__PURE__*/_interopNamespace(React);
   var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+
+  class DragState {
+      from;
+      to;
+      constructor() {
+          this.from = { key: null, item: null, index: -1 };
+          this.to = { key: null, item: null, index: -1 };
+      }
+  }
+  class CalcSize {
+      average; // 计算首次加载每一项的评价高度
+      total; // 首次加载的总高度
+      fixed; // 记录固定高度值
+      header; // 顶部插槽高度
+      footer; // 底部插槽高度
+      constructor() {
+          this.average = undefined;
+          this.total = undefined;
+          this.fixed = undefined;
+          this.header = undefined;
+          this.footer = undefined;
+      }
+  }
+  class Range {
+      start;
+      end;
+      front;
+      behind;
+      constructor() {
+          this.start = 0;
+          this.end = 0;
+          this.front = 0;
+          this.behind = 0;
+      }
+  }
 
   function Observer(props) {
       const { dataKey, children, onSizeChange } = props;
@@ -116,19 +151,6 @@
       FRONT: 'FRONT',
       BEHIND: 'BEHIND'
   };
-  class CalcSize {
-      average = undefined; // 计算首次加载每一项的评价高度
-      total = undefined; // 首次加载的总高度
-      fixed = undefined; // 记录固定高度值
-      header = undefined; // 顶部插槽高度
-      footer = undefined; // 底部插槽高度
-  }
-  class Range {
-      start = 0;
-      end = 0;
-      front = 0;
-      behind = 0;
-  }
   class Virtual {
       options;
       callback;
@@ -882,24 +904,14 @@
   });
   });
 
-  class DragState {
-      from;
-      to;
-      constructor() {
-          this.from = { key: null, item: null, index: null };
-          this.to = { key: null, item: null, index: null };
-      }
-  }
   class Sortable {
       getKey;
       onDrag;
       onDrop;
       dragState;
-      dragKey;
       dragElement;
       drag;
       options;
-      cloneList;
       dataSource;
       rangeIsChanged;
       constructor(options, onDrag, onDrop) {
@@ -909,7 +921,6 @@
           this.getKey = options.getKey;
           this.dragState = new DragState;
           this.dataSource = options.dataSource;
-          this.cloneList = [];
           this.rangeIsChanged = false;
           this.init();
       }
@@ -918,6 +929,7 @@
       }
       init() {
           this.destroy();
+          let cloneList = new Array();
           this.drag = new sortable_min(this.options.scrollEl, {
               disabled: this.options.disabled,
               draggable: this.options.draggable,
@@ -928,45 +940,46 @@
               animation: this.options.animation,
               onDrag: (dragEl) => {
                   this.dragElement = dragEl;
-                  this.cloneList = [...this.dataSource];
-                  this.dragKey = dragEl.getAttribute('data-key');
-                  this.dataSource.forEach((item, index) => {
-                      const key = this.getKey(item);
-                      if (key == this.dragKey)
-                          Object.assign(this.dragState.from, { item, index, key });
-                  });
+                  cloneList = [...this.dataSource];
+                  const key = dragEl.getAttribute('data-key');
+                  const index = this.dataSource.findIndex(el => this.getKey(el) == key);
+                  const item = this.dataSource[index];
+                  Object.assign(this.dragState.from, { item, index, key });
                   this.rangeIsChanged = false;
-                  this.onDrag(this.dragKey, this.rangeIsChanged);
+                  this.onDrag(this.dragState.from);
               },
               onChange: (_old_, _new_) => {
                   const oldKey = this.dragState.from.key;
                   const newKey = _new_.node.getAttribute('data-key');
-                  this.dragState.to.key = newKey;
                   const from = { item: null, index: -1 };
                   const to = { item: null, index: -1 };
-                  this.cloneList.forEach((el, index) => {
+                  cloneList.forEach((el, index) => {
                       const key = this.getKey(el);
                       if (key == oldKey)
                           Object.assign(from, { item: el, index });
                       if (key == newKey)
                           Object.assign(to, { item: el, index });
                   });
-                  this.cloneList.splice(from.index, 1);
-                  this.cloneList.splice(to.index, 0, from.item);
+                  cloneList.splice(from.index, 1);
+                  cloneList.splice(to.index, 0, from.item);
               },
               onDrop: (changed) => {
-                  const index = this.cloneList.findIndex(el => this.getKey(el) == this.dragState.from.key);
-                  const item = this.dataSource[index];
-                  this.dragState.to = { item, index, key: this.getKey(item) };
                   if (this.rangeIsChanged && this.dragElement)
                       this.dragElement.remove();
-                  const { from, to } = this.dragState;
-                  this.onDrop(this.cloneList, from, to, changed);
-                  this.dataSource = [...this.cloneList];
-                  this.rangeIsChanged = false;
-                  this.dragElement = null;
+                  const { from } = this.dragState;
+                  const index = cloneList.findIndex(el => this.getKey(el) == from.key);
+                  const item = this.dataSource[index];
+                  this.dragState.to = { item, index, key: this.getKey(item) };
+                  this.onDrop(cloneList, from, this.dragState.to, changed);
+                  this.dataSource = [...cloneList];
+                  this.clear();
               }
           });
+      }
+      clear() {
+          this.dragElement = null;
+          this.rangeIsChanged = false;
+          this.dragState = new DragState;
       }
       destroy() {
           this.drag && this.drag.destroy();
@@ -981,11 +994,11 @@
       const [list, setList] = React.useState([]);
       const cloneList = React.useRef([]);
       const uniqueKeys = React.useRef([]);
-      const [range, setRange] = React.useState({ start: 0, end: keeps - 1, front: 0, behind: 0 }); // 当前可见范围
-      const [drag, setDrag] = React.useState({ key: null, changed: false });
-      const root_ref = React.useRef(null);
+      const [range, setRange] = React.useState(new Range); // 当前可见范围
+      const root_ref = React.useRef(null); // 根元素
       const wrap_ref = React.useRef(null); // 列表ref
-      const last_ref = React.useRef(null); // 列表元素外的dom，总是存在于列表最后
+      const last_ref = React.useRef(null); // 列表末尾dom，总是存在于列表最后
+      const dragState = React.useRef(new DragState);
       const sortable = React.useRef(null);
       const virtual = React.useRef(new Virtual({
           size,
@@ -994,8 +1007,12 @@
           isHorizontal: direction === 'vertical'
       }, (range) => {
           setRange(() => range);
-          setDrag((pre) => { return { ...pre, changed: true }; });
-          sortable.current.set('rangeIsChanged', true);
+          // check if drag element is in range
+          const { index } = dragState.current.from || {};
+          if (index > -1 && !(index >= range.start && index <= range.end)) {
+              if (sortable.current)
+                  sortable.current.set('rangeIsChanged', true);
+          }
       }));
       // =============================== ref methods ===============================
       /**
@@ -1081,6 +1098,7 @@
       }));
       // =============================== init ===============================
       React.useEffect(() => {
+          setList(() => [...dataSource]);
           cloneList.current = [...dataSource];
           setUniqueKeys();
           virtual.current.updateUniqueKeys(uniqueKeys.current);
@@ -1088,7 +1106,6 @@
           virtual.current.updateRange();
           if (sortable.current)
               sortable.current.set('dataSource', dataSource);
-          setList(() => [...dataSource]);
       }, [dataSource]);
       React.useEffect(() => {
           return () => {
@@ -1118,17 +1135,16 @@
               ghostClass,
               chosenClass,
               animation,
-          }, (key, changed) => {
-              setDrag(() => { return { key, changed }; });
+          }, (state) => {
+              dragState.current.from = state;
           }, (list, from, to, changed) => {
+              dragState.current.to = to;
               const callback = props[CALLBACKS.dragend];
               callback && callback(list, from, to, changed);
-              setDrag(() => { return { key: null, changed: false }; });
-              if (changed) {
-                  cloneList.current = [...list];
-                  setList(() => [...list]);
-                  setUniqueKeys();
-              }
+              cloneList.current = [...list];
+              setList(() => [...list]);
+              setUniqueKeys();
+              setTimeout(() => dragState.current = new DragState, delay + 10);
           });
       };
       const destroyDraggable = () => {
@@ -1157,6 +1173,9 @@
       }, [direction]);
       // =============================== Scroll ===============================
       const handleScroll = (e) => {
+          // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
+          if (dragState.current.to && dragState.current.to.key)
+              return;
           const root = root_ref.current;
           const offset = getOffset();
           const clientSize = Math.ceil(root[clientSizeKey]);
@@ -1197,12 +1216,14 @@
       const { start, end, front, behind } = React__default["default"].useMemo(() => {
           return { ...range };
       }, [range]);
-      const { dragKey, rangeIsChanged } = React__default["default"].useMemo(() => {
-          return {
-              dragKey: drag.key,
-              rangeIsChanged: drag.changed
-          };
-      }, [drag]);
+      // check item show or not
+      const getItemStyle = React__default["default"].useCallback((itemKey) => {
+          const change = sortable.current && sortable.current.rangeIsChanged;
+          const { key } = dragState.current.from || {};
+          if (change && itemKey == key)
+              return { display: 'none' };
+          return {};
+      }, [dragState.current]);
       const RootStyle = { ...rootStyle, height, overflow: direction !== 'vertical' ? 'auto hidden' : 'hidden auto' };
       const WrapStyle = { ...wrapStyle, padding: direction !== 'vertical' ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
       const WrapTag = wrapTag;
@@ -1212,8 +1233,7 @@
           React__default["default"].createElement(WrapTag, { ref: wrap_ref, "v-role": "content", className: wrapClass, style: WrapStyle }, list.slice(start, end + 1).map(item => {
               const key = getKey(item);
               const index = getItemIndex(item);
-              const hidden = key == dragKey && rangeIsChanged;
-              return (React__default["default"].createElement(Item, { key: key, Tag: itemTag, record: item, index: index, dataKey: key, children: children, Class: itemClass, Style: { ...itemStyle, display: hidden ? 'none' : '' }, onSizeChange: onItemSizeChange }));
+              return (React__default["default"].createElement(Item, { key: key, Tag: itemTag, record: item, index: index, dataKey: key, children: children, Class: itemClass, Style: { ...itemStyle, ...getItemStyle(key) }, onSizeChange: onItemSizeChange }));
           })),
           React__default["default"].createElement(Slot, { children: footer, roleId: "footer", Tag: footerTag, onSizeChange: onSlotSizeChange }),
           React__default["default"].createElement("div", { ref: last_ref })));
@@ -1226,3 +1246,4 @@
   Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
+//# sourceMappingURL=draglist.js.map
