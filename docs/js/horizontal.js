@@ -41,13 +41,12 @@ const HorizontalList = (props) => {
           draggable=".drag"
           direction="horizontal"
           wrapStyle={{ display: "flex" }}
-          rootStyle={{ display: "flex" }}
           header={ <div className="loading">header</div> }
           footer={ <div className="loading">footer</div> }
           v-top={ handleToTop }
           v-bottom={ handleToBottom }
           v-dragend={ handleDragEnd }
-          style={{ height: '100%' }}
+          style={{ height: '100%', display: "flex" }}
         >
           {
             (record, index, dataKey) => {
