@@ -44,6 +44,7 @@ const DynamicList = (props) => {
           v-top={ handleToTop }
           v-bottom={ handleToBottom }
           v-dragend={ handleDragEnd }
+          style={{ height: '100%' }}
         >
           {
             (record, index, dataKey) => {
