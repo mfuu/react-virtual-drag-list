@@ -5,219 +5,34 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>react-virtual-drag-list</title>
+  <link rel="stylesheet" href="./docs/css/global.css">
+  <link rel="stylesheet" href="./docs/css/vertical.css">
+  <link rel="stylesheet" href="./docs/css/dynamic.css">
+  <link rel="stylesheet" href="./docs/css/horizontal.css">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="./docs/js/vertical.js" type="text/babel"></script>
+  <script src="./docs/js/dynamic.js" type="text/babel"></script>
+  <script src="./docs/js/horizontal.js" type="text/babel"></script>
   <script src="./dist/draglist.min.js"></script>
-  <style>
-    html, body {
-      height: 100%;
-      width: 100%;
-      padding: 0;
-      margin: 0;
-      color: rgba(0, 0, 0, 0.65);
-      font-size: 14px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-      font-variant: tabular-nums;
-      line-height: 1.5;
-      background-color: #fff;
-      font-feature-settings: 'tnum';
-    }
-    p {
-      margin: 0;
-      padding: 0;
-    }
-    #app {
-      height: 100%;
-    }
-    .header {
-      height: 50px;
-      line-height: 48px;
-      background: antiquewhite;
-      text-align: center;
-    }
-    .virtual-list {
-      width: 1000px;
-      height: 800px;
-      margin: 20px auto 50px;
-      border: 1px solid #ccc;
-    }
-    .horizontal-virtual-list {
-      width: 1000px;
-      margin: 20px auto;
-      border: 1px solid #ccc;
-    }
-    .drag {
-      cursor: grab;
-      position: absolute;
-      right: 16px;
-      top: 16px;
-      padding-left: 12px;
-    }
-    .drag::before {
-      content: '\2723';
-      font-size: 16px;
-    }
-    .dataKey {
-      color: #1984ff;
-    }
-    .item {
-      position: relative;
-      margin: 10px;
-      padding: 16px;
-      border: 1px solid #1984ff;
-      border-radius: 5px;
-    }
-    .horizontal {
-      display: flex;
-      flex-direction: column;
-      height: 100px;
-      width: 100px;
-      overflow: hidden;
-      border: 1px dashed #1984ff;
-    }
-    .horizontal p {
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .loading {
-      font-size: 16px;
-      height: 20px;
-      text-align: center;
-      -webkit-text-stroke-width: thick;
-    }
-  </style>
 </head>
 <body>
   <div id="app"></div>
   <script type="text/babel">
     const VirtualList = VirtualDragList['default'];
     function Virtual() {
-
       const list = getPageData(400, 0);
-
-      const virtualRef = React.useRef();
-      const horizontalRef = React.useRef();
-
-      const reset = () => {
-        virtualRef.current.reset();
-      };
-      const toBottom = () => {
-        virtualRef.current.scrollToBottom();
-      };
-      const toTop = () => {
-        virtualRef.current.scrollToTop();
-      };
-      const toIndex = () => {
-        virtualRef.current.scrollToIndex(200);
-      };
-      const handleToTop = () => {
-        console.log('istop');
-      };
-      const handleToBottom = () => {
-        console.log('isbottom');
-      };
-      const handleDragEnd = (arr, _old, _new, changed) => {
-        console.log(arr, _old, _new, changed, 'new states after drag end');
-      };
-
-      // horizontalRef
-      const horizontalreset = () => {
-        horizontalRef.current.reset();
-      };
-      const horizontaltoBottom = () => {
-        horizontalRef.current.scrollToBottom();
-      };
-      const horizontaltoTop = () => {
-        horizontalRef.current.scrollToTop();
-      };
-      const horizontaltoIndex = () => {
-        horizontalRef.current.scrollToIndex(200);
-      };
-      const horizontalhandleToTop = () => {
-        console.log('istop');
-      };
-      const horizontalhandleToBottom = () => {
-        console.log('isbottom');
-      };
-      const horizontalhandleDragEnd = (arr, _old, _new, changed) => {
-        console.log(arr, _old, _new, changed, 'new states after drag end');
-      };
-
       return (
         <div>
-          <div className="header">
-            <button onClick={ reset }>reset</button>
-            <button onClick={ toBottom }>to bottom</button>
-            <button onClick={ toTop }>to top</button>
-            <button onClick={ toIndex }>toIndex200</button>
-          </div>
-          <div className="virtual-list">
-            <VirtualList
-              ref={ virtualRef }
-              dataKey="index"
-              dataSource={ list }
-              size={ 70 }
-              keeps={ 20 }
-              draggable=".drag"
-              header={ <div className="loading">header</div> }
-              footer={ <div className="loading">footer</div> }
-              v-top={ handleToTop }
-              v-bottom={ handleToBottom }
-              v-dragend={ handleDragEnd }
-            >
-              {
-                (record, index, dataKey) => {
-                  return (
-                    <div className="item">
-                      <span title="drag to reorder" className="drag"></span>
-                      <div className="dataKey">{ dataKey }</div>
-                      <p>{ record.desc }</p>
-                    </div>
-                  );
-                }
-              }
-            </VirtualList>
-          </div>
-
-          <div className="header">
-            <button onClick={ horizontalreset }>reset</button>
-            <button onClick={ horizontaltoBottom }>to bottom</button>
-            <button onClick={ horizontaltoTop }>to top</button>
-            <button onClick={ horizontaltoIndex }>toIndex200</button>
-          </div>
-          <div className="horizontal-virtual-list">
-            <VirtualList
-              ref={ horizontalRef }
-              dataKey="index"
-              dataSource={ list }
-              size={ 150 }
-              keeps={ 20 }
-              draggable=".drag"
-              direction="horizontal"
-              wrapStyle={{ display: "flex" }}
-              rootStyle={{ display: "flex" }}
-              header={ <div className="loading">header</div> }
-              footer={ <div className="loading">footer</div> }
-              v-top={ horizontalhandleToTop }
-              v-bottom={ horizontalhandleToBottom }
-              v-dragend={ horizontalhandleDragEnd }
-            >
-              {
-                (record, index, dataKey) => {
-                  return (
-                    <div className="item horizontal">
-                      <span title="drag to reorder" className="drag"></span>
-                      <div className="dataKey">{ dataKey }</div>
-                      <p>{ record.desc }</p>
-                    </div>
-                  );
-                }
-              }
-            </VirtualList>
-          </div>
+          <h1>Common Useage</h1>
+          <VerticalList list={ list } />
+          <h1>DYNAMIC</h1>
+          <DynamicList list={ list } />
+          <h1>Horizontal</h1>
+          <HorizontalList list={ list } />
         </div>
       )
     };
