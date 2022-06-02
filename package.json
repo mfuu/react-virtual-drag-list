@@ -20,7 +20,8 @@
     "sort",
     "drag",
     "drop",
-    "react",
+    "sortable",
+    "draggable",
     "virtual",
     "virtual-list",
     "big-data",
@@ -34,7 +35,7 @@
   },
   "homepage": "https://github.com/mfuu/react-virtual-drag-list#readme",
   "dependencies": {
-    "sortable-dnd": "0.2.2"
+    "sortable-dnd": "0.2.5"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
