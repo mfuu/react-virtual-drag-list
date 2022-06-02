@@ -3,8 +3,8 @@ import { VirtualProps, DragState, Range } from './interface'
 import type { GetKey } from './interface'
 import { Item, Slot } from './children'
 import { debounce } from './utils'
-import Virtual from './virtual'
 import Sortable from './sortable'
+import Virtual from './virtual'
 
 const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 组件传入的事件回调
 
@@ -20,6 +20,9 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     keeps = 30,
     size = 50,
     delay = 0,
+    autoScroll = true,
+    scrollStep = 5,
+    scrollThreshold = 15,
 
     style = {},
     className = '',
@@ -168,26 +171,23 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtual.current.updateRange()
 
     if (sortable.current) sortable.current.set('dataSource', dataSource)
+
+    return () => {
+      destroySortable()
+    }
   }, [dataSource])
 
-  useEffect(() => {
-    return () => {
-      destroyDraggable()
-    }
-  }, [])
-
   useLayoutEffect(() => {
-    if (draggable) {
-      initDraggable()
+    if (!sortable.current) {
+      // fix autoScroll does not take effect
+      setTimeout(() => { initSortable() }, 0)
     } else {
-      destroyDraggable()
+      sortable.current.setOption('disabled', disabled)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draggable])
+  }, [disabled])
 
   // =============================== sortable ===============================
-  const initDraggable = () => {
-    destroyDraggable()
+  const initSortable = () => {
     sortable.current = new Sortable(
       {
         getKey,
@@ -200,6 +200,9 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         ghostClass,
         chosenClass,
         animation,
+        autoScroll,
+        scrollStep,
+        scrollThreshold
       },
       (state) => {
         dragState.current.from = state
@@ -219,7 +222,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     )
   }
 
-  const destroyDraggable = () => {
+  const destroySortable = () => {
     sortable.current && sortable.current.destroy()
     sortable.current = null
   }

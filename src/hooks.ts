@@ -32,7 +32,6 @@ export function Observer(props: ObserverProps) {
         observer = null
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elementRef])
 
   return React.cloneElement(mergedChildren as any, {
@@ -47,7 +46,6 @@ export function useRefCallback<T>(fn: Function, dependencies: Array<T>) {
   // 当依赖改变的时候，传入的 fn 中的依赖值也会更新，这时更新 ref 的指向为新传入的 fn
   React.useEffect(() => {
     ref.current = fn
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fn, ...dependencies])
 
   return React.useCallback(() => {

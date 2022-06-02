@@ -24,6 +24,9 @@ export interface VirtualProps<T> {
   size?: number; // estimated height of each row
 
   delay?: number; // Delay time of debounce function
+  autoScroll?: boolean; // Automatic scrolling when moving to the edge of the container
+  scrollStep?: number; // The distance to scroll each frame when autoscrolling
+  scrollThreshold?: number; // Threshold to trigger autoscroll
 
   style?: object;
   className?: string;
@@ -77,6 +80,9 @@ export interface SortableOptions<T> {
   ghostClass: string;
   chosenClass: string;
   animation: number;
+  autoScroll: boolean;
+  scrollStep: number;
+  scrollThreshold: number;
 }
 
 export class DragState {

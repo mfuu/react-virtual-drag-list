@@ -28,20 +28,39 @@ class Sortable<T> {
     this[key] = value
   }
 
+  setOption(key, value) {
+    this.options[key] = value
+    this.drag.set(key, value)
+  }
+
   init() {
-    this.destroy()
+    const {
+      disabled,
+      dragging,
+      draggable,
+      ghostClass,
+      ghostStyle,
+      chosenClass,
+      animation,
+      autoScroll,
+      scrollStep,
+      scrollThreshold
+    } = this.options
 
     let cloneList = new Array()
     this.drag = new SortableDnd(
       this.options.scrollEl,
       {
-        disabled: this.options.disabled,
-        draggable: this.options.draggable,
-        dragging: this.options.dragging,
-        ghostStyle: this.options.ghostStyle,
-        ghostClass: this.options.ghostClass,
-        chosenClass: this.options.chosenClass,
-        animation: this.options.animation,
+        disabled,
+        dragging,
+        draggable,
+        ghostClass,
+        ghostStyle,
+        chosenClass,
+        animation,
+        autoScroll,
+        scrollStep,
+        scrollThreshold,
 
         onDrag: (dragEl: HTMLElement) => {
           this.dragElement = dragEl
@@ -96,7 +115,7 @@ class Sortable<T> {
 
   destroy() {
     this.drag && this.drag.destroy()
-    delete this.drag
+    this.drag = null
   }
 }
 
