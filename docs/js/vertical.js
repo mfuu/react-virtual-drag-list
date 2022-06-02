@@ -1,6 +1,10 @@
 const VerticalList = (props) => {
   const virtual = React.useRef(null);
+  const [disabled, setDisabled] = React.useState(false);
 
+  const changeDisabled = () => {
+    setDisabled((pre) => !pre)
+  };
   const reset = () => {
     virtual.current.reset();
   };
@@ -26,6 +30,7 @@ const VerticalList = (props) => {
   return (
     <div className="content">
       <div className="btns">
+        <button onClick={ changeDisabled }>allow drag: { disabled ? 'false' : 'true' }</button>
         <button onClick={ reset }>reset</button>
         <button onClick={ toBottom }>to bottom</button>
         <button onClick={ toTop }>to top</button>
@@ -38,6 +43,7 @@ const VerticalList = (props) => {
           dataSource={ props.list }
           size={ 99 }
           keeps={ 20 }
+          disabled={ disabled }
           draggable=".drag"
           header={ <div className="loading">header</div> }
           footer={ <div className="loading">footer</div> }
