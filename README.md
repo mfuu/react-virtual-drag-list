@@ -7,9 +7,9 @@
   </a>
 </p>
 
-A virtual scrolling list component that can be sorted by dragging, [demo](https://mfuu.github.io/react-virtual-drag-list/)
+A virtual scrolling list component that can be sorted by dragging
 
-
+### [demo](https://mfuu.github.io/react-virtual-drag-list/)
 
 ## Simple usage
 
@@ -70,42 +70,45 @@ function Virtual() {
 
 ## Props
 
-**common used**
+**Common used**
 
-|     **Prop**    |   **Type**   | **Required?** | **Description**  |    **Default**   |
-|-----------------|--------------|---------------|------------------|------------------|
-| `dataKey`       | `String`     |   ✓   | the unique identifier of each piece of data, in the form of `'a.b.c'` | - |
-| `dataSource`    | `Array`      |   ✓   | data list            | `[]` |
-| `size`          | `Number`     |       | estimated height of each row  | `50` |
-| `keeps`         | `Number`     |       | the number of lines rendered by the virtual scroll  | `30` |
-| `direction`     | `String`     |       | `vertical/horizontal`, scroll direction  | `vertical` |
-| `v-top`         | `Function`   |       | callback function that fires when scrolling to the top  | - |
-| `v-bottom`      | `Function`   |       | callback function that fires when scrolling to the bottom  | - |
-| `v-dragend`     | `Function`   |       | event when drag is complete  | - |
-| `draggable`     | `Function/String` |  | Specifies which items inside the element should be draggable, the function type must return a boolean | `undefined` |
-| `dragging`      | `Function`   |       | Specifies the drag element, which must return an HTMLElement, such as `(e) => e.target` | `undefined` |
+|     **Prop**     |   **Type**   | **Required?** |  **Default** | **Description**  |
+|------------------|--------------|---------------|--------------|------------------|
+| `dataKey`        | `String`     |   ✓          | -            | The unique identifier of each piece of data, in the form of `'a.b.c'` |
+| `dataSource`     | `Array`      |   ✓          | `[]`         | Data list |
+| `size`           | `Number`     |               | `50`         | Estimated height of each row  |
+| `keeps`          | `Number`     |               | `30`         | The number of lines rendered by the virtual scroll  |
+| `direction`      | `String`     |               | `vertical`   | `vertical/horizontal`, scroll direction  |
+| `draggable`      | `Function/String` |          | -            | Specifies which items inside the element should be draggable, the function type must return a boolean |
+| `v-top`          | `Function`   |               | -            | callback function that fires when scrolling to the top  |
+| `v-bottom`       | `Function`   |               | -            | callback function that fires when scrolling to the bottom  |
+| `v-dragend`      | `Function`   |               | -            | event when drag is complete  |
+| `autoScroll`     | `Boolean`    |               | `true`       | Automatic scrolling when moving to the edge of the container  |
+| `scrollStep`     | `Number`     |               | `5`          | The distance to scroll each frame when autoscrolling  |
+| `scrollThreshold`| `Number`     |               | `15`         | Threshold to trigger autoscroll  |
 
 **Uncommonly used**
 
-|     **Prop**    |   **Type**   | **Required?** | **Description**  |    **Default**   |
-|-----------------|--------------|---------------|------------------|------------------|
-| `disabled`      | `Boolean`    |       | Disables the sortable if set to true | `false` |
-| `delay`         | `Number`     |       | Delay time of debounce function  | `0` |
-| `header`        | `JSX.Element`|       | top of list            | - |
-| `footer`        | `JSX.Element`|       | bottom of list            | - |
-| `rootTag`       | `String`     |       | Label type for root element  | `div` |
-| `wrapTag`       | `String`     |       | Label type for list wrap element  | `div` |
-| `itemTag`       | `String`     |       | Label type for list item element  | `div` |
-| `headerTag`     | `String`     |       | Label type for header slot element  | `div` |
-| `footerTag`     | `String`     |       | Label type for footer slot element  | `div` |
-| `itemStyle`     | `Object`     |       | style for each line  | `{}` |
-| `itemClass`     | `String`     |       | class for each line  | `''` |
-| `wrapStyle`     | `Object`     |       | List wrapper element style  | `{}` |
-| `wrapClass`     | `String`     |       | List wrapper element class  | `''` |
-| `animation`     | `Number`     |       | Drag-and-drop's animation delay | `150` |
-| `ghostStyle`    | `Object`     |       | The style of the mask element when dragging | `{}` |
-| `ghostClass`    | `String`     |       | The class of the mask element when dragging | `''` |
-| `chosenClass`   | `String`     |       | The class of the selected element when dragging | `''` |
+|     **Prop**    |   **Type**   | **Required?** | **Default** | **Description**  |
+|-----------------|--------------|---------------|-------------|------------------|
+| `disabled`      | `Boolean`    |               | `false`     | Disables the sortable if set to true |
+| `delay`         | `Number`     |               | `0`         | Delay time of debounce function  |
+| `dragging`      | `Function`   |               | `undefined` | Specifies the drag element, which must return an HTMLElement, such as `(e) => e.target` |
+| `header`        | `JSX.Element`|               | -           | Top of list |
+| `footer`        | `JSX.Element`|               | -           | Bottom of list |
+| `rootTag`       | `String`     |               | `div`       | Label type for root element  |
+| `wrapTag`       | `String`     |               | `div`       | Label type for list wrap element  |
+| `itemTag`       | `String`     |               | `div`       | Label type for list item element  |
+| `headerTag`     | `String`     |               | `div`       | Label type for header slot element  |
+| `footerTag`     | `String`     |               | `div`       | Label type for footer slot element  |
+| `itemStyle`     | `Object`     |               | `{}`        | Style for each line  |
+| `itemClass`     | `String`     |               | `''`        | Class for each line  |
+| `wrapStyle`     | `Object`     |               | `{}`        | List wrapper element style  |
+| `wrapClass`     | `String`     |               | `''`        | List wrapper element class  |
+| `animation`     | `Number`     |               | `150`       | Drag-and-drop's animation delay |
+| `ghostStyle`    | `Object`     |               | `{}`        | The style of the mask element when dragging |
+| `ghostClass`    | `String`     |               | `''`        | The class of the mask element when dragging |
+| `chosenClass`   | `String`     |               | `''`        | The class of the selected element when dragging |
 
 ## Methods
 Use the methods exposed in the component by setting `ref`
