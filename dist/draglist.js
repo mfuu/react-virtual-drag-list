@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.4.3
+ * react-virtual-drag-list v2.4.4
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
