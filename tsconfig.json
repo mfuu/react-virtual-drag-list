@@ -13,7 +13,7 @@
     "noImplicitAny": false, // 是否默认禁用 any
     "removeComments": false, // 是否移除注释
     "paths": { // 指定模块的路径，和baseUrl有关联，和webpack中resolve.alias配置一样
-      "src": [ //指定后可以在文件之直接 import * from 'src';
+      "src": [ // 指定后可以在文件之直接 import * from 'src';
         "./src"
       ]
     },
