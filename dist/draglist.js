@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.4.4
+ * react-virtual-drag-list v2.4.5
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -37,8 +37,8 @@
       from;
       to;
       constructor() {
-          this.from = { key: null, item: null, index: -1 };
-          this.to = { key: null, item: null, index: -1 };
+          this.from = { key: undefined, item: undefined, index: -1 };
+          this.to = { key: undefined, item: undefined, index: -1 };
       }
   }
   class CalcSize {
@@ -60,11 +60,11 @@
       end;
       front;
       behind;
-      constructor() {
-          this.start = 0;
-          this.end = 0;
-          this.front = 0;
-          this.behind = 0;
+      constructor(options = {}) {
+          this.start = options.start || 0;
+          this.end = options.end || 0;
+          this.front = options.front || 0;
+          this.behind = options.behind || 0;
       }
   }
 
@@ -106,13 +106,6 @@
           React__namespace.createElement(Tag, { "v-role": roleId, style: Style, className: Class }, children))) : React__namespace.createElement(React__namespace.Fragment, null);
   }
 
-  /**
-    * 防抖函数
-    * @param func callback
-    * @param delay 延迟
-    * @param immediate 是否立即执行
-    * @returns
-    */
   function debounce(func, delay = 50, immediate = false) {
       let timer;
       let result;
@@ -140,6 +133,18 @@
       };
       return debounced;
   }
+  function throttle(fn, delay) {
+      let timer = null;
+      return function () {
+          const context = this, args = arguments;
+          if (!timer) {
+              timer = setTimeout(function () {
+                  timer = null;
+                  fn.apply(context, args);
+              }, delay);
+          }
+      };
+  }
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -149,7 +154,7 @@
 
   var sortable = createCommonjsModule(function (module, exports) {
   /*!
-   * sortable-dnd v0.2.6
+   * sortable-dnd v0.2.7
    * open source under the MIT license
    * https://github.com/mfuu/sortable-dnd#readme
    */
@@ -274,6 +279,22 @@
       });else CSSTRANSFORMS.forEach(function (tf) {
         return css(el, tf, '');
       });
+    }
+    /**
+     * get touch event and current event
+     * @param {Event} evt 
+     */
+
+
+    function getEvent(evt) {
+      var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
+      var e = touch || evt;
+      var target = touch ? document.elementFromPoint(e.clientX, e.clientY) : e.target;
+      return {
+        touch: touch,
+        e: e,
+        target: target
+      };
     }
     /**
      * detect passive event support
@@ -896,7 +917,7 @@
 
     function DNDEvent() {
       return {
-        _bindDragEventListener: function _bindDragEventListener() {
+        _bindEventListener: function _bindEventListener() {
           this._onDrag = this._onDrag.bind(this);
           this._onMove = this._onMove.bind(this);
           this._onDrop = this._onDrop.bind(this);
@@ -912,7 +933,7 @@
             on(this.rootEl, 'mousedown', this._onDrag);
           }
         },
-        _unbindDragEventListener: function _unbindDragEventListener() {
+        _clearEvent: function _clearEvent() {
           off(this.rootEl, 'pointerdown', this._onDrag);
           off(this.rootEl, 'touchstart', this._onDrag);
           off(this.rootEl, 'mousedown', this._onDrag);
@@ -1034,9 +1055,9 @@
       this.dragStartTimer = null; // setTimeout timer
 
       this.autoScrollTimer = null;
-      Object.assign(this, Animation(), AutoScroll(), DNDEvent());
+      Object.assign(this, DNDEvent(), Animation(), AutoScroll());
 
-      this._bindDragEventListener();
+      this._bindEventListener();
     }
 
     Sortable.prototype = {
@@ -1048,7 +1069,7 @@
       destroy: function destroy() {
         this._clearState();
 
-        this._unbindDragEventListener(); // Remove draggable attributes
+        this._clearEvent(); // Remove draggable attributes
 
 
         Array.prototype.forEach.call(this.rootEl.querySelectorAll('[draggable]'), function (el) {
@@ -1077,11 +1098,14 @@
 
         if (/mousedown|pointerdown/.test(evt.type) && evt.button !== 0 || this.options.disabled) return; // only left button and enabled
 
-        var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
-        var e = touch || evt; // Safari ignores further event handling after mousedown
+        var _getEvent = getEvent(evt),
+            touch = _getEvent.touch,
+            e = _getEvent.e,
+            target = _getEvent.target; // Safari ignores further event handling after mousedown
 
-        if (!this.nativeDraggable && Safari && e.target && e.target.tagName.toUpperCase() === 'SELECT') return;
-        if (e.target === this.rootEl) return true;
+
+        if (!this.nativeDraggable && Safari && target && target.tagName.toUpperCase() === 'SELECT') return;
+        if (target === this.rootEl) return true;
         if (this.options.stopPropagation) evt.stopPropagation();
         var _this$options = this.options,
             draggable = _this$options.draggable,
@@ -1090,7 +1114,7 @@
         if (typeof draggable === 'function') {
           if (!draggable(e)) return true;
         } else if (typeof draggable === 'string') {
-          if (!matches(e.target, draggable)) return true;
+          if (!matches(target, draggable)) return true;
         } else if (draggable !== undefined) {
           throw new Error("draggable expected \"function\" or \"string\" but received \"".concat(_typeof(draggable), "\""));
         } // Get the dragged element               
@@ -1099,11 +1123,13 @@
         if (dragging) {
           if (typeof dragging === 'function') this.dragEl = dragging(e);else throw new Error("dragging expected \"function\" or \"string\" but received \"".concat(_typeof(dragging), "\""));
         } else {
-          this.dragEl = getElement(this.rootEl, e.target, true);
+          this.dragEl = getElement(this.rootEl, target, true);
         } // No dragging is allowed when there is no dragging element
 
 
-        if (!this.dragEl || this.dragEl.animated) return true; // get the position of the dragged element in the list
+        if (!this.dragEl || this.dragEl.animated) return true; // solve the problem that the mobile cannot be dragged
+
+        if (touch) this.dragEl.style['touch-action'] = 'none'; // get the position of the dragged element in the list
 
         var _getElement = getElement(this.rootEl, this.dragEl),
             rect = _getElement.rect,
@@ -1151,6 +1177,7 @@
           on(this.ownerDocument, 'pointercancel', this._onDrop);
           on(this.ownerDocument, 'touchcancel', this._onDrop);
         } else {
+          // allow HTML5 drag event
           this.dragEl.draggable = true;
           this._onDragStart = this._onDragStart.bind(this);
           this._onDragOver = this._onDragOver.bind(this);
@@ -1207,11 +1234,13 @@
         var _this3 = this;
 
         if (!this.state.sortableDown) return;
-        var touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt;
-        var e = touch || evt;
+
+        var _getEvent2 = getEvent(evt),
+            e = _getEvent2.e,
+            target = _getEvent2.target;
+
         var clientX = e.clientX,
             clientY = e.clientY;
-        var target = touch ? document.elementFromPoint(clientX, clientY) : e.target;
         var distanceX = clientX - this.move.x;
         var distanceY = clientY - this.move.y;
 
@@ -1258,18 +1287,16 @@
         this.state.sortableMove = e; // sortable state move is active
 
         if (!this.ghost.$el) {
-          // Init in the move event to prevent conflict with the click event
+          // onDrag callback
+          var onDrag = this.options.onDrag;
+          if (onDrag && typeof onDrag === 'function') onDrag(this.dragEl, e, evt); // Init in the move event to prevent conflict with the click event
+
           var rect = this.differ.from.rect;
           var ghostEl = this.dragEl.cloneNode(true);
           this.ghost.init(ghostEl, rect, !this.nativeDraggable); // add class for drag element
 
-          toggleClass(this.dragEl, this.options.chosenClass, true); // solve the problem that the mobile cannot be dragged
-
-          this.dragEl.style['touch-action'] = 'none';
-          this.dragEl.style['will-change'] = 'transform'; // onDrag callback
-
-          var onDrag = this.options.onDrag;
-          if (onDrag && typeof onDrag === 'function') onDrag(this.dragEl, e, evt);
+          toggleClass(this.dragEl, this.options.chosenClass, true);
+          this.dragEl.style['will-change'] = 'transform';
           if (Safari) css(document.body, 'user-select', 'none');
           if (this.nativeDraggable) this._unbindDropEvents();
         }
@@ -1330,12 +1357,16 @@
         this.dragStartTimer && clearTimeout(this.dragStartTimer);
         var stopPropagation = this.options.stopPropagation;
         stopPropagation && evt.stopPropagation();
-        evt.preventDefault && evt.preventDefault(); // clear style and class
+        evt.preventDefault && evt.preventDefault();
+
+        var _getEvent3 = getEvent(evt),
+            touch = _getEvent3.touch; // clear style and class
+
 
         toggleClass(this.dragEl, this.options.chosenClass, false);
-        this.dragEl.style['touch-action'] = '';
+        if (this.nativeDraggable) this.dragEl.draggable = false;
+        if (touch) this.dragEl.style['touch-action'] = '';
         this.dragEl.style['will-change'] = '';
-        this.dragEl.draggable = false;
 
         if (this.state.sortableDown && this.state.sortableMove) {
           // re-acquire the offset and rect values of the dragged element as the value after the drag is completed
@@ -1351,17 +1382,16 @@
           if (onDrop && typeof onDrop === 'function') onDrop(changed, evt);
         }
 
-        this._clearState();
-
-        this.ghost.destroy(this.differ.to.rect);
         if (Safari) css(document.body, 'user-select', '');
+        this.ghost.destroy(this.differ.to.rect);
+        this.state = new State();
       },
       // -------------------------------- clear ----------------------------------
       _clearState: function _clearState() {
-        this.dragEl = null;
-        this.dropEl = null;
         this.state = new State();
         this.differ.destroy();
+        this.dragEl = null;
+        this.dropEl = null;
       }
     };
     Sortable.prototype.utils = {
@@ -1376,7 +1406,6 @@
   });
 
   class Sortable {
-      getKey;
       onDrag;
       onDrop;
       dragState;
@@ -1384,19 +1413,23 @@
       drag;
       options;
       dataSource;
+      cloneList;
       rangeIsChanged;
       constructor(options, onDrag, onDrop) {
           this.options = options;
           this.onDrag = onDrag;
           this.onDrop = onDrop;
-          this.getKey = options.getKey;
-          this.dragState = new DragState;
           this.dataSource = options.dataSource;
+          this.cloneList = new Array();
+          this.dragState = new DragState;
           this.rangeIsChanged = false;
           this.init();
       }
       set(key, value) {
           this[key] = value;
+          // When the list data changes when dragging, need to execute onDrag function
+          if (key === 'dataSource' && this.dragElement)
+              this.dragStart(this.dragElement, false);
       }
       setOption(key, value) {
           this.options[key] = value;
@@ -1404,7 +1437,6 @@
       }
       init() {
           const { disabled, dragging, draggable, ghostClass, ghostStyle, chosenClass, animation, autoScroll, scrollStep, scrollThreshold } = this.options;
-          let cloneList = new Array();
           this.drag = new sortable(this.options.scrollEl, {
               disabled,
               dragging,
@@ -1416,43 +1448,58 @@
               autoScroll,
               scrollStep,
               scrollThreshold,
-              onDrag: (dragEl) => {
-                  this.dragElement = dragEl;
-                  cloneList = [...this.dataSource];
-                  const key = dragEl.getAttribute('data-key');
-                  const index = this.dataSource.findIndex(el => this.getKey(el) == key);
-                  const item = this.dataSource[index];
-                  Object.assign(this.dragState.from, { item, index, key });
-                  this.rangeIsChanged = false;
-                  this.onDrag(this.dragState.from);
-              },
-              onChange: (_old_, _new_) => {
-                  const oldKey = this.dragState.from.key;
-                  const newKey = _new_.node.getAttribute('data-key');
-                  const from = { item: null, index: -1 };
-                  const to = { item: null, index: -1 };
-                  cloneList.forEach((el, index) => {
-                      const key = this.getKey(el);
-                      if (key == oldKey)
-                          Object.assign(from, { item: el, index });
-                      if (key == newKey)
-                          Object.assign(to, { item: el, index });
-                  });
-                  cloneList.splice(from.index, 1);
-                  cloneList.splice(to.index, 0, from.item);
-              },
-              onDrop: (changed) => {
-                  if (this.rangeIsChanged && this.dragElement)
-                      this.dragElement.remove();
-                  const { from } = this.dragState;
-                  const index = cloneList.findIndex(el => this.getKey(el) == from.key);
-                  const item = this.dataSource[index];
-                  this.dragState.to = { item, index, key: this.getKey(item) };
-                  this.onDrop(cloneList, from, this.dragState.to, changed);
-                  this.dataSource = [...cloneList];
-                  this.clear();
-              }
+              onChange: (from, to) => this.onChange(from, to),
+              onDrag: (dragEl) => this.dragStart(dragEl),
+              onDrop: (changed) => this.dragEnd(changed)
           });
+      }
+      dragStart(dragEl, callback = true) {
+          this.dragElement = dragEl;
+          this.cloneList = [...this.dataSource];
+          const key = dragEl.getAttribute('data-key');
+          this.dataSource.forEach((item, index) => {
+              if (this.options.getKey(item) == key)
+                  this.dragState.from = { item, index, key };
+          });
+          if (callback) {
+              this.rangeIsChanged = false;
+              this.onDrag(this.dragState.from, dragEl);
+          }
+          else {
+              this.rangeIsChanged = true;
+          }
+      }
+      onChange(_old_, _new_) {
+          const oldKey = this.dragState.from.key;
+          const newKey = _new_.node.getAttribute('data-key');
+          const from = { item: null, index: -1 };
+          const to = { item: null, index: -1 };
+          this.cloneList.forEach((el, index) => {
+              const key = this.options.getKey(el);
+              if (key == oldKey)
+                  Object.assign(from, { item: el, index });
+              if (key == newKey)
+                  Object.assign(to, { item: el, index });
+          });
+          this.cloneList.splice(from.index, 1);
+          this.cloneList.splice(to.index, 0, from.item);
+      }
+      dragEnd(changed) {
+          const { getKey } = this.options;
+          if (this.rangeIsChanged && this.dragElement)
+              this.dragElement.remove();
+          const { from } = this.dragState;
+          this.cloneList.forEach((el, index) => {
+              if (getKey(el) == from.key)
+                  this.dragState.to = {
+                      index,
+                      key: getKey(el),
+                      item: this.dataSource[index]
+                  };
+          });
+          this.onDrop(this.cloneList, from, this.dragState.to, changed);
+          this.dataSource = [...this.cloneList];
+          this.clear();
       }
       clear() {
           this.dragElement = null;
@@ -1511,8 +1558,20 @@
           });
       }
       updateRange() {
+          // check if need to update until loaded enough list item
           const start = Math.max(this.range.start, 0);
-          this.handleUpdate(start, this.getEndByStart(start));
+          const length = Math.min(this.options.keeps, this.options.uniqueKeys.length);
+          if (this.sizes.size >= length - 2) {
+              this.handleUpdate(start, this.getEndByStart(start));
+          }
+          else {
+              if (window.requestAnimationFrame) {
+                  window.requestAnimationFrame(() => this.updateRange());
+              }
+              else {
+                  setTimeout(() => this.updateRange(), 3);
+              }
+          }
       }
       // --------------------------- scroll ------------------------------
       // 滚动事件
@@ -1658,17 +1717,18 @@
       }
   }
 
-  const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' }; // 组件传入的事件回调
+  const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragstart: 'v-dragstart', dragend: 'v-dragend' }; // component incoming event callback
   function VirtualDragList(props, ref) {
-      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = 50, delay = 0, autoScroll = true, scrollStep = 5, scrollThreshold = 15, style = {}, className = '', wrapTag = 'div', rootTag = 'div', itemTag = 'div', headerTag = 'div', footerTag = 'div', itemStyle = {}, itemClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
+      const { header, footer, children, dataSource = [], dataKey, direction = 'vertical', keeps = 30, size = null, delay = 10, keepOffset = false, autoScroll = true, scrollStep = 5, scrollThreshold = 15, style = {}, className = '', wrapTag = 'div', rootTag = 'div', itemTag = 'div', headerTag = 'div', footerTag = 'div', itemStyle = {}, itemClass = '', wrapStyle = {}, wrapClass = '', disabled = false, draggable = undefined, dragging = undefined, ghostClass = '', ghostStyle = {}, chosenClass = '', animation = 150 } = props;
       // =============================== State ===============================
       const [list, setList] = React.useState([]);
       const cloneList = React.useRef([]);
       const uniqueKeys = React.useRef([]);
-      const [range, setRange] = React.useState(new Range); // 当前可见范围
-      const root_ref = React.useRef(null); // 根元素
-      const wrap_ref = React.useRef(null); // 列表ref
-      const last_ref = React.useRef(null); // 列表末尾dom，总是存在于列表最后
+      const [range, setRange] = React.useState(new Range({ end: keeps - 1 })); // currently visible range
+      const root_ref = React.useRef(null); // root element
+      const wrap_ref = React.useRef(null); // list element
+      const last_ref = React.useRef(null); // dom at the end of the list
+      const lastItem = React.useRef(null); // record the first element of the current list
       const dragState = React.useRef(new DragState);
       const sortable = React.useRef(null);
       const virtual = React.useRef(new Virtual({
@@ -1677,7 +1737,8 @@
           uniqueKeys: uniqueKeys.current,
           isHorizontal: direction === 'vertical'
       }, (range) => {
-          setRange(() => range);
+          if (dragState.current.to.key === undefined)
+              setRange(() => range);
           // check if drag element is in range
           const { index } = dragState.current.from || {};
           if (index > -1 && !(index >= range.start && index <= range.end)) {
@@ -1747,7 +1808,6 @@
           if (last_ref.current) {
               const offset = last_ref.current[offsetSizeKey];
               root_ref.current[scrollDirectionKey] = offset;
-              // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
               setTimeout(() => {
                   const root = root_ref.current;
                   const offset = getOffset();
@@ -1769,27 +1829,37 @@
       }));
       // =============================== init ===============================
       React.useEffect(() => {
-          setList(() => [...dataSource]);
           cloneList.current = [...dataSource];
+          setList(() => [...dataSource]);
           setUniqueKeys();
+          // update virtual state
           virtual.current.updateUniqueKeys(uniqueKeys.current);
           virtual.current.updateSizes(uniqueKeys.current);
-          virtual.current.updateRange();
-          if (sortable.current)
+          setTimeout(() => virtual.current.updateRange(), 0);
+          // update sortable state
+          if (sortable.current) {
               sortable.current.set('dataSource', dataSource);
+          }
+          else {
+              initSortable();
+          }
+          // if auto scroll to the last offset
+          if (lastItem.current && keepOffset) {
+              const index = getItemIndex(lastItem.current);
+              scrollToIndex(index);
+              lastItem.current = null;
+          }
+      }, [dataSource]);
+      React.useEffect(() => {
+          if (sortable.current)
+              sortable.current.setOption('disabled', disabled);
+      }, [disabled]);
+      React.useEffect(() => {
+          // destroy
           return () => {
               destroySortable();
           };
-      }, [dataSource]);
-      React.useLayoutEffect(() => {
-          if (!sortable.current) {
-              // fix autoScroll does not take effect
-              setTimeout(() => { initSortable(); }, 0);
-          }
-          else {
-              sortable.current.setOption('disabled', disabled);
-          }
-      }, [disabled]);
+      }, []);
       // =============================== sortable ===============================
       const initSortable = () => {
           sortable.current = new Sortable({
@@ -1806,16 +1876,38 @@
               autoScroll,
               scrollStep,
               scrollThreshold
-          }, (state) => {
+          }, (state, node) => {
               dragState.current.from = state;
+              // on-drag-start callback
+              const callback = props[CALLBACKS.dragstart];
+              callback && callback(list, state, node);
           }, (list, from, to, changed) => {
               dragState.current.to = to;
+              // on-drag-end callback
               const callback = props[CALLBACKS.dragend];
               callback && callback(list, from, to, changed);
-              cloneList.current = [...list];
-              setList(() => [...list]);
-              setUniqueKeys();
-              setTimeout(() => dragState.current = new DragState, delay + 10);
+              if (changed) {
+                  // recalculate the range once when scrolling down
+                  if (sortable.current.rangeIsChanged && virtual.current.direction) {
+                      const prelist = cloneList.current;
+                      setRange((pre) => {
+                          if (pre.start > 0) {
+                              const index = list.indexOf(prelist[pre.start]);
+                              if (index > -1)
+                                  return { ...pre, start: index, end: index + keeps - 1 };
+                              else
+                                  return { ...pre };
+                          }
+                          else
+                              return { ...pre };
+                      });
+                  }
+                  // list change
+                  cloneList.current = [...list];
+                  setList(() => [...list]);
+                  setUniqueKeys();
+              }
+              clearDragState();
           });
       };
       const destroySortable = () => {
@@ -1827,12 +1919,16 @@
           uniqueKeys.current = cloneList.current.map(item => getKey(item));
       };
       const getItemIndex = (item) => {
-          return cloneList.current.findIndex(el => getKey(el) === getKey(item));
+          return cloneList.current.findIndex((el) => getKey(el) === getKey(item));
       };
       // 获取 item 中的 dateKey 值
       const getKey = React__default["default"].useCallback((item) => {
           return (dataKey.replace(/\[/g, '.').replace(/\]/g, '').split('.').reduce((o, k) => (o || {})[k], item));
       }, [dataKey]);
+      const clearDragState = throttle(() => {
+          dragState.current = new DragState;
+      }, delay + 17);
+      // =============================== scroll keys ===============================
       const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React__default["default"].useMemo(() => {
           const isHorizontal = direction !== 'vertical';
           return {
@@ -1844,32 +1940,35 @@
       }, [direction]);
       // =============================== Scroll ===============================
       const handleScroll = (e) => {
-          // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
-          if (dragState.current.to && dragState.current.to.key)
+          // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
+          if (dragState.current.to.key !== undefined) {
+              clearDragState();
               return;
+          }
           const root = root_ref.current;
           const offset = getOffset();
           const clientSize = Math.ceil(root[clientSizeKey]);
           const scrollSize = Math.ceil(root[scrollSizeKey]);
-          // 如果不存在滚动元素 | 滚动高度小于0 | 超出最大滚动距离
           if (offset < 0 || (offset + clientSize > scrollSize + 1) || !scrollSize)
               return;
           virtual.current.handleScroll(offset);
-          // 判断当前应该触发的回调函数，滚动到顶部时触发 `v-top`，滚动到底部时触发 `v-bottom`
           if (virtual.current.isFront()) {
               if (!!dataSource.length && offset <= 0)
-                  handleToTop(props);
+                  handleToTop();
           }
           else if (virtual.current.isBehind()) {
               if (clientSize + offset >= scrollSize)
-                  handleToBottom(props);
+                  handleToBottom();
           }
       };
-      const handleToTop = debounce(function (props) {
+      const handleToTop = debounce(() => {
+          lastItem.current = cloneList.current[0];
+          // scroll-to-top callback
           const callback = props[CALLBACKS.top];
           callback && callback();
       });
-      const handleToBottom = debounce(function (props) {
+      const handleToBottom = debounce(() => {
+          // scroll-to-bottom callback
           const callback = props[CALLBACKS.bottom];
           callback && callback();
       });
