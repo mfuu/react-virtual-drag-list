@@ -36,7 +36,6 @@ const DynamicList = (props) => {
           ref={ virtual }
           dataKey="index"
           dataSource={ props.list }
-          size={ 70 }
           keeps={ 20 }
           draggable=".drag"
           header={ <div className="loading">header</div> }

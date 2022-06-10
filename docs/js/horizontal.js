@@ -36,7 +36,6 @@ const HorizontalList = (props) => {
           ref={ virtual }
           dataKey="index"
           dataSource={ props.list }
-          size={ 150 }
           keeps={ 20 }
           draggable=".drag"
           direction="horizontal"

@@ -41,7 +41,6 @@ const VerticalList = (props) => {
           ref={ virtual }
           dataKey="index"
           dataSource={ props.list }
-          size={ 99 }
           keeps={ 20 }
           disabled={ disabled }
           draggable=".drag"
