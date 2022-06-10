@@ -70,19 +70,26 @@ function Virtual() {
 
 ## Props
 
+**Callback**
+
+|     **Emit**     |   **Type**   | **Required?** |  **Default** | **Description**  |
+|------------------|--------------|---------------|--------------|------------------|
+| `v-top`          | `Function`   |               | -            | Callback function that fires when scrolling to the top  |
+| `v-bottom`       | `Function`   |               | -            | Callback function that fires when scrolling to the bottom  |
+| `v-dragstart`    | `Function`   |               | -            | Callback function when drag is started  |
+| `v-dragend`      | `Function`   |               | -            | Callback function when drag is complete  |
+
 **Common used**
 
 |     **Prop**     |   **Type**   | **Required?** |  **Default** | **Description**  |
 |------------------|--------------|---------------|--------------|------------------|
 | `dataKey`        | `String`     |   ✓          | -            | The unique identifier of each piece of data, in the form of `'a.b.c'` |
 | `dataSource`     | `Array`      |   ✓          | `[]`         | Data list |
-| `size`           | `Number`     |               | `50`         | Estimated height of each row  |
+| `size`           | `Number`     |               | `-`          | Estimated height of each row  |
 | `keeps`          | `Number`     |               | `30`         | The number of lines rendered by the virtual scroll  |
 | `direction`      | `String`     |               | `vertical`   | `vertical/horizontal`, scroll direction  |
 | `draggable`      | `Function/String` |          | -            | Specifies which items inside the element should be draggable, the function type must return a boolean |
-| `v-top`          | `Function`   |               | -            | callback function that fires when scrolling to the top  |
-| `v-bottom`       | `Function`   |               | -            | callback function that fires when scrolling to the bottom  |
-| `v-dragend`      | `Function`   |               | -            | event when drag is complete  |
+| `keepOffset`     | `Boolean`    |               | `false`      | When scrolling up to load data, keep the same offset as the previous scroll  |
 | `autoScroll`     | `Boolean`    |               | `true`       | Automatic scrolling when moving to the edge of the container  |
 | `scrollStep`     | `Number`     |               | `5`          | The distance to scroll each frame when autoscrolling  |
 | `scrollThreshold`| `Number`     |               | `15`         | Threshold to trigger autoscroll  |
@@ -92,7 +99,7 @@ function Virtual() {
 |     **Prop**    |   **Type**   | **Required?** | **Default** | **Description**  |
 |-----------------|--------------|---------------|-------------|------------------|
 | `disabled`      | `Boolean`    |               | `false`     | Disables the sortable if set to true |
-| `delay`         | `Number`     |               | `0`         | Delay time of debounce function  |
+| `delay`         | `Number`     |               | `10`        | Delay time of debounce function  |
 | `dragging`      | `Function`   |               | `undefined` | Specifies the drag element, which must return an HTMLElement, such as `(e) => e.target` |
 | `header`        | `JSX.Element`|               | -           | Top of list |
 | `footer`        | `JSX.Element`|               | -           | Bottom of list |
