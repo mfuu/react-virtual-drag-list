@@ -171,7 +171,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtual.current.updateSizes(uniqueKeys.current)
     setTimeout(() => virtual.current.updateRange(), 0)
     // update sortable state
-    console.log(sortable, 'sortable', cloneList, uniqueKeys)
     if (sortable.current) {
       sortable.current.set('dataSource', dataSource)
     } else {
