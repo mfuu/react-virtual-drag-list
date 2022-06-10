@@ -58,8 +58,18 @@ class Virtual<T> {
   }
 
   updateRange() {
+    // check if need to update until loaded enough list item
     const start = Math.max(this.range.start, 0)
-    this.handleUpdate(start, this.getEndByStart(start))
+    const length = Math.min(this.options.keeps, this.options.uniqueKeys.length)
+    if (this.sizes.size >= length - 2) {
+      this.handleUpdate(start, this.getEndByStart(start))
+    } else {
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(() => this.updateRange())
+      } else {
+        setTimeout(() => this.updateRange(), 3)
+      }
+    }
   }
 
   // --------------------------- scroll ------------------------------

@@ -1,10 +1,3 @@
-/**
-  * 防抖函数
-  * @param func callback
-  * @param delay 延迟
-  * @param immediate 是否立即执行
-  * @returns 
-  */
 export function debounce(func: Function, delay: number = 50, immediate:boolean = false){
   let timer: any | undefined
   let result: Function
@@ -28,6 +21,19 @@ export function debounce(func: Function, delay: number = 50, immediate:boolean =
     timer = null
   }
   return debounced
+}
+
+export function throttle(fn: Function, delay: number) {
+  let timer = null
+  return function() {
+    const context = this, args = arguments
+    if(!timer) {
+      timer = setTimeout(function() {
+        timer = null
+        fn.apply(context, args)
+      }, delay)
+    }
+  }
 }
 
 export default {

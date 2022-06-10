@@ -2,11 +2,11 @@ import React, { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import { VirtualProps, DragState, Range } from './interface'
 import type { GetKey } from './interface'
 import { Item, Slot } from './children'
-import { debounce } from './utils'
+import { debounce, throttle } from './utils'
 import Sortable from './sortable'
 import Virtual from './virtual'
 
-const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragend: 'v-dragend' } // 组件传入的事件回调
+const CALLBACKS = { top: 'v-top', bottom: 'v-bottom', dragstart: 'v-dragstart', dragend: 'v-dragend' } // component incoming event callback
 
 export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
@@ -18,8 +18,9 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     dataKey,
     direction = 'vertical',
     keeps = 30,
-    size = 50,
-    delay = 0,
+    size = null,
+    delay = 10,
+    keepOffset = false,
     autoScroll = true,
     scrollStep = 5,
     scrollThreshold = 15,
@@ -52,12 +53,13 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const cloneList = useRef([])
   const uniqueKeys = useRef([])
 
-  const [range, setRange] = useState<Range>(new Range) // 当前可见范围
+  const [range, setRange] = useState<Range>(new Range({ end: keeps - 1 })) // currently visible range
 
-  const root_ref = useRef<Element>(null) // 根元素
-  const wrap_ref = useRef<Element>(null) // 列表ref
-  const last_ref = useRef<Element>(null) // 列表末尾dom，总是存在于列表最后
+  const root_ref = useRef<Element>(null) // root element
+  const wrap_ref = useRef<Element>(null) // list element
+  const last_ref = useRef<Element>(null) // dom at the end of the list
 
+  const lastItem = useRef(null) // record the first element of the current list
   const dragState = useRef<DragState>(new DragState)
   const sortable = useRef<Sortable<T>>(null)
   const virtual = useRef<Virtual<T>>(new Virtual(
@@ -67,8 +69,8 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       uniqueKeys: uniqueKeys.current,
       isHorizontal: direction === 'vertical'
     },
-    (range) => {
-      setRange(() => range)
+    (range: any) => {
+      if (dragState.current.to.key === undefined) setRange(() => range)
       // check if drag element is in range
       const { index } = dragState.current.from || {}
       if (index > -1 && !(index >= range.start && index <= range.end)) {
@@ -90,7 +92,7 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    * git item size by data-key
    * @param {String | Number} key data-key 
    */
-  const getSize = (key) => {
+  const getSize = (key: number | string) => {
     return virtual.current.sizes.get(key)
   }
   /**
@@ -104,14 +106,14 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    * Scroll to the specified offset
    * @param {Number} offset 
    */
-  const scrollToOffset = (offset) => {
+  const scrollToOffset = (offset: number) => {
     root_ref.current[scrollDirectionKey] = offset
   }
   /**
    * Scroll to the specified index position
    * @param {Number} index 
    */
-  const scrollToIndex = (index) => {
+  const scrollToIndex = (index: number) => {
     if (index >= dataSource.length - 1) {
       scrollToBottom()
     } else {
@@ -139,7 +141,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       const offset = last_ref.current[offsetSizeKey]
       root_ref.current[scrollDirectionKey] = offset
 
-      // 第一次滚动高度可能会发生改变，如果没到底部再执行一次滚动方法
       setTimeout(() => {
         const root = root_ref.current
         const offset = getOffset()
@@ -162,29 +163,39 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   // =============================== init ===============================
   useEffect(() => {
-    setList(() => [...dataSource])
     cloneList.current = [...dataSource]
+    setList(() => [...dataSource])
     setUniqueKeys()
-
+    // update virtual state
     virtual.current.updateUniqueKeys(uniqueKeys.current)
     virtual.current.updateSizes(uniqueKeys.current)
-    virtual.current.updateRange()
+    setTimeout(() => virtual.current.updateRange(), 0)
+    // update sortable state
+    console.log(sortable, 'sortable', cloneList, uniqueKeys)
+    if (sortable.current) {
+      sortable.current.set('dataSource', dataSource)
+    } else {
+      initSortable()
+    }
 
-    if (sortable.current) sortable.current.set('dataSource', dataSource)
-
-    return () => {
-      destroySortable()
+    // if auto scroll to the last offset
+    if (lastItem.current && keepOffset) {
+      const index = getItemIndex(lastItem.current)
+      scrollToIndex(index)
+      lastItem.current = null
     }
   }, [dataSource])
 
-  useLayoutEffect(() => {
-    if (!sortable.current) {
-      // fix autoScroll does not take effect
-      setTimeout(() => { initSortable() }, 0)
-    } else {
-      sortable.current.setOption('disabled', disabled)
-    }
+  useEffect(() => {
+    if (sortable.current) sortable.current.setOption('disabled', disabled)
   }, [disabled])
+
+  useEffect(() => {
+    // destroy
+    return () => {
+      destroySortable()
+    }
+  }, [])
 
   // =============================== sortable ===============================
   const initSortable = () => {
@@ -204,20 +215,37 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         scrollStep,
         scrollThreshold
       },
-      (state) => {
+      (state: DragState, node: HTMLElement) => {
         dragState.current.from = state
+        // on-drag-start callback
+        const callback = props[CALLBACKS.dragstart]
+        callback && callback(list, state, node)
       },
       (list: T[], from: object, to: object, changed: boolean) => {
         dragState.current.to = to
 
+        // on-drag-end callback
         const callback = props[CALLBACKS.dragend]
         callback && callback(list, from, to, changed)
 
-        cloneList.current = [...list]
-        setList(() => [...list])
-        setUniqueKeys()
-
-        setTimeout(() => dragState.current = new DragState, delay + 10)
+        if (changed) {
+          // recalculate the range once when scrolling down
+          if (sortable.current.rangeIsChanged && virtual.current.direction) {
+            const prelist = cloneList.current
+            setRange((pre: Range) => {
+              if (pre.start > 0) {
+                const index = list.indexOf(prelist[pre.start])
+                if (index > -1) return { ...pre, start: index, end: index + keeps - 1 }
+                else return { ...pre }
+              } else return { ...pre }
+            })
+          }
+          // list change
+          cloneList.current = [...list]
+          setList(() => [...list])
+          setUniqueKeys()
+        }
+        clearDragState()
       }
     )
   }
@@ -232,8 +260,8 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     uniqueKeys.current = cloneList.current.map(item => getKey(item))
   }
 
-  const getItemIndex = (item) => {
-    return cloneList.current.findIndex(el => getKey(el) === getKey(item))
+  const getItemIndex = (item: object) => {
+    return cloneList.current.findIndex((el: object) => getKey(el) === getKey(item))
   }
 
   // 获取 item 中的 dateKey 值
@@ -246,6 +274,11 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     [dataKey]
   )
 
+  const clearDragState = throttle(() => {
+    dragState.current = new DragState
+  }, delay + 17)
+
+  // =============================== scroll keys ===============================
   const { scrollSizeKey, scrollDirectionKey, offsetSizeKey, clientSizeKey } = React.useMemo(() => {
     const isHorizontal = direction !== 'vertical'
     return {
@@ -258,31 +291,37 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   // =============================== Scroll ===============================
   const handleScroll = (e: Event) => {
-    // mouseup 事件时会触发scroll事件，这里处理为了防止range改变导致页面滚动
-    if (dragState.current.to && dragState.current.to.key) return
+    // The scroll event is triggered when the mouseup event occurs, which is handled here to prevent the page from scrolling due to range changes.
+    if (dragState.current.to.key !== undefined) {
+      clearDragState()
+      return
+    }
 
     const root = root_ref.current
     const offset = getOffset()
     const clientSize = Math.ceil(root[clientSizeKey])
     const scrollSize = Math.ceil(root[scrollSizeKey])
-    // 如果不存在滚动元素 | 滚动高度小于0 | 超出最大滚动距离
+
     if (offset < 0 || (offset + clientSize > scrollSize + 1) || !scrollSize) return
 
     virtual.current.handleScroll(offset)
-    // 判断当前应该触发的回调函数，滚动到顶部时触发 `v-top`，滚动到底部时触发 `v-bottom`
+
     if (virtual.current.isFront()) {
-      if (!!dataSource.length && offset <= 0) handleToTop(props)
+      if (!!dataSource.length && offset <= 0) handleToTop()
     } else if (virtual.current.isBehind()) {
-      if (clientSize + offset >= scrollSize) handleToBottom(props)
+      if (clientSize + offset >= scrollSize) handleToBottom()
     }
   }
 
-  const handleToTop = debounce(function (props: VirtualProps<T>) {
+  const handleToTop = debounce(() => {
+    lastItem.current = cloneList.current[0]
+    // scroll-to-top callback
     const callback = props[CALLBACKS.top]
     callback && callback()
   })
 
-  const handleToBottom = debounce(function (props: VirtualProps<T>) {
+  const handleToBottom = debounce(() => {
+    // scroll-to-bottom callback
     const callback = props[CALLBACKS.bottom]
     callback && callback()
   })

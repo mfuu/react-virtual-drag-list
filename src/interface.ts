@@ -24,6 +24,7 @@ export interface VirtualProps<T> {
   size?: number; // estimated height of each row
 
   delay?: number; // Delay time of debounce function
+  keepOffset?: boolean; // keep the same offset as the previous scroll
   autoScroll?: boolean; // Automatic scrolling when moving to the edge of the container
   scrollStep?: number; // The distance to scroll each frame when autoscrolling
   scrollThreshold?: number; // Threshold to trigger autoscroll
@@ -97,8 +98,8 @@ export class DragState {
     index: number // 拖拽结束节点索引
   }
   constructor() {
-    this.from = { key: null, item: null, index: -1 }
-    this.to = { key: null, item: null, index: -1 }
+    this.from = { key: undefined, item: undefined, index: -1 }
+    this.to = { key: undefined, item: undefined, index: -1 }
   }
 }
 
@@ -122,10 +123,10 @@ export class Range {
   end: number;
   front: number;
   behind: number;
-  constructor() {
-    this.start = 0
-    this.end = 0
-    this.front = 0
-    this.behind = 0
+  constructor(options: any = {}) {
+    this.start = options.start || 0
+    this.end = options.end || 0
+    this.front = options.front || 0
+    this.behind = options.behind || 0
   }
 }
