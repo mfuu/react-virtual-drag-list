@@ -15,11 +15,11 @@ const banner = `
  */
 `
 
-export default [
-  {
-    external: ['react'],
-    input: 'src/index.tsx',
-    output: {
+export default {
+  external: ['react'],
+  input: 'src/index.tsx',
+  output: [
+    {
       format: 'umd',
       file: 'dist/draglist.js',
       name: 'VirtualDragList',
@@ -29,17 +29,7 @@ export default [
       },
       banner: banner.replace(/\n/, '')
     },
-    plugins: [
-      typescript(),
-      babel(),
-      resolve(),
-      commonJs()
-    ]
-  },
-  {
-    external: ['react'],
-    input: 'src/index.tsx',
-    output: {
+    {
       format: 'umd',
       file: 'dist/draglist.min.js',
       name: 'VirtualDragList',
@@ -47,14 +37,14 @@ export default [
       globals: {
         react: 'React'
       },
-      banner: banner.replace(/\n/, '')
-    },
-    plugins: [
-      typescript(),
-      babel(),
-      uglify(),
-      resolve(),
-      commonJs()
-    ]
-  }
-]
+      banner: banner.replace(/\n/, ''),
+      plugins: [uglify()]
+    }
+  ],
+  plugins: [
+    typescript(),
+    babel(),
+    resolve(),
+    commonJs()
+  ]
+}
