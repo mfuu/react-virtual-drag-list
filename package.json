@@ -1,6 +1,6 @@
 {
   "name": "react-virtual-drag-list",
-  "version": "2.4.4",
+  "version": "2.4.5",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/draglist.js",
   "files": [
@@ -35,7 +35,7 @@
   },
   "homepage": "https://github.com/mfuu/react-virtual-drag-list#readme",
   "dependencies": {
-    "sortable-dnd": "0.2.6"
+    "sortable-dnd": "0.2.7"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
