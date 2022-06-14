@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.4.5
+ * react-virtual-drag-list v2.4.6
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -1592,6 +1592,9 @@
       isBehind() {
           return this.direction === DIRECTION.BEHIND;
       }
+      isFixed() {
+          return this.calcType === CACLTYPE.FIXED;
+      }
       getScrollItems(offset) {
           const { fixed, header } = this.calcSize;
           // 减去顶部插槽高度
@@ -1600,7 +1603,7 @@
           if (offset <= 0)
               return 0;
           // 固定高度
-          if (this.calcType === CACLTYPE.FIXED)
+          if (this.isFixed())
               return Math.floor(offset / fixed);
           // 非固定高度使用二分查找
           let low = 0, high = this.options.uniqueKeys.length;
@@ -1648,7 +1651,7 @@
           this.callback({ ...this.range });
       }
       getFrontOffset() {
-          if (this.calcType === CACLTYPE.FIXED) {
+          if (this.isFixed()) {
               return this.calcSize.fixed * this.range.start;
           }
           else {
@@ -1657,7 +1660,7 @@
       }
       getBehindOffset() {
           const last = this.getLastIndex();
-          if (this.calcType === CACLTYPE.FIXED) {
+          if (this.isFixed()) {
               return (last - this.range.end) * this.calcSize.fixed;
           }
           if (this.calcIndex === last) {
@@ -1681,12 +1684,13 @@
           return Math.min(start + this.options.keeps - 1, this.getLastIndex());
       }
       getLastIndex() {
-          return this.options.uniqueKeys.length - 1;
+          const { uniqueKeys, keeps } = this.options;
+          return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
       }
       // --------------------------- size ------------------------------
       // 获取列表项的高度
       getItemSize() {
-          return this.calcType === CACLTYPE.FIXED ? this.calcSize.fixed : (this.calcSize.average || this.options.size);
+          return this.isFixed() ? this.calcSize.fixed : (this.calcSize.average || this.options.size);
       }
       // 列表项高度变化
       handleItemSizeChange(id, size) {
@@ -1696,7 +1700,7 @@
               this.calcType = CACLTYPE.FIXED; // 固定高度
               this.calcSize.fixed = size;
           }
-          else if (this.calcType === CACLTYPE.FIXED && this.calcSize.fixed !== size) {
+          else if (this.isFixed() && this.calcSize.fixed !== size) {
               // 如果当前为 'FIXED' 状态并且 size 与固定高度不同，表示当前高度不固定，fixed值也就不需要了
               this.calcType = CACLTYPE.DYNAMIC;
               this.calcSize.fixed = undefined;
