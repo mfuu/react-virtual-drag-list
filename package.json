@@ -1,6 +1,6 @@
 {
   "name": "react-virtual-drag-list",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/draglist.js",
   "files": [
