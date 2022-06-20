@@ -151,3 +151,6 @@ return (
 | `scrollToIndex(index)` | scroll to the specified index value  |
 | `scrollToOffset(offset)` | scroll to the specified height  |
 
+## License
+
+[MIT License.](https://github.com/mfuu/react-virtual-drag-list/blob/main/LICENSE)
