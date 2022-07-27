@@ -76,7 +76,6 @@ export interface SortableOptions<T> {
   dataSource: T[];
   disabled: boolean;
   draggable: string | Function;
-  dragging: Function;
   ghostStyle: object;
   ghostClass: string;
   chosenClass: string;
@@ -86,17 +85,15 @@ export interface SortableOptions<T> {
   scrollThreshold: number;
 }
 
+interface DragStateType {
+  key: any;
+  index: number;
+  item: any;
+}
+
 export class DragState {
-  from: {
-    key: string, // 拖拽起始节点唯一值
-    item: any, // 拖拽起始节点数据
-    index: number, // 拖拽起始节点索引
-  }
-  to: {
-    key: string, // 拖拽结束节点唯一值
-    item: any, // 拖拽结束节点数据
-    index: number // 拖拽结束节点索引
-  }
+  from: DragStateType;
+  to: DragStateType;
   constructor() {
     this.from = { key: undefined, item: undefined, index: -1 }
     this.to = { key: undefined, item: undefined, index: -1 }
@@ -110,11 +107,11 @@ export class CalcSize {
   header: number; // 顶部插槽高度
   footer: number; // 底部插槽高度
   constructor() {
-    this.average = undefined
-    this.total = undefined
-    this.fixed = undefined
-    this.header = undefined
-    this.footer = undefined
+    this.average = 0
+    this.total = 0
+    this.fixed = 0
+    this.header = 0
+    this.footer = 0
   }
 }
 

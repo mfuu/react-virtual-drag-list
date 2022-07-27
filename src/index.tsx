@@ -41,7 +41,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
     disabled = false,
     draggable = undefined,
-    dragging = undefined,
     ghostClass = '',
     ghostStyle = {},
     chosenClass = '',
@@ -205,7 +204,6 @@ export function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         dataSource: cloneList.current,
         disabled,
         draggable,
-        dragging,
         ghostStyle,
         ghostClass,
         chosenClass,

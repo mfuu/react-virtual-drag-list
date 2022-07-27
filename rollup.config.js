@@ -6,7 +6,7 @@ import typescript from 'rollup-plugin-typescript'
 const packageJson = require('./package.json')
 const version = packageJson.version
 const homepage = packageJson.homepage
-
+const extensions = ['.js', '.jsx', '.ts', '.tsx']
 const banner = `
 /*!
  * react-virtual-drag-list v${version}
@@ -43,8 +43,8 @@ export default {
   ],
   plugins: [
     typescript(),
-    babel(),
     resolve(),
-    commonJs()
+    commonJs(),
+    babel({ extensions }),
   ]
 }

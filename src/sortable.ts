@@ -5,7 +5,7 @@ class Sortable<T> {
   onDrag: Function;
   onDrop: Function;
   dragState: DragState;
-  dragElement: HTMLElement;
+  dragElement?: HTMLElement;
   drag: SortableDnd;
   options: SortableOptions<T>;
   dataSource: T[];
@@ -39,7 +39,6 @@ class Sortable<T> {
   init() {
     const {
       disabled,
-      dragging,
       draggable,
       ghostClass,
       ghostStyle,
@@ -54,7 +53,6 @@ class Sortable<T> {
       this.options.scrollEl,
       {
         disabled,
-        dragging,
         draggable,
         ghostClass,
         ghostStyle,
