@@ -1,50 +1,80 @@
-import * as React from 'react'
-import { Observer } from './hooks'
-import { BaseProps } from './interface'
+import React from 'react';
+import { ObserverProps, ItemProps, BaseProps } from './props';
 
-export interface ItemProps<T> extends BaseProps {
-  key: any;
-  record: T;
-  index: number;
-  dataKey: string | number;
+export function Observer(props: ObserverProps) {
+  const { dataKey, children, onSizeChange } = props;
+
+  const elementRef = React.useRef<Element>(null);
+
+  const isRenderProps = typeof children === 'function';
+  const mergedChildren = isRenderProps ? children(elementRef) : children;
+
+  React.useLayoutEffect(() => {
+    let observer: ResizeObserver | null;
+    if (typeof ResizeObserver !== undefined) {
+      observer = new ResizeObserver(() => {
+        const size = elementRef.current.clientHeight;
+        onSizeChange && onSizeChange(dataKey, size);
+      });
+      elementRef.current && observer.observe(elementRef.current);
+    }
+    return () => {
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+    };
+  }, [elementRef]);
+
+  return React.cloneElement(mergedChildren as any, {
+    ref: elementRef,
+  });
 }
 
 export function Item<T>(props: ItemProps<T>) {
-
-  const { children, dataKey, Class, Style, Tag = 'div' } = props
-
-  const { record, index, onSizeChange } = props
+  const {
+    children,
+    dataKey,
+    className,
+    style,
+    Tag = 'div',
+    record,
+    index,
+    onSizeChange,
+  } = props;
 
   return (
-    <Observer dataKey={ dataKey } onSizeChange={ onSizeChange }>
-      <Tag
-        className={ Class }
-        style={ Style }
-        data-key={ dataKey }
-      >
-        { typeof children === 'function' ? children(record, index, dataKey) : children }
+    <Observer dataKey={dataKey} onSizeChange={onSizeChange}>
+      <Tag className={className} style={style} data-key={dataKey}>
+        {typeof children === 'function'
+          ? children(record, index, dataKey)
+          : children}
       </Tag>
     </Observer>
-  )
+  );
 }
 
-export interface SlotProps<T> extends BaseProps {
+export interface SlotProps extends BaseProps {
   roleId: string;
 }
 
-export function Slot<T>(props: SlotProps<T>) {
-  
-  const { Tag = 'div', Style, Class, children, roleId, onSizeChange } = props
+export function Slot(props: SlotProps) {
+  const {
+    Tag = 'div',
+    style,
+    className,
+    children,
+    roleId,
+    onSizeChange,
+  } = props;
 
   return children ? (
-    <Observer dataKey={ roleId } onSizeChange={ onSizeChange }>
-      <Tag
-        v-role={ roleId }
-        style={ Style }
-        className={ Class }
-      >
-        { children }
+    <Observer dataKey={roleId} onSizeChange={onSizeChange}>
+      <Tag v-role={roleId} style={style} className={className}>
+        {children}
       </Tag>
     </Observer>
-  ) : <></>
+  ) : (
+    <></>
+  );
 }
