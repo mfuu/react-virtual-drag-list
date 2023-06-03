@@ -4,16 +4,12 @@
 
 A virtual scrolling list component that can be sorted by dragging
 
-### [demo](https://mfuu.github.io/react-virtual-drag-list/)
+### [Live Demo](https://mfuu.github.io/react-virtual-drag-list/)
 
-## Simple usage
+## Simple Usage
 
 ```bash
-npm i react-virtual-drag-list -D
-
-or
-
-yarn add react-virtual-drag-list -D
+npm i react-virtual-drag-list
 ```
 
 Root component:
@@ -150,7 +146,3 @@ return (
 | `scrollToBottom()`| scroll to the bottom of the list  |
 | `scrollToIndex(index)` | scroll to the specified index value  |
 | `scrollToOffset(offset)` | scroll to the specified height  |
-
-## License
-
-[MIT License.](https://github.com/mfuu/react-virtual-drag-list/blob/main/LICENSE)
