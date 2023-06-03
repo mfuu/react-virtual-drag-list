@@ -37,7 +37,8 @@ const DynamicList = (props) => {
           dataKey="index"
           dataSource={ props.list }
           keeps={ 20 }
-          draggable=".drag"
+          handle=".drag"
+          chosenClass="chosen"
           header={ <div className="loading">header</div> }
           footer={ <div className="loading">footer</div> }
           v-top={ handleToTop }

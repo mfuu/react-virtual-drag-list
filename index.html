@@ -11,20 +11,70 @@
   <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-virtual-drag-list/dist/virtual-drag-list.min.js"></script>
   <script src="./docs/js/vertical.js" type="text/babel"></script>
   <script src="./docs/js/dynamic.js" type="text/babel"></script>
   <script src="./docs/js/horizontal.js" type="text/babel"></script>
   <script src="./docs/js/infinity.js" type="text/babel"></script>
-  <script src="./dist/draglist.js"></script>
 </head>
 <body>
   <div id="app"></div>
   <script type="text/babel">
-    const VirtualList = VirtualDragList['default'];
+    const VirtualList = VirtualDragList;
     function Virtual() {
       const list = getPageData(400, 0);
+      const list2 = getPageData(400, 400);
       return (
         <div>
+          <h1>Group</h1>
+          <div className="group">
+            <VirtualList
+              dataKey="index"
+              dataSource={ list }
+              keeps={ 20 }
+              handle=".drag"
+              group="g"
+              header={ <div className="loading">header</div> }
+              footer={ <div className="loading">footer</div> }
+              className="group-list"
+              chosenClass="chosen"
+            >
+              {
+                (record, index, dataKey) => {
+                  return (
+                    <div className="vertical-item">
+                      <span title="drag to reorder" className="drag"></span>
+                      <div className="data-key">{ dataKey }</div>
+                      <p>{ record.desc }</p>
+                    </div>
+                  );
+                }
+              }
+            </VirtualList>
+            <VirtualList
+              dataKey="index"
+              dataSource={ list2 }
+              keeps={ 20 }
+              handle=".drag"
+              group="g"
+              header={ <div className="loading">header</div> }
+              footer={ <div className="loading">footer</div> }
+              className="group-list"
+              chosenClass="chosen"
+            >
+              {
+                (record, index, dataKey) => {
+                  return (
+                    <div className="vertical-item">
+                      <span title="drag to reorder" className="drag"></span>
+                      <div className="data-key">{ dataKey }</div>
+                      <p>{ record.desc }</p>
+                    </div>
+                  );
+                }
+              }
+            </VirtualList>
+          </div>
           <h1>Infinity</h1>
           <InfinityList getPageData={ getPageData } />
           <h1>Vertical</h1>

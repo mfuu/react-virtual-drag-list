@@ -50,8 +50,36 @@ button:hover {
   background-color: #ecf5ff;
 }
 
-button:not(:last-child) {
-  margin-bottom: 10px;
+.chosen {
+  color: transparent;
+  background-color: transparent;
+  border: 1px dashed #1984ff;
+}
+
+.codebox {
+  text-align: center;
+  margin: 25px;
+  font-size: 20px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0 100px;
+}
+
+.tabs span {
+  padding: 20px;
+  cursor: pointer;
+}
+
+.tabs span:hover {
+  color: #1984ff;
+}
+
+.tabs .active {
+  color: #1984ff;
 }
 
 .content {
@@ -59,7 +87,7 @@ button:not(:last-child) {
   justify-content: center;
 }
 
-.data-key {
+.index {
   color: #1984ff;
 }
 
@@ -90,7 +118,7 @@ button:not(:last-child) {
 /* vertical */
 .vertical-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -98,11 +126,10 @@ button:not(:last-child) {
 .vertical-item {
   position: relative;
   height: 65px;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .vertical-item p {
@@ -121,6 +148,7 @@ button:not(:last-child) {
 
 .oprate {
   text-align: center;
+  margin-bottom: 50px;
 }
 
 .horizontal-list {
@@ -131,15 +159,14 @@ button:not(:last-child) {
 
 .horizontal-item {
   position: relative;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   height: 100px;
   width: 100px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0px 0px 1px 0px #3d6c69;
 }
 
 .horizontal-item p {
@@ -150,17 +177,16 @@ button:not(:last-child) {
 /* dynamic */
 .dynamic-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
 
 .dynamic-item {
   position: relative;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .dynamic-item p {
@@ -171,7 +197,7 @@ button:not(:last-child) {
 /* infinity */
 .infinity-list {
   width: 800px;
-  height: 800px;
+  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -179,11 +205,10 @@ button:not(:last-child) {
 .infinity-item {
   position: relative;
   height: 65px;
-  margin: 10px;
   padding: 16px;
-  border: 1px solid #1984ff;
   border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
 }
 
 .infinity-item p {
@@ -195,6 +220,27 @@ button:not(:last-child) {
   -webkit-box-orient: vertical;
 }
 
+/* group */
+.group {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 100px;
+}
+
+.group-list {
+  width: 800px;
+  height: 600px;
+  border: 1px solid #ccc;
+}
+
+.group-item {
+  position: relative;
+  height: 65px;
+  padding: 16px;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0px 2px 10px -5px #57bbb4;
+}
 
 /* loading */
 .spinner {

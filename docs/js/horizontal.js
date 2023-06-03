@@ -37,7 +37,8 @@ const HorizontalList = (props) => {
           dataKey="index"
           dataSource={ props.list }
           keeps={ 20 }
-          draggable=".drag"
+          handle=".drag"
+          chosenClass="chosen"
           direction="horizontal"
           wrapStyle={{ display: "flex" }}
           header={ <div className="loading">header</div> }

@@ -33,7 +33,8 @@ const InfinityList = (props) => {
           dataSource={ list }
           keeps={ 20 }
           keepOffset={ true }
-          draggable=".drag"
+          handle=".drag"
+          chosenClass="chosen"
           header={
             <div className="spinner" style={{ display: loading ? '' : 'none' }}>
               <div className="rect1"></div>
