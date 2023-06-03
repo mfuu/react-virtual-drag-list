@@ -37,7 +37,7 @@ function Virtual() {
       style={{ height: '500px' }}
       dataKey="id"
       dataSource={ list }
-      draggable=".drag"
+      handle=".handle"
       header={ <div className="loading">top loading...</div> }
       footer={ <div className="loading">bottom loading...</div> }
       v-top={ handleToTop }
@@ -48,7 +48,7 @@ function Virtual() {
         (record, index, dataKey) => {
           return (
             <div>
-              <span class=".drag">{ index }</span>
+              <span class=".handle">{ index }</span>
               { record.text }
             </div>
           )
