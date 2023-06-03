@@ -74,7 +74,7 @@ class Sortable<T> {
 
     this.sortable = new SortableDnd(this.context.container, {
       ...props,
-      fallbackOnBody: true,
+      swapOnDrop: false,
       list: this.dynamicList,
       onDrag: ({ from }) => this._onDrag(from.node),
       onAdd: ({ from, to }) => this._onAdd(from, to),
@@ -144,10 +144,6 @@ class Sortable<T> {
   }
 
   async _onDrop(from: FromTo, to: FromTo, changed) {
-    if (this.rangeChanged || from.sortable !== to.sortable) {
-      dragEl && dragEl.remove();
-    }
-
     const list = [...this.dynamicList];
     const index = this._getIndex(list, from.node.dataset.key);
     const item = this.initialList[index];

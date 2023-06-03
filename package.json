@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/mfuu/react-virtual-drag-list#readme",
   "dependencies": {
-    "sortable-dnd": "0.5.2"
+    "sortable-dnd": "0.5.3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
