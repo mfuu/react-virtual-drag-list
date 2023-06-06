@@ -1,93 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>react-virtual-drag-list</title>
-  <link rel="stylesheet" href="./docs/css/virtual.css">
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-virtual-drag-list/dist/virtual-drag-list.min.js"></script>
-  <script src="./docs/js/vertical.js" type="text/babel"></script>
-  <script src="./docs/js/dynamic.js" type="text/babel"></script>
-  <script src="./docs/js/horizontal.js" type="text/babel"></script>
-  <script src="./docs/js/infinity.js" type="text/babel"></script>
-</head>
-<body>
-  <div id="app"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>react-virtual-drag-list</title>
+    <link rel="stylesheet" href="./css/virtual.css" />
+    <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-virtual-drag-list/dist/virtual-drag-list.min.js"></script>
+    <script src="./js/virtual.js" type="text/babel"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
   <script type="text/babel">
-    const VirtualList = VirtualDragList;
+    const types = ["Group", "Infinity", "Horizontal"];
     function Virtual() {
-      const list = getPageData(400, 0);
-      const list2 = getPageData(400, 400);
+      const [type, setType] = React.useState("group");
+
+      const handleTypeChange = (e) => {
+        setType(e.target.innerText);
+      };
+
       return (
         <div>
-          <h1>Group</h1>
-          <div className="group">
-            <VirtualList
-              dataKey="index"
-              dataSource={ list }
-              keeps={ 20 }
-              handle=".drag"
-              group="g"
-              header={ <div className="loading">header</div> }
-              footer={ <div className="loading">footer</div> }
-              className="group-list"
-              chosenClass="chosen"
-            >
-              {
-                (record, index, dataKey) => {
-                  return (
-                    <div className="vertical-item">
-                      <span title="drag to reorder" className="drag"></span>
-                      <div className="data-key">{ dataKey }</div>
-                      <p>{ record.desc }</p>
-                    </div>
-                  );
-                }
-              }
-            </VirtualList>
-            <VirtualList
-              dataKey="index"
-              dataSource={ list2 }
-              keeps={ 20 }
-              handle=".drag"
-              group="g"
-              header={ <div className="loading">header</div> }
-              footer={ <div className="loading">footer</div> }
-              className="group-list"
-              chosenClass="chosen"
-            >
-              {
-                (record, index, dataKey) => {
-                  return (
-                    <div className="vertical-item">
-                      <span title="drag to reorder" className="drag"></span>
-                      <div className="data-key">{ dataKey }</div>
-                      <p>{ record.desc }</p>
-                    </div>
-                  );
-                }
-              }
-            </VirtualList>
-          </div>
-          <h1>Infinity</h1>
-          <InfinityList getPageData={ getPageData } />
-          <h1>Vertical</h1>
-          <VerticalList list={ list } />
-          <h1>DYNAMIC</h1>
-          <DynamicList list={ list } />
-          <h1>Horizontal</h1>
-          <HorizontalList list={ list } />
+          <section className="tabs">
+            {types.map((item) => {
+              return (
+                <button
+                  key={item}
+                  className={`tabs-item ${item === type ? "active-tab" : ""}`}
+                  onClick={handleTypeChange}
+                >
+                  {item}
+                </button>
+              );
+            })}
+          </section>
+          <section className="content">
+            {type === "Group" && (
+              <div className="flex justify-content-center">
+                <VirtualList group="g"></VirtualList>
+                <VirtualList group="g"></VirtualList>
+              </div>
+            )}
+            {type === "Infinity" && (
+              <VirtualList topLoad="true" bottomLoad="true"></VirtualList>
+            )}
+            {type === "Horizontal" && (
+              <VirtualList
+                direction="horizontal"
+                wrapStyle={{ display: "flex" }}
+                style={{ display: "flex", width: "100%" }}
+              ></VirtualList>
+            )}
+          </section>
         </div>
-      )
-    };
-    const root = ReactDOM.createRoot(document.getElementById('app'));
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById("app"));
     root.render(<Virtual />);
   </script>
-</body>
 </html>
