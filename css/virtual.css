@@ -157,6 +157,7 @@ button:hover {
 
 .virtual-list {
   width: 400px;
+  max-width: 1200px;
   height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
