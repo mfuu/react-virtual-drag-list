@@ -63,6 +63,7 @@ export interface BaseProps {
   Tag?: string;
   style?: object;
   className?: string;
+  sizeKey?: string;
   onSizeChange?: Function;
   children?:
     | React.ReactNode
@@ -78,6 +79,7 @@ export interface ItemProps<T> extends BaseProps {
 
 export interface ObserverProps {
   dataKey: string | number;
+  sizeKey?: string;
   onSizeChange?: Function;
   children?:
     | React.ReactNode

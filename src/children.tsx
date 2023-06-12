@@ -2,10 +2,8 @@ import React from 'react';
 import { ObserverProps, ItemProps, BaseProps } from './props';
 
 export function Observer(props: ObserverProps) {
-  const { dataKey, children, onSizeChange } = props;
-
+  const { dataKey, children, onSizeChange, sizeKey } = props;
   const elementRef = React.useRef<Element>(null);
-
   const isRenderProps = typeof children === 'function';
   const mergedChildren = isRenderProps ? children(elementRef) : children;
 
@@ -13,7 +11,7 @@ export function Observer(props: ObserverProps) {
     let observer: ResizeObserver | null;
     if (typeof ResizeObserver !== undefined) {
       observer = new ResizeObserver(() => {
-        const size = elementRef.current.clientHeight;
+        const size = elementRef.current[sizeKey];
         onSizeChange && onSizeChange(dataKey, size);
       });
       elementRef.current && observer.observe(elementRef.current);
@@ -40,11 +38,12 @@ export function Item<T>(props: ItemProps<T>) {
     Tag = 'div',
     record,
     index,
+    sizeKey,
     onSizeChange,
   } = props;
 
   return (
-    <Observer dataKey={dataKey} onSizeChange={onSizeChange}>
+    <Observer dataKey={dataKey} sizeKey={sizeKey} onSizeChange={onSizeChange}>
       <Tag className={className} style={style} data-key={dataKey}>
         {typeof children === 'function'
           ? children(record, index, dataKey)
@@ -65,11 +64,12 @@ export function Slot(props: SlotProps) {
     className,
     children,
     roleId,
+    sizeKey,
     onSizeChange,
   } = props;
 
   return children ? (
-    <Observer dataKey={roleId} onSizeChange={onSizeChange}>
+    <Observer dataKey={roleId} sizeKey={sizeKey} onSizeChange={onSizeChange}>
       <Tag v-role={roleId} style={style} className={className}>
         {children}
       </Tag>
