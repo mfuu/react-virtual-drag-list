@@ -1,7 +1,7 @@
 import React from 'react';
-import { ObserverProps, ItemProps, BaseProps } from './props';
+import { ItemProps, ObserverProps, SlotProps } from './props';
 
-export function Observer(props: ObserverProps) {
+export const Observer = React.memo((props: ObserverProps) => {
   const { dataKey, children, onSizeChange, sizeKey } = props;
   const elementRef = React.useRef<Element>(null);
   const isRenderProps = typeof children === 'function';
@@ -27,54 +27,47 @@ export function Observer(props: ObserverProps) {
   return React.cloneElement(mergedChildren as any, {
     ref: elementRef,
   });
-}
+});
 
-export function Item<T>(props: ItemProps<T>) {
-  const {
-    children,
-    dataKey,
-    className,
-    style,
-    Tag = 'div',
-    record,
-    index,
-    sizeKey,
-    onSizeChange,
-  } = props;
+export const Item = React.memo((props: ItemProps) => {
+  const { Tag = 'div', children } = props;
 
   return (
-    <Observer dataKey={dataKey} sizeKey={sizeKey} onSizeChange={onSizeChange}>
-      <Tag className={className} style={style} data-key={dataKey}>
+    <Observer
+      dataKey={props.dataKey}
+      sizeKey={props.sizeKey}
+      onSizeChange={props.onSizeChange}
+    >
+      <Tag
+        className={props.className}
+        style={props.style}
+        data-key={props.dataKey}
+        data-index={props.index}
+      >
         {typeof children === 'function'
-          ? children(record, index, dataKey)
+          ? children(props.record, props.index, props.dataKey)
           : children}
       </Tag>
     </Observer>
   );
-}
+});
 
-export interface SlotProps extends BaseProps {
-  roleId: string;
-}
-
-export function Slot(props: SlotProps) {
-  const {
-    Tag = 'div',
-    style,
-    className,
-    children,
-    roleId,
-    sizeKey,
-    onSizeChange,
-  } = props;
+export const Slot = React.memo((props: SlotProps) => {
+  const { Tag = 'div', children } = props;
 
   return children ? (
-    <Observer dataKey={roleId} sizeKey={sizeKey} onSizeChange={onSizeChange}>
-      <Tag v-role={roleId} style={style} className={className}>
+    <Observer
+      dataKey={props.roleId}
+      sizeKey={props.sizeKey}
+      onSizeChange={props.onSizeChange}
+    >
+      <Tag
+        role={props.roleId}
+        style={props.style}
+        className={props.className}
+      >
         {children}
       </Tag>
     </Observer>
-  ) : (
-    <></>
-  );
-}
+  ) : null;
+});

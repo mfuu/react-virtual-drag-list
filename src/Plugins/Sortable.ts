@@ -28,20 +28,20 @@ const Emits = {
 let dragEl: HTMLElement | null = null;
 
 class Sortable<T> {
-  context: any;
-  handleStart: Function;
-  handleEnd: Function;
+  ctx: any;
+  onStart: Function;
+  onEnd: Function;
   initialList: T[];
   dynamicList: T[];
   sortable: SortableDnd | null;
   rangeChanged: boolean;
 
-  constructor(context, handleStart: Function, handleEnd: Function) {
-    this.context = context;
-    this.handleStart = handleStart;
-    this.handleEnd = handleEnd;
-    this.initialList = [...context.list];
-    this.dynamicList = [...context.list];
+  constructor(ctx, onStart: Function, onEnd: Function) {
+    this.ctx = ctx;
+    this.onStart = onStart;
+    this.onEnd = onEnd;
+    this.initialList = [...ctx.list];
+    this.dynamicList = [...ctx.list];
     this.sortable = null;
     this.rangeChanged = false;
     this._init();
@@ -58,7 +58,7 @@ class Sortable<T> {
       // When the list data changes when dragging, need to execute onDrag function
       if (dragEl) this._onDrag(dragEl, false);
     } else {
-      this.context[key] = value;
+      this.ctx[key] = value;
       if (this.sortable) this.sortable.option(key, value);
     }
   }
@@ -68,11 +68,11 @@ class Sortable<T> {
       let name = key;
       if (key === 'pressDelay') name = 'delay';
       if (key === 'pressDelayOnTouchOnly') name = 'delayOnTouchOnly';
-      res[name] = this.context[key];
+      res[name] = this.ctx[key];
       return res;
     }, {});
 
-    this.sortable = new SortableDnd(this.context.container, {
+    this.sortable = new SortableDnd(this.ctx.container, {
       ...props,
       swapOnDrop: false,
       list: this.dynamicList,
@@ -96,9 +96,9 @@ class Sortable<T> {
     if (callback) {
       this.rangeChanged = false;
       const store: State = await Store.getValue();
-      const emit = this.context[Emits.drag];
+      const emit = this.ctx[Emits.drag];
       emit && emit({ list: fromList, ...store });
-      this.handleStart && this.handleStart(store);
+      this.onStart && this.onStart(store);
     } else {
       this.rangeChanged = true;
     }
@@ -120,16 +120,16 @@ class Sortable<T> {
       this.dynamicList.splice(index, 0, store.from?.item);
     }
     delete params.list;
-    const emit = this.context[Emits.add];
+    const emit = this.ctx[Emits.add];
     emit && emit({ ...params });
   }
 
-  async _onRemove(from: FromTo) {
+  async _onRemove(from: FromTo, to: FromTo) {
     const list = [...this.dynamicList];
     const state = this._getFromTo(from, list);
 
     this.dynamicList.splice(state.index, 1);
-    const emit = this.context[Emits.remove];
+    const emit = this.ctx[Emits.remove];
     emit && emit({ ...state });
   }
 
@@ -147,7 +147,7 @@ class Sortable<T> {
     const list = [...this.dynamicList];
     const index = this._getIndex(list, from.node.dataset.key);
     const item = this.initialList[index];
-    const key = getDataKey(item, this.context.dataKey);
+    const key = getDataKey(item, this.ctx.dataKey);
 
     await Store.setValue({
       to: { list: [...this.initialList], index, item, key },
@@ -155,9 +155,9 @@ class Sortable<T> {
 
     const store = await Store.getValue();
     const params = { list: list, ...store, changed };
-    const emit = this.context[Emits.drop];
+    const emit = this.ctx[Emits.drop];
     emit && emit({ ...params });
-    this.handleEnd && this.handleEnd(store, params);
+    this.onEnd && this.onEnd(store, params);
 
     this.initialList = [...list];
     this._clear();
@@ -172,9 +172,12 @@ class Sortable<T> {
   }
 
   _getIndex(list, key) {
-    return list.findIndex(
-      (item) => getDataKey(item, this.context.dataKey) == key
-    );
+    for (let i = 0; i < list.length; i++) {
+      if (getDataKey(list[i], this.ctx.dataKey) == key) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   _clear() {

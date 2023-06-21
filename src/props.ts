@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type RenderFunc<T> = (
+type RenderFunc<T> = (
   item: T,
   index: number,
   props: { style?: React.CSSProperties }
@@ -65,23 +65,23 @@ export interface BaseProps {
   className?: string;
   sizeKey?: string;
   onSizeChange?: Function;
-  children?:
-    | React.ReactNode
-    | ((ref: React.RefObject<any>) => React.ReactElement);
-}
-
-export interface ItemProps<T> extends BaseProps {
-  key: any;
-  record: T;
-  index: number;
-  dataKey: string | number;
+  children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }
 
 export interface ObserverProps {
   dataKey: string | number;
   sizeKey?: string;
   onSizeChange?: Function;
-  children?:
-    | React.ReactNode
-    | ((ref: React.RefObject<any>) => React.ReactElement);
+  children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
+}
+
+export interface ItemProps extends BaseProps {
+  key: any;
+  record: any;
+  index: number;
+  dataKey: string | number;
+}
+
+export interface SlotProps extends BaseProps {
+  roleId: string;
 }

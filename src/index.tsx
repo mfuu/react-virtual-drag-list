@@ -3,7 +3,7 @@ import { debounce, getDataKey } from './utils';
 import Virtual, { Range } from './Plugins/Virtual';
 import Sortable from './Plugins/Sortable';
 import { Store } from './Plugins/Storage';
-import { Item, Slot } from './children';
+import { Item, Slot } from './slots';
 import { VirtualProps } from './props';
 
 const Emits = { top: 'v-top', bottom: 'v-bottom' };
@@ -15,7 +15,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     direction = 'vertical',
     keeps = 30,
     size = undefined,
-    delay = 0,
+    delay = 10,
     keepOffset = false,
     autoScroll = true,
     scrollThreshold = 55,
@@ -27,8 +27,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     style = {},
     className = '',
 
-    wrapTag = 'div',
-    rootTag = 'div',
+    wrapTag: WrapTag = 'div',
+    rootTag: RootTag = 'div',
     itemTag = 'div',
     headerTag = 'div',
     footerTag = 'div',
@@ -44,20 +44,34 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
     disabled = false,
   } = props;
+
   const [viewList, setViewList] = React.useState([]);
-  const [range, setRange] = React.useState<Range>({ end: keeps - 1 }); // currently visible range
+  const [range, setRange] = React.useState<Range>({ start: 0, end: keeps - 1 });
   const [state, setState] = React.useState<any>({ from: {}, to: {} });
 
   const list = React.useRef([]);
   const uniqueKeys = React.useRef([]);
+  const timer = React.useRef(null);
 
   const rootRef = React.useRef<Element>(null); // root element
   const wrapRef = React.useRef<Element>(null); // list element
   const lastRef = React.useRef<Element>(null); // dom at the end of the list
 
-  const lastItem = React.useRef(null); // record the first element of the current list
+  const lastLength = React.useRef(null); // record current list's length
   const sortable = React.useRef<Sortable<T>>(null);
   const virtual = React.useRef<Virtual<T>>(null);
+
+  const { isHorizontal, slotSizeKey, scrollSizeKey, offsetSizeKey, clientSizeKey, scrollDirectionKey } = React.useMemo(() => {
+    const isHorizontal = direction !== 'vertical';
+    return {
+      isHorizontal,
+      slotSizeKey: isHorizontal ? 'offsetWidth' : 'offsetHeight',
+      offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
+      scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
+      clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
+      scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
+    };
+  }, [direction]);
 
   /**
    * reset component
@@ -127,12 +141,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       rootRef.current[scrollDirectionKey] = offset;
 
       setTimeout(() => {
-        if (!checkIfScrollToBottom()) scrollToBottom();
+        if (!scrolledToBottom()) scrollToBottom();
       }, 5);
     }
   };
 
-  const checkIfScrollToBottom = () => {
+  const scrolledToBottom = () => {
     const root = rootRef.current;
     const offset = getOffset();
     const clientSize = Math.ceil(root[clientSizeKey]);
@@ -150,8 +164,11 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     scrollToBottom,
   }));
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     initVirtual();
+  }, []);
+
+  React.useEffect(() => {
     initSortable();
     // destroy
     return () => {
@@ -160,32 +177,32 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   }, []);
 
   React.useEffect(() => {
-    list.current = [...dataSource];
-    setUniqueKeys();
-    if (virtual.current) {
-      virtual.current.updateUniqueKeys(uniqueKeys.current);
-      virtual.current.updateSizes(uniqueKeys.current);
-      setTimeout(() => virtual.current.updateRange(), 0);
-    }
-    if (sortable.current) {
-      sortable.current.setValue('list', dataSource);
-    }
-
-    setViewList(() => [...dataSource]);
-
-    // if auto scroll to the last offset
-    if (lastItem.current && keepOffset) {
-      const index = getItemIndex(lastItem.current);
-      scrollToIndex(index);
-      lastItem.current = null;
-    }
-  }, [dataSource]);
-
-  React.useEffect(() => {
     if (sortable.current) {
       sortable.current.setValue('disabled', disabled);
     }
   }, [disabled]);
+
+  React.useEffect(() => {
+    list.current = [...dataSource];
+    updateUniqueKeys();
+
+    setViewList(() => {
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => virtual.current.updateRange(), 17);
+      return [...dataSource];
+    });
+
+    if (sortable.current) {
+      sortable.current.setValue('list', dataSource);
+    }
+
+    // if auto scroll to the last offset
+    if (lastLength.current && keepOffset) {
+      const index = Math.abs(dataSource.length - lastLength.current);
+      scrollToIndex(index);
+      lastLength.current = null;
+    }
+  }, [dataSource]);
 
   const initVirtual = () => {
     virtual.current = new Virtual(
@@ -236,10 +253,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         list.current = [...newlist];
         setViewList(() => [...newlist]);
 
-        setUniqueKeys();
-        virtual.current.updateUniqueKeys(uniqueKeys.current);
-        virtual.current.updateSizes(uniqueKeys.current);
-
+        updateUniqueKeys();
         updateRangeOnDrop(prelist, newlist);
       }
     );
@@ -255,7 +269,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         }
       }
       if (newlist.length > prelist.length && pre.end === prelist.length - 1) {
-        if (checkIfScrollToBottom()) {
+        if (scrolledToBottom()) {
           range.end++;
           range.start = Math.max(0, range.end - keeps + 1);
         }
@@ -270,34 +284,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     sortable.current = null;
   };
 
-  const setUniqueKeys = () => {
+  const updateUniqueKeys = () => {
     uniqueKeys.current = list.current.map((item) => getDataKey(item, dataKey));
+    virtual.current.updateOptions('uniqueKeys', uniqueKeys.current);
   };
-
-  const getItemIndex = (item) => {
-    return list.current.findIndex(
-      (el) => getDataKey(el, dataKey) === getDataKey(item, dataKey)
-    );
-  };
-
-  const {
-    isHorizontal,
-    slotSizeKey,
-    scrollSizeKey,
-    scrollDirectionKey,
-    offsetSizeKey,
-    clientSizeKey,
-  } = React.useMemo(() => {
-    const isHorizontal = direction !== 'vertical';
-    return {
-      isHorizontal,
-      slotSizeKey: isHorizontal ? 'offsetWidth' : 'offsetHeight',
-      offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
-      scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
-      clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
-      scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop',
-    };
-  }, [direction]);
 
   const handleScroll = () => {
     const root = rootRef.current;
@@ -319,7 +309,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   };
 
   const handleToTop = debounce(() => {
-    lastItem.current = list.current[0];
+    lastLength.current = list.current.length;
     const emit = props[Emits.top];
     emit && emit();
   });
@@ -330,21 +320,20 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   });
 
   const onItemSizeChange = (key: string | number, size: number) => {
-    if (!virtual.current) return;
     virtual.current.handleItemSizeChange(key, size);
   };
 
   const onSlotSizeChange = (key: string | number, size: number) => {
-    if (!virtual.current) return;
     virtual.current.handleSlotSizeChange(key, size);
   };
 
   // check item show or not
   const getItemStyle = React.useCallback(
     (itemKey) => {
-      if (!sortable.current || !state) return {};
+      if (!sortable.current || !state) {
+        return {};
+      }
       const fromKey = state.from.key;
-
       if (sortable.current.rangeChanged && itemKey == fromKey) {
         return { display: 'none' };
       }
@@ -353,79 +342,75 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     [state]
   );
 
-  const { RTag, WTag } = React.useMemo(() => {
-    return { RTag: rootTag, WTag: wrapTag };
-  }, [wrapTag, rootTag]);
-
-  const RStyle = React.useMemo(() => {
+  const RootStyle = React.useMemo(() => {
     return { ...style, overflow: isHorizontal ? 'auto hidden' : 'hidden auto' };
   }, [style, isHorizontal]);
 
-  const WStyle = React.useMemo(() => {
+  const WrapStyle = React.useMemo(() => {
     const { front, behind } = range;
-    return {
-      ...wrapStyle,
-      padding: isHorizontal
-        ? `0px ${behind}px 0px ${front}px`
-        : `${front}px 0px ${behind}px`,
-    };
+    const pad = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
+    return { ...wrapStyle, padding: pad };
   }, [wrapStyle, isHorizontal, range]);
+
+  const LastItemStyle = React.useMemo(() => {
+    return { width: isHorizontal ? '0px' : '100%', height: isHorizontal ? '100%' : '0px' };
+  }, [isHorizontal]);
 
   const { start, end } = React.useMemo(() => {
     return { ...range };
   }, [range]);
 
+  const renderSlots = (Tag, key) => {
+    return (
+      <Slot
+        roleId={key}
+        Tag={Tag}
+        children={props[key]}
+        sizeKey={slotSizeKey}
+        onSizeChange={onSlotSizeChange}
+      />
+    );
+  };
+
+  const renderItems = () => {
+    return viewList.slice(start, end + 1).map((item, i) => {
+      const index = start + i;
+      const key = getDataKey(item, dataKey);
+      return (
+        <Item
+          key={key}
+          record={item}
+          index={index}
+          dataKey={key}
+          Tag={itemTag}
+          children={props.children}
+          className={itemClass}
+          style={{ ...itemStyle, ...getItemStyle(key) }}
+          sizeKey={slotSizeKey}
+          onSizeChange={onItemSizeChange}
+        />
+      );
+    });
+  };
+
   return (
-    <RTag
+    <RootTag
       ref={rootRef}
-      style={RStyle}
+      style={RootStyle}
       className={className}
       onScroll={debounce(handleScroll, delay)}
     >
-      <Slot
-        roleId='header'
-        Tag={headerTag}
-        children={props.header}
-        sizeKey={slotSizeKey}
-        onSizeChange={onSlotSizeChange}
-      ></Slot>
 
-      <WTag ref={wrapRef} v-role='group' style={WStyle} className={wrapClass}>
-        {viewList.slice(start, end + 1).map((item) => {
-          const key = getDataKey(item, dataKey);
-          const index = getItemIndex(item);
-          return (
-            <Item
-              key={key}
-              record={item}
-              index={index}
-              dataKey={key}
-              Tag={itemTag}
-              children={props.children}
-              className={itemClass}
-              style={{ ...itemStyle, ...getItemStyle(key) }}
-              sizeKey={slotSizeKey}
-              onSizeChange={onItemSizeChange}
-            />
-          );
-        })}
-      </WTag>
+      {renderSlots(headerTag, 'header')}
 
-      <Slot
-        roleId='footer'
-        Tag={footerTag}
-        children={props.footer}
-        sizeKey={slotSizeKey}
-        onSizeChange={onSlotSizeChange}
-      ></Slot>
-      <div
-        ref={lastRef}
-        style={{
-          width: isHorizontal ? '0px' : '100%',
-          height: isHorizontal ? '100%' : '0px',
-        }}
-      ></div>
-    </RTag>
+      <WrapTag ref={wrapRef} role='group' style={WrapStyle} className={wrapClass}>
+        {renderItems()}
+      </WrapTag>
+
+      {renderSlots(footerTag, 'footer')}
+
+      <div ref={lastRef} style={LastItemStyle}></div>
+    </RootTag>
   );
 }
 
