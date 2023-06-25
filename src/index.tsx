@@ -15,6 +15,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     direction = 'vertical',
     keeps = 30,
     size = undefined,
+
+    pageMode = false,
     delay = 10,
     keepOffset = false,
     autoScroll = true,
@@ -44,7 +46,6 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
     disabled = false,
   } = props;
-
   const [viewList, setViewList] = React.useState([]);
   const [range, setRange] = React.useState<Range>({ start: 0, end: keeps - 1 });
   const [state, setState] = React.useState<any>({ from: {}, to: {} });
@@ -94,8 +95,39 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    * Get the current scroll height
    */
   const getOffset = () => {
-    const root = rootRef.current;
-    return root ? Math.ceil(root[scrollDirectionKey]) : 0;
+    if (pageMode) {
+      return (
+        document.documentElement[scrollDirectionKey] ||
+        document.body[scrollDirectionKey]
+      );
+    } else {
+      const root = rootRef.current;
+      return root ? Math.ceil(root[scrollDirectionKey]) : 0;
+    }
+  };
+
+  /**
+   * Get client viewport size
+   */
+  const getClientSize = () => {
+    if (pageMode) {
+      return document.documentElement[clientSizeKey] || document.body[clientSizeKey];
+    } else {
+      const root = rootRef.current;
+      return root ? Math.ceil(root[clientSizeKey]) : 0;
+    }
+  };
+
+  /**
+   * Get all scroll size
+   */
+  const getScrollSize = () => {
+    if (pageMode) {
+      return document.documentElement[scrollSizeKey] || document.body[scrollSizeKey];
+    } else {
+      const root = rootRef.current;
+      return root ? Math.ceil(root[scrollSizeKey]) : 0;
+    }
   };
 
   /**
@@ -103,7 +135,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    * @param {Number} offset
    */
   const scrollToOffset = (offset: number) => {
-    rootRef.current[scrollDirectionKey] = offset;
+    if (pageMode) {
+      document.body[scrollDirectionKey] = offset;
+      document.documentElement[scrollDirectionKey] = offset;
+    } else {
+      rootRef.current[scrollDirectionKey] = offset;
+    }
   };
 
   /**
@@ -116,12 +153,6 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     } else {
       const indexOffset = virtual.current.getOffsetByIndex(index);
       scrollToOffset(indexOffset);
-
-      setTimeout(() => {
-        const offset = getOffset();
-        const indexOffset = virtual.current.getOffsetByIndex(index);
-        if (offset !== indexOffset) scrollToIndex(index);
-      }, 5);
     }
   };
 
@@ -129,7 +160,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    * Scroll to top of list
    */
   const scrollToTop = () => {
-    rootRef.current[scrollDirectionKey] = 0;
+    scrollToOffset(0);
   };
 
   /**
@@ -138,7 +169,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const scrollToBottom = () => {
     if (lastRef.current) {
       const offset = lastRef.current[offsetSizeKey];
-      rootRef.current[scrollDirectionKey] = offset;
+      scrollToOffset(offset);
 
       setTimeout(() => {
         if (!scrolledToBottom()) scrollToBottom();
@@ -146,18 +177,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     }
   };
 
-  const scrolledToBottom = () => {
-    const root = rootRef.current;
-    const offset = getOffset();
-    const clientSize = Math.ceil(root[clientSizeKey]);
-    const scrollSize = Math.ceil(root[scrollSizeKey]);
-    return offset + clientSize + 1 >= scrollSize;
-  };
-
   React.useImperativeHandle(ref, () => ({
     reset,
     getSize,
     getOffset,
+    getClientSize,
+    getScrollSize,
     scrollToTop,
     scrollToIndex,
     scrollToOffset,
@@ -170,9 +195,14 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   React.useEffect(() => {
     initSortable();
+    if (pageMode) {
+      updatePageModeFront();
+      addPageModeScrollListener();
+    }
     // destroy
     return () => {
       destroySortable();
+      pageMode && removePageModeScrollListener();
     };
   }, []);
 
@@ -203,6 +233,28 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       lastLength.current = null;
     }
   }, [dataSource]);
+
+  const addPageModeScrollListener = () => {
+    document.addEventListener('scroll', handleScroll, { passive: false });
+  }
+
+  const removePageModeScrollListener = () => {
+    document.removeEventListener('scroll', handleScroll);
+  }
+
+  // when using page mode we need update slot header size manually
+  // taking root offset relative to the browser as slot header size
+  const updatePageModeFront = () => {
+    const root = rootRef.current;
+    if (root) {
+      const rect = root.getBoundingClientRect();
+      const { defaultView } = root.ownerDocument;
+      const offsetFront = isHorizontal
+        ? rect.left + defaultView.pageXOffset
+        : rect.top + defaultView.pageYOffset;
+      virtual.current.handleSlotSizeChange('header', offsetFront);
+    }
+  }
 
   const initVirtual = () => {
     virtual.current = new Virtual(
@@ -289,23 +341,30 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtual.current.updateOptions('uniqueKeys', uniqueKeys.current);
   };
 
-  const handleScroll = () => {
-    const root = rootRef.current;
+  const handleScroll = debounce(() => {
     const offset = getOffset();
-    const clientSize = Math.ceil(root[clientSizeKey]);
-    const scrollSize = Math.ceil(root[scrollSizeKey]);
+    const clientSize = getClientSize();
+    const scrollSize = getScrollSize();
 
+    // iOS scroll-spring-back behavior will make direction mistake
     if (offset < 0 || offset + clientSize > scrollSize + 1 || !scrollSize) {
       return;
     }
 
     virtual.current.handleScroll(offset);
 
-    if (virtual.current.isFront()) {
-      if (!!dataSource.length && offset <= 0) handleToTop();
-    } else if (virtual.current.isBehind()) {
-      if (clientSize + offset >= scrollSize) handleToBottom();
+    if (virtual.current.isFront() && !!dataSource.length && offset <= 0) {
+      handleToTop();
+    } else if (virtual.current.isBehind() && clientSize + offset >= scrollSize) {
+      handleToBottom();
     }
+  }, delay);
+
+  const scrolledToBottom = () => {
+    const offset = getOffset();
+    const clientSize = getClientSize();
+    const scrollSize = getScrollSize();
+    return offset + clientSize + 1 >= scrollSize;
   };
 
   const handleToTop = debounce(() => {
@@ -343,13 +402,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   );
 
   const RootStyle = React.useMemo(() => {
-    return { ...style, overflow: isHorizontal ? 'auto hidden' : 'hidden auto' };
+    return { ...style, overflow: pageMode ? '' : isHorizontal ? 'auto hidden' : 'hidden auto' };
   }, [style, isHorizontal]);
 
   const WrapStyle = React.useMemo(() => {
     const { front, behind } = range;
-    const pad = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
-    return { ...wrapStyle, padding: pad };
+    return { ...wrapStyle, padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px` };
   }, [wrapStyle, isHorizontal, range]);
 
   const LastItemStyle = React.useMemo(() => {
@@ -398,9 +456,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       ref={rootRef}
       style={RootStyle}
       className={className}
-      onScroll={debounce(handleScroll, delay)}
+      onScroll={pageMode ? null : handleScroll}
     >
-
       {renderSlots(headerTag, 'header')}
 
       <WrapTag ref={wrapRef} role='group' style={WrapStyle} className={wrapClass}>

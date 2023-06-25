@@ -13,6 +13,7 @@ export interface VirtualProps<T> {
   keeps?: number;
   size?: number;
 
+  pageMode?: boolean;
   disabled?: boolean;
   draggable?: Function | string;
   handle?: Function | string;
