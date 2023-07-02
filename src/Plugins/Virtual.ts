@@ -8,6 +8,7 @@ export interface Range {
 export interface VirtualOptions<T> {
   size?: number;
   keeps: number;
+  buffer: number;
   uniqueKeys: T[];
 }
 
@@ -121,7 +122,7 @@ class Virtual<T> {
   handleScroll(offset: number) {
     this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
     this.offset = offset;
-    
+
     if (this.isFront()) {
       this.handleScrollFront();
     } else if (this.isBehind()) {
@@ -132,13 +133,13 @@ class Virtual<T> {
   handleScrollFront() {
     const scrolls = this.getScrollItems();
     if (scrolls > this.range.start) return;
-    const start = Math.max(scrolls - Math.round(this.options.keeps / 3), 0);
+    const start = Math.max(scrolls - this.options.buffer, 0);
     this.checkIfUpdate(start, this.getEndByStart(start));
   }
 
   handleScrollBehind() {
     const scrolls = this.getScrollItems();
-    if (scrolls < this.range.start + Math.round(this.options.keeps / 3)) return;
+    if (scrolls < this.range.start + this.options.buffer) return;
     this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
   }
 

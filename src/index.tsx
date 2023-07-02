@@ -96,10 +96,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
    */
   const getOffset = () => {
     if (pageMode) {
-      return (
-        document.documentElement[scrollDirectionKey] ||
-        document.body[scrollDirectionKey]
-      );
+      return document.documentElement[scrollDirectionKey] || document.body[scrollDirectionKey];
     } else {
       const root = rootRef.current;
       return root ? Math.ceil(root[scrollDirectionKey]) : 0;
@@ -217,8 +214,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     updateUniqueKeys();
 
     setViewList(() => {
-      clearTimeout(timer.current);
-      timer.current = setTimeout(() => virtual.current.updateRange(), 17);
+      if (virtual.current.sizes.size) {
+        virtual.current.updateRange();
+      } else {
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => virtual.current.updateRange(), 17);
+      }
       return [...dataSource];
     });
 
@@ -236,11 +237,11 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   const addPageModeScrollListener = () => {
     document.addEventListener('scroll', handleScroll, { passive: false });
-  }
+  };
 
   const removePageModeScrollListener = () => {
     document.removeEventListener('scroll', handleScroll);
-  }
+  };
 
   // when using page mode we need update slot header size manually
   // taking root offset relative to the browser as slot header size
@@ -254,7 +255,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         : rect.top + defaultView.pageYOffset;
       virtual.current.handleSlotSizeChange('header', offsetFront);
     }
-  }
+  };
 
   const initVirtual = () => {
     virtual.current = new Virtual(
@@ -262,6 +263,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         size: size,
         keeps: keeps,
         uniqueKeys: uniqueKeys.current,
+        buffer: Math.round(keeps / 3),
       },
       (range: Range) => {
         if (!sortable.current) return;
