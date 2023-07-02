@@ -86,6 +86,7 @@ function Virtual() {
 | `group`          | `Object/String` |            | `-`          | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false }` |
 | `direction`      | `String`     |               | `vertical`   | `vertical/horizontal`, scroll direction  |
 | `keepOffset`     | `Boolean`    |               | `false`      | When scrolling up to load data, keep the same offset as the previous scroll  |
+| `pageMode`       | `Boolean`    |               | `false`      | Let virtual list using global document to scroll through the list |
 
 **Uncommonly used**
 
@@ -139,9 +140,10 @@ return (
 
 |     **Prop**      | **Description** |
 |-------------------|-----------------|
-| `reset()`         | reset to initial |
 | `getSize(key)`    | get the height of the specified item by key value  |
 | `getOffset()`     | get the current scroll height  |
+| `getClientSize()` | Get wrapper element client viewport size (width or height) |
+| `getScrollSize()` | Get all scroll size (scrollHeight or scrollWidth) |
 | `scrollToTop()`   | scroll to the top of the list  |
 | `scrollToBottom()`| scroll to the bottom of the list  |
 | `scrollToIndex(index)` | scroll to the specified index value  |

@@ -9,6 +9,7 @@ interface VirtualProps<T> {
     direction?: 'vertical' | 'horizontal';
     keeps?: number;
     size?: number;
+    pageMode?: boolean;
     disabled?: boolean;
     draggable?: Function | string;
     handle?: Function | string;
