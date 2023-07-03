@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.5.1
+ * react-virtual-drag-list v2.5.2
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -2539,6 +2539,8 @@
     }));
   }
 
-  return VirtualDragList;
+  var index = /*#__PURE__*/React.forwardRef(VirtualDragList);
+
+  return index;
 
 })));
