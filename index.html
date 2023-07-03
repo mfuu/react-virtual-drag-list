@@ -6,19 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>react-virtual-drag-list</title>
     <link rel="stylesheet" href="./css/virtual.css" />
+    <script src="https://unpkg.com/mockjs/dist/mock.js"></script>
     <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/mock.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/mfuu/mfuu.github.io@master/assets/github/sentences.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/react-virtual-drag-list/dist/virtual-drag-list.min.js"></script>
+    <script src="https://unpkg.com/react-virtual-drag-list/dist/virtual-drag-list.min.js"></script>
+    <script src="./js/sentences.js"></script>
     <script src="./js/virtual.js" type="text/babel"></script>
   </head>
   <body>
     <div id="app"></div>
   </body>
   <script type="text/babel">
-    const types = ["Group", "Infinity", "Horizontal"];
+    const types = ["Group", "Infinity", "Horizontal", "pageMode"];
     function Virtual() {
       const [type, setType] = React.useState("Group");
 
@@ -44,19 +44,22 @@
           <section className="content">
             {type === "Group" && (
               <div className="flex justify-content-center">
-                <VirtualList group="g"></VirtualList>
-                <VirtualList group="g"></VirtualList>
+                <VirtualList group="g" style={{ height: "600px" }}></VirtualList>
+                <VirtualList group="g" style={{ height: "600px" }}></VirtualList>
               </div>
             )}
             {type === "Infinity" && (
-              <VirtualList topLoad="true" bottomLoad="true"></VirtualList>
+              <VirtualList topLoad="true" bottomLoad="true" style={{ height: "600px" }}></VirtualList>
             )}
             {type === "Horizontal" && (
               <VirtualList
                 direction="horizontal"
                 wrapStyle={{ display: "flex" }}
-                style={{ display: "flex", width: "100%" }}
+                style={{ display: "flex", width: "100%", height: "600px" }}
               ></VirtualList>
+            )}
+            {type === "pageMode" && (
+              <VirtualList pageMode={true}></VirtualList>
             )}
           </section>
         </div>

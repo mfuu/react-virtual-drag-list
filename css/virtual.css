@@ -158,7 +158,6 @@ button:hover {
 .virtual-list {
   width: 400px;
   max-width: 1200px;
-  height: 600px;
   margin: 0 10px;
   border: 1px solid #ccc;
 }
@@ -183,7 +182,6 @@ button:hover {
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin-bottom: 50px;
 }
 
 /* loading */
