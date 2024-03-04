@@ -14,20 +14,20 @@ npm i react-virtual-drag-list
 
 Root component:
 ```jsx
-import VirtualList from 'react-virtual-drag-list'
+import VirtualList from 'react-virtual-drag-list';
 
 function Virtual() {
 
-  const list = [{id: '1', text: 'asd'}, {id: '2', text: 'fgh'}, ...]
+  const [list, setList] = useState([{id: '1', text: 'a'}, {id: '2', text: 'b'}, ...]);
 
   const handleToTop = () => {
-    console.log('istop')
+    // to top
   }
   const handleToBottom = () => {
-    console.log('isbottom')
+    // to bottom
   }
-  const handleDragEnd = (params) => {
-    console.log(params, 'new state after drag end')
+  const handleDrop = (params) => {
+    // dnd complete
   }
 
   // use style and className as jsx used
@@ -42,7 +42,7 @@ function Virtual() {
       footer={ <div className="loading">bottom loading...</div> }
       v-top={ handleToTop }
       v-bottom={ handleToBottom }
-      v-drop={ handleDragEnd }
+      v-drop={ handleDrop }
     >
       {
         (record, index, dataKey) => {
@@ -65,51 +65,56 @@ function Virtual() {
 
 |     **Emit**     |   **Type**   | **Required?** |  **Default** | **Description**  |
 |------------------|--------------|---------------|--------------|------------------|
-| `v-top`          | `Function`   |               | -            | Callback function that fires when scrolling to the top  |
-| `v-bottom`       | `Function`   |               | -            | Callback function that fires when scrolling to the bottom  |
-| `v-drag`         | `Function`   |               | -            | Callback function when drag is started  |
-| `v-drop`         | `Function`   |               | -            | Callback function when drag is complete  |
-| `v-add`          | `Function`   |               | -            | Callback function when element is dropped into the list from another |
-| `v-remove`       | `Function`   |               | -            | Callback function when element is removed from the list into another |
+| `v-top`          | `Function`   |               | -            | Scrolling to the top of the scroller |
+| `v-bottom`       | `Function`   |               | -            | Scrolling to the bottom of the scroller |
+| `v-drag`         | `Function`   |               | -            | Drag is started |
+| `v-drop`         | `Function`   |               | -            | Drag is complete |
+| `v-add`          | `Function`   |               | -            | Element is dropped into the list from another |
+| `v-remove`       | `Function`   |               | -            | Element is removed from the list into another |
 
 **Common used**
 
 |     **Prop**     |   **Type**   | **Required?** |  **Default** | **Description**  |
 |------------------|--------------|---------------|--------------|------------------|
-| `header`         | `JSX.Element`|               | -            | Top of list |
-| `footer`         | `JSX.Element`|               | -            | Bottom of list |
 | `dataKey`        | `String`     |   ✓           | -           | The unique identifier of each piece of data, in the form of `'a.b.c'` |
-| `dataSource`     | `Array`      |   ✓           | `[]`        | Data list |
-| `size`           | `Number`     |               | `-`          | Estimated height of each row  |
+| `dataSource`     | `Array`      |   ✓           | `[]`        | The data that needs to be rendered |
+| `size`           | `Number`     |               | -            | Estimated height of each row. You can choose to pass it or not, it will be automatically calculated |
 | `keeps`          | `Number`     |               | `30`         | The number of lines rendered by the virtual scroll  |
-| `handle`         | `Function/String`|           | `-`          | Drag handle selector within list items |
-| `group`          | `Object/String` |            | `-`          | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false }` |
+| `handle`         | `Function/String`|           | -            | Drag handle selector within list items |
+| `group`          | `Object/String` |            | -            | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false/'clone', revertDrag: true/false }` |
+| `scroller`       | `HTMLElement \| Window \| Document`| | - | Virtual list scrolling element |
 | `direction`      | `String`     |               | `vertical`   | `vertical/horizontal`, scroll direction  |
 | `keepOffset`     | `Boolean`    |               | `false`      | When scrolling up to load data, keep the same offset as the previous scroll  |
-| `pageMode`       | `Boolean`    |               | `false`      | Let virtual list using global document to scroll through the list |
+| `debounceTime`   | `Number`     |               | `0`          | debounce time on scroll |
+| `throttleTime`   | `Number`     |               | `0`          | debounce time on scroll |
+| `header`         | `JSX.Element`|               | -            | Top of list |
+| `footer`         | `JSX.Element`|               | -            | Bottom of list |
 
 **Uncommonly used**
 
 |     **Prop**    |   **Type**   | **Required?** | **Default** | **Description**  |
 |-----------------|--------------|---------------|-------------|------------------|
-| `draggable`     | `Function/String`|           | `-`         | Specifies which items inside the element should be draggable. If does not set a value, the default list element can be dragged |
+| `draggable`     | `String`     |               | -         | Specifies which items inside the element should be draggable. If does not set a value, the default list element can be dragged |
 | `disabled`      | `Boolean`    |               | `false`     | Disables the sortable if set to true |
-| `delay`         | `Number`     |               | `10`        | Delay time of debounce function  |
 | `animation`     | `Number`     |               | `150`       | Drag-and-drop's animation delay |
-| `autoScroll`    | `Boolean`    |               | `true`      | Automatic scrolling when moving to the edge of the container  |
-| `scrollThreshold`| `Number`    |               | `55`        | Threshold to trigger autoscroll  |
-| `pressDelay`    | `Number`     |               | `0`         | Time in milliseconds to define when the sorting should start |
-| `pressDelayOnTouchOnly` | `Boolean`|           | `false`     | Only delay on press if user is using touch |
+| `autoScroll`    | `Boolean`    |               | `true`      | Automatic scrolling when moving to the edge of the container |
+| `scrollThreshold`| `Number`    |               | `55`        | Threshold to trigger autoscroll |
+| `delay`         | `Number`     |               | `0`         | Time in milliseconds to define when the sorting should start |
+| `delayOnTouchOnly` | `Boolean` |               | `false`     | Only delay on press if user is using touch |
 | `fallbackOnBody`| `Boolean`    |               | `false`     | Appends the ghost element into the document's body |
-| `rootTag`       | `String`     |               | `div`       | Label type for root element  |
-| `wrapTag`       | `String`     |               | `div`       | Label type for list wrap element  |
-| `itemTag`       | `String`     |               | `div`       | Label type for list item element  |
-| `headerTag`     | `String`     |               | `div`       | Label type for header slot element  |
-| `footerTag`     | `String`     |               | `div`       | Label type for footer slot element  |
-| `itemStyle`     | `Object`     |               | `{}`        | Style for each line  |
-| `itemClass`     | `String`     |               | `''`        | Class for each line  |
-| `wrapStyle`     | `Object`     |               | `{}`        | List wrapper element style  |
-| `wrapClass`     | `String`     |               | `''`        | List wrapper element class  |
+| `rootTag`       | `String`     |               | `div`       | Label type for root element |
+| `wrapTag`       | `String`     |               | `div`       | Label type for list wrap element |
+| `wrapStyle`     | `Object`     |               | `{}`        | List wrapper element style |
+| `wrapClass`     | `String`     |               | `''`        | List wrapper element class |
+| `itemTag`       | `String`     |               | `div`       | Label type for list item element |
+| `itemStyle`     | `Object`     |               | `{}`        | List item element style |
+| `itemClass`     | `String`     |               | `''`        | List item element class |
+| `headerTag`     | `String`     |               | `div`       | Label type for header slot element |
+| `headerStyle`   | `Object`     |               | `{}`        | header slot style |
+| `headerClass`   | `String`     |               | `''`        | header slot class |
+| `footerTag`     | `String`     |               | `div`       | Label type for footer slot element |
+| `footerStyle`   | `Object`     |               | `{}`        | footer slot style |
+| `footerClass`   | `String`     |               | `''`        | footer slot class |
 | `ghostStyle`    | `Object`     |               | `{}`        | The style of the mask element when dragging |
 | `ghostClass`    | `String`     |               | `''`        | The class of the mask element when dragging |
 | `chosenClass`   | `String`     |               | `''`        | The class of the selected element when dragging |
@@ -119,10 +124,10 @@ Use the methods exposed in the component by setting `ref`
 ```jsx
 ...
 
-const virtualRef = useRef()
+const virtualRef = useRef();
 
 const scrollToBottom = () => {
-  virtualRef.current.scrollToBottom()
+  virtualRef.current.scrollToBottom();
 }
 
 return (
@@ -141,10 +146,11 @@ return (
 |     **Prop**      | **Description** |
 |-------------------|-----------------|
 | `getSize(key)`    | get the height of the specified item by key value  |
-| `getOffset()`     | get the current scroll height  |
+| `getOffset()`     | get the current scroll top/left  |
 | `getClientSize()` | Get wrapper element client viewport size (width or height) |
 | `getScrollSize()` | Get all scroll size (scrollHeight or scrollWidth) |
 | `scrollToTop()`   | scroll to the top of the list  |
 | `scrollToBottom()`| scroll to the bottom of the list  |
+| `scrollToKey(key)`| scroll to the specified data-key |
 | `scrollToIndex(index)` | scroll to the specified index value  |
 | `scrollToOffset(offset)` | scroll to the specified height  |
