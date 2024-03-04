@@ -13,29 +13,30 @@ export interface Group {
   revertDrag: boolean;
 }
 
-export interface SortState {
-  item: any;
+export interface SortState<T> {
+  item: T;
   key: any;
   index: number;
 }
 
-export interface FromTo {
+export interface FromTo<T> {
   index: number;
-  list: any[];
+  list: T[];
 }
 
-export interface DropState {
+export interface DropState<T> {
   changed: boolean;
-  list: any[];
-  item: any;
+  list: T[];
+  item: T;
   key: any;
-  from: FromTo;
-  to: FromTo;
+  from: FromTo<T>;
+  to: FromTo<T>;
 }
 
 export interface VirtualProps<T> {
   dataKey: string;
   dataSource: T[];
+  children: RenderFunc<T>;
 
   keeps?: number;
   size?: number;
@@ -66,28 +67,27 @@ export interface VirtualProps<T> {
 
   itemStyle?: CSSStyleDeclaration;
   itemClass?: string;
-  rootStyle?: CSSStyleDeclaration;
-  rootClass?: string;
   wrapStyle?: CSSStyleDeclaration;
   wrapClass?: string;
-  headerClass?: string;
   headerStyle?: CSSStyleDeclaration;
+  headerClass?: string;
+  footerStyle?: CSSStyleDeclaration;
+  footerClass?: string;
 
   ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
   chosenClass?: string;
   animation?: number;
 
-  children: RenderFunc<T>;
   header?: React.ReactNode;
   footer?: React.ReactNode;
 
   'v-top'?: () => void;
   'v-bottom'?: () => void;
-  'v-drag'?: (params: SortState) => void;
-  'v-add'?: (params: SortState) => void;
-  'v-remove'?: (params: SortState) => void;
-  'v-drop'?: (params: DropState) => void;
+  'v-drag'?: (params: SortState<T>) => void;
+  'v-add'?: (params: SortState<T>) => void;
+  'v-remove'?: (params: SortState<T>) => void;
+  'v-drop'?: (params: DropState<T>) => void;
 }
 
 export interface VirtualComponentRef {
@@ -96,34 +96,30 @@ export interface VirtualComponentRef {
   getClientSize: () => number;
   getScrollSize: () => number;
   scrollToTop: () => void;
+  scrollToKey: (key: any) => void;
   scrollToIndex: (index: number) => void;
   scrollToOffset: (offset: number) => void;
   scrollToBottom: () => void;
 }
 
 export interface BaseProps {
-  Tag?: string;
-  style?: CSSStyleDeclaration;
-  className?: string;
-  sizeKey?: string;
-  onSizeChange?: (key, size: number) => void;
-  children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
-}
-
-export interface ObserverProps {
   dataKey: string | number;
   sizeKey?: string;
-  onSizeChange?: (key, size: number) => void;
+  onSizeChange?: (key: string | number, size: number) => void;
   children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }
 
 export interface ItemProps extends BaseProps {
-  key: any;
-  record: any;
+  Tag?: string;
+  key: string | number;
   index: number;
-  dataKey: string | number;
+  record: any;
+  style?: CSSStyleDeclaration;
+  className?: string;
 }
 
 export interface SlotProps extends BaseProps {
-  roleId: string;
+  Tag?: string;
+  style?: CSSStyleDeclaration;
+  className?: string;
 }

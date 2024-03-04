@@ -15,10 +15,8 @@ const Emits = {
 
 function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
-    size = undefined,
     keeps = 30,
     dataKey = '',
-    scroller = undefined,
     direction = 'vertical',
     dataSource = [],
     throttleTime = 0,
@@ -26,14 +24,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
     delay = 0,
     animation = 150,
-    keepOffset = false,
     autoScroll = true,
-    fallbackOnBody = false,
     scrollThreshold = 55,
-    delayOnTouchOnly = false,
-
-    style = {},
-    className = '',
 
     wrapTag: WrapTag = 'div',
     rootTag: RootTag = 'div',
@@ -41,16 +33,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     headerTag = 'div',
     footerTag = 'div',
 
+    style = {},
     itemStyle = {},
-    itemClass = '',
     wrapStyle = {},
-    wrapClass = '',
-
-    ghostClass = '',
     ghostStyle = {},
-    chosenClass = '',
-
-    disabled = false,
   } = props;
 
   const [range, setRange] = React.useState<Range>({
@@ -179,8 +165,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   }, []);
 
   React.useEffect(() => {
-    sortable.current?.option('disabled', disabled);
-  }, [disabled]);
+    sortable.current?.option('disabled', props.disabled);
+  }, [props.disabled]);
 
   React.useEffect(() => {
     const oldList = [...list.current];
@@ -195,7 +181,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     sortable.current?.option('list', dataSource);
 
     // if auto scroll to the last offset
-    if (lastLength.current && keepOffset) {
+    if (lastLength.current && props.keepOffset) {
       const index = Math.abs(dataSource.length - lastLength.current);
       scrollToIndex(index);
       lastLength.current = null;
@@ -204,10 +190,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   const initVirtual = () => {
     virtual.current = new Virtual({
-      size: size,
+      size: props.size,
       keeps: keeps,
-      scroller: scroller,
       buffer: Math.round(keeps / 3),
+      scroller: props.scroller,
       direction: direction,
       uniqueKeys: uniqueKeys.current,
       debounceTime: debounceTime,
@@ -234,15 +220,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       ...props,
       list: list.current,
       delay,
-      disabled,
       animation,
       autoScroll,
-      ghostClass,
       ghostStyle,
-      chosenClass,
-      fallbackOnBody,
       scrollThreshold,
-      delayOnTouchOnly,
       onDrag: (params) => {
         dispatchEvent('drag', params);
         setDragged(() => Dnd.dragged);
@@ -258,11 +239,22 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
           setRange((pre: Range) => {
             let range: Range = { ...pre };
             range.front += Dnd.clone?.[itemSizeKey] || 0;
-            index.current = range.start;
             return range;
           });
+          index.current = range.start;
         }
-        setDragged(() => null);
+
+        if (params.changed) {
+          const prelist = list.current;
+          list.current = [...params.list];
+          updateUniqueKeys();
+
+          setDragged(() => null);
+          setViewList(() => [...params.list]);
+
+          updateRange(prelist, list.current);
+        }
+
         dispatchEvent('drop', params);
       },
     });
@@ -354,10 +346,13 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   const renderSlots = (Tag: string, key: string) => {
     return (
       <Slot
-        roleId={key}
+        key={key}
         Tag={Tag}
-        children={props[key]}
+        dataKey={key}
         sizeKey={itemSizeKey}
+        children={props[key]}
+        className={props[`${key}Class`]}
+        style={props[`${key}Style`]}
         onSizeChange={onSlotSizeChange}
       />
     );
@@ -370,14 +365,14 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       return (
         <Item
           key={key}
-          record={item}
-          index={index}
-          dataKey={key}
           Tag={itemTag}
-          children={props.children}
-          className={itemClass}
-          style={{ ...itemStyle, ...getItemStyle(key) }}
+          index={index}
+          record={item}
+          dataKey={key}
           sizeKey={itemSizeKey}
+          children={props.children}
+          className={props.itemClass}
+          style={{ ...itemStyle, ...getItemStyle(key) }}
           onSizeChange={onItemSizeChange}
         />
       );
@@ -385,10 +380,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   };
 
   return (
-    <RootTag ref={rootRef} style={RootStyle} className={className}>
+    <RootTag ref={rootRef} style={RootStyle} className={props.className}>
       {renderSlots(headerTag, 'header')}
 
-      <WrapTag ref={wrapRef} role='group' style={WrapStyle} className={wrapClass}>
+      <WrapTag ref={wrapRef} style={WrapStyle} className={props.wrapClass}>
         {renderItems()}
       </WrapTag>
 
