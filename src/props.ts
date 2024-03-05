@@ -6,28 +6,57 @@ type RenderFunc<T> = (
   props: { style?: React.CSSProperties }
 ) => React.ReactNode;
 
+export interface Group {
+  name: string;
+  put: boolean | Array<string>;
+  pull: boolean | 'clone';
+  revertDrag: boolean;
+}
+
+export interface SortState<T> {
+  item: T;
+  key: any;
+  index: number;
+}
+
+export interface FromTo<T> {
+  index: number;
+  list: T[];
+}
+
+export interface DropState<T> {
+  changed: boolean;
+  list: T[];
+  item: T;
+  key: any;
+  from: FromTo<T>;
+  to: FromTo<T>;
+}
+
 export interface VirtualProps<T> {
-  dataSource: T[];
   dataKey: string;
-  direction?: 'vertical' | 'horizontal';
+  dataSource: T[];
+  children: RenderFunc<T>;
+
   keeps?: number;
   size?: number;
-
-  pageMode?: boolean;
-  disabled?: boolean;
-  draggable?: Function | string;
+  group?: Group | string;
   handle?: Function | string;
-  group?: object | string;
+  scroller?: HTMLElement | Window | Document;
+  direction?: 'vertical' | 'horizontal';
+  debounceTime?: number;
+  throttleTime?: number;
 
   delay?: number;
+  disabled?: boolean;
+  draggable?: string;
   keepOffset?: boolean;
   autoScroll?: boolean;
-  scrollThreshold?: number;
-  pressDelay?: number;
-  pressDelayOnTouchOnly?: boolean;
   fallbackOnBody?: boolean;
+  scrollThreshold?: number;
+  delayOnTouchOnly?: boolean;
 
-  style?: object;
+  style?: CSSStyleDeclaration;
   className?: string;
 
   rootTag?: string;
@@ -36,53 +65,61 @@ export interface VirtualProps<T> {
   headerTag?: string;
   footerTag?: string;
 
-  itemStyle?: object;
+  itemStyle?: CSSStyleDeclaration;
   itemClass?: string;
-  rootStyle?: object;
-  rootClass?: string;
-  wrapStyle?: object;
+  wrapStyle?: CSSStyleDeclaration;
   wrapClass?: string;
+  headerStyle?: CSSStyleDeclaration;
+  headerClass?: string;
+  footerStyle?: CSSStyleDeclaration;
+  footerClass?: string;
 
-  ghostStyle?: object;
+  ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
   chosenClass?: string;
   animation?: number;
 
-  children: RenderFunc<T>;
   header?: React.ReactNode;
   footer?: React.ReactNode;
 
-  'v-top'?: Function;
-  'v-bottom'?: Function;
-  'v-drag'?: Function;
-  'v-drop'?: Function;
-  'v-add'?: Function;
-  'v-remove'?: Function;
+  'v-top'?: () => void;
+  'v-bottom'?: () => void;
+  'v-drag'?: (params: SortState<T>) => void;
+  'v-add'?: (params: SortState<T>) => void;
+  'v-remove'?: (params: SortState<T>) => void;
+  'v-drop'?: (params: DropState<T>) => void;
+}
+
+export interface VirtualComponentRef {
+  getSize: (key: any) => number;
+  getOffset: () => number;
+  getClientSize: () => number;
+  getScrollSize: () => number;
+  scrollToTop: () => void;
+  scrollToKey: (key: any) => void;
+  scrollToIndex: (index: number) => void;
+  scrollToOffset: (offset: number) => void;
+  scrollToBottom: () => void;
 }
 
 export interface BaseProps {
-  Tag?: string;
-  style?: object;
-  className?: string;
-  sizeKey?: string;
-  onSizeChange?: Function;
-  children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
-}
-
-export interface ObserverProps {
   dataKey: string | number;
   sizeKey?: string;
-  onSizeChange?: Function;
+  onSizeChange?: (key: string | number, size: number) => void;
   children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
 }
 
 export interface ItemProps extends BaseProps {
-  key: any;
-  record: any;
+  Tag?: string;
+  key: string | number;
   index: number;
-  dataKey: string | number;
+  record: any;
+  style?: CSSStyleDeclaration;
+  className?: string;
 }
 
 export interface SlotProps extends BaseProps {
-  roleId: string;
+  Tag?: string;
+  style?: CSSStyleDeclaration;
+  className?: string;
 }

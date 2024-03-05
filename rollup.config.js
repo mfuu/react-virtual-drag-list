@@ -1,21 +1,21 @@
-import babel from 'rollup-plugin-babel'
-import commonJs from 'rollup-plugin-commonjs'
-import resolve from 'rollup-plugin-node-resolve'
-import typescript from 'rollup-plugin-typescript'
-import { uglify } from 'rollup-plugin-uglify'
-import dts from 'rollup-plugin-dts'
+import dts from 'rollup-plugin-dts';
+import babel from '@rollup/plugin-babel';
+import terser from '@rollup/plugin-terser';
+import resolve from '@rollup/plugin-node-resolve';
+import commonJs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 
-const packageJson = require('./package.json')
-const version = packageJson.version
-const homepage = packageJson.homepage
-const extensions = ['.js', '.jsx', '.ts', '.tsx']
+const packageJson = require('./package.json');
+const version = packageJson.version;
+const homepage = packageJson.homepage;
+const extensions = ['.js', '.jsx', '.ts', '.tsx'];
 const banner = `
 /*!
  * react-virtual-drag-list v${version}
  * open source under the MIT license
  * ${homepage}
  */
-`
+`;
 
 export default [
   {
@@ -28,7 +28,7 @@ export default [
         name: 'VirtualDragList',
         sourcemap: false,
         globals: {
-          react: 'React'
+          react: 'React',
         },
         banner: banner.replace(/\n/, ''),
       },
@@ -38,25 +38,20 @@ export default [
         name: 'VirtualDragList',
         sourcemap: false,
         globals: {
-          react: 'React'
+          react: 'React',
         },
         banner: banner.replace(/\n/, ''),
-        plugins: [uglify()]
-      }
+        plugins: [terser()],
+      },
     ],
-    plugins: [
-      resolve(),
-      typescript(),
-      commonJs(),
-      babel({ extensions }),
-    ]
+    plugins: [resolve(), typescript(), commonJs(), babel({ extensions })],
   },
   {
     input: 'src/index.tsx',
     output: {
       file: 'types/index.d.ts',
-      format: 'es'
+      format: 'esm',
     },
-    plugins: [dts()]
-  }
-]
+    plugins: [dts()],
+  },
+];

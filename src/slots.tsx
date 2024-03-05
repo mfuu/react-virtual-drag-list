@@ -1,7 +1,7 @@
 import React from 'react';
-import { ItemProps, ObserverProps, SlotProps } from './props';
+import { BaseProps, ItemProps, SlotProps } from './props';
 
-export const Observer = React.memo((props: ObserverProps) => {
+export const Observer = React.memo((props: BaseProps) => {
   const { dataKey, children, onSizeChange, sizeKey } = props;
   const elementRef = React.useRef<Element>(null);
   const isRenderProps = typeof children === 'function';
@@ -57,15 +57,11 @@ export const Slot = React.memo((props: SlotProps) => {
 
   return children ? (
     <Observer
-      dataKey={props.roleId}
+      dataKey={props.dataKey}
       sizeKey={props.sizeKey}
       onSizeChange={props.onSizeChange}
     >
-      <Tag
-        role={props.roleId}
-        style={props.style}
-        className={props.className}
-      >
+      <Tag role={props.dataKey} style={props.style} className={props.className}>
         {children}
       </Tag>
     </Observer>
