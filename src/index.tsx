@@ -261,17 +261,14 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   };
 
   const updateRange = (prelist, newlist) => {
-    setRange((pre: Range) => {
-      let range: Range = { ...pre };
-      if (newlist.length > prelist.length && pre.end === prelist.length - 1 && scrolledToBottom()) {
-        range.end++;
-        range.start = Math.max(0, range.end - keeps);
-      }
-      if (virtual.current.sizes.size) {
-        virtual.current.updateRange(range);
-      }
-      return range;
-    });
+    let _range: Range = { ...range };
+    if (newlist.length > prelist.length && range.end === prelist.length - 1 && scrolledToBottom()) {
+      _range.end++;
+      _range.start = Math.max(0, _range.end - keeps);
+    }
+    if (virtual.current.sizes.size) {
+      virtual.current.updateRange(_range);
+    }
   };
 
   const updateUniqueKeys = () => {

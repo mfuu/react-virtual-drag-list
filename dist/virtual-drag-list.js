@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.5.2
+ * react-virtual-drag-list v2.6.0
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -7,354 +7,37 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('react')) :
   typeof define === 'function' && define.amd ? define(['react'], factory) :
-  (global = global || self, global.VirtualDragList = factory(global.React));
-}(this, (function (React) { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.VirtualDragList = factory(global.React));
+})(this, (function (React) { 'use strict';
 
-  React = React && Object.prototype.hasOwnProperty.call(React, 'default') ? React['default'] : React;
+  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-  function _regeneratorRuntime() {
-    /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+  var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
-    _regeneratorRuntime = function () {
-      return exports;
-    };
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
 
-    var exports = {},
-        Op = Object.prototype,
-        hasOwn = Op.hasOwnProperty,
-        $Symbol = "function" == typeof Symbol ? Symbol : {},
-        iteratorSymbol = $Symbol.iterator || "@@iterator",
-        asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator",
-        toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-    function define(obj, key, value) {
-      return Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: !0,
-        configurable: !0,
-        writable: !0
-      }), obj[key];
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      enumerableOnly && (symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      })), keys.push.apply(keys, symbols);
     }
 
-    try {
-      define({}, "");
-    } catch (err) {
-      define = function (obj, key, value) {
-        return obj[key] = value;
-      };
-    }
+    return keys;
+  }
 
-    function wrap(innerFn, outerFn, self, tryLocsList) {
-      var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator,
-          generator = Object.create(protoGenerator.prototype),
-          context = new Context(tryLocsList || []);
-      return generator._invoke = function (innerFn, self, context) {
-        var state = "suspendedStart";
-        return function (method, arg) {
-          if ("executing" === state) throw new Error("Generator is already running");
-
-          if ("completed" === state) {
-            if ("throw" === method) throw arg;
-            return doneResult();
-          }
-
-          for (context.method = method, context.arg = arg;;) {
-            var delegate = context.delegate;
-
-            if (delegate) {
-              var delegateResult = maybeInvokeDelegate(delegate, context);
-
-              if (delegateResult) {
-                if (delegateResult === ContinueSentinel) continue;
-                return delegateResult;
-              }
-            }
-
-            if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) {
-              if ("suspendedStart" === state) throw state = "completed", context.arg;
-              context.dispatchException(context.arg);
-            } else "return" === context.method && context.abrupt("return", context.arg);
-            state = "executing";
-            var record = tryCatch(innerFn, self, context);
-
-            if ("normal" === record.type) {
-              if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue;
-              return {
-                value: record.arg,
-                done: context.done
-              };
-            }
-
-            "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg);
-          }
-        };
-      }(innerFn, self, context), generator;
-    }
-
-    function tryCatch(fn, obj, arg) {
-      try {
-        return {
-          type: "normal",
-          arg: fn.call(obj, arg)
-        };
-      } catch (err) {
-        return {
-          type: "throw",
-          arg: err
-        };
-      }
-    }
-
-    exports.wrap = wrap;
-    var ContinueSentinel = {};
-
-    function Generator() {}
-
-    function GeneratorFunction() {}
-
-    function GeneratorFunctionPrototype() {}
-
-    var IteratorPrototype = {};
-    define(IteratorPrototype, iteratorSymbol, function () {
-      return this;
-    });
-    var getProto = Object.getPrototypeOf,
-        NativeIteratorPrototype = getProto && getProto(getProto(values([])));
-    NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype);
-    var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype);
-
-    function defineIteratorMethods(prototype) {
-      ["next", "throw", "return"].forEach(function (method) {
-        define(prototype, method, function (arg) {
-          return this._invoke(method, arg);
-        });
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = null != arguments[i] ? arguments[i] : {};
+      i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
       });
     }
 
-    function AsyncIterator(generator, PromiseImpl) {
-      function invoke(method, arg, resolve, reject) {
-        var record = tryCatch(generator[method], generator, arg);
-
-        if ("throw" !== record.type) {
-          var result = record.arg,
-              value = result.value;
-          return value && "object" == typeof value && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) {
-            invoke("next", value, resolve, reject);
-          }, function (err) {
-            invoke("throw", err, resolve, reject);
-          }) : PromiseImpl.resolve(value).then(function (unwrapped) {
-            result.value = unwrapped, resolve(result);
-          }, function (error) {
-            return invoke("throw", error, resolve, reject);
-          });
-        }
-
-        reject(record.arg);
-      }
-
-      var previousPromise;
-
-      this._invoke = function (method, arg) {
-        function callInvokeWithMethodAndArg() {
-          return new PromiseImpl(function (resolve, reject) {
-            invoke(method, arg, resolve, reject);
-          });
-        }
-
-        return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg();
-      };
-    }
-
-    function maybeInvokeDelegate(delegate, context) {
-      var method = delegate.iterator[context.method];
-
-      if (undefined === method) {
-        if (context.delegate = null, "throw" === context.method) {
-          if (delegate.iterator.return && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method)) return ContinueSentinel;
-          context.method = "throw", context.arg = new TypeError("The iterator does not provide a 'throw' method");
-        }
-
-        return ContinueSentinel;
-      }
-
-      var record = tryCatch(method, delegate.iterator, context.arg);
-      if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel;
-      var info = record.arg;
-      return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel);
-    }
-
-    function pushTryEntry(locs) {
-      var entry = {
-        tryLoc: locs[0]
-      };
-      1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry);
-    }
-
-    function resetTryEntry(entry) {
-      var record = entry.completion || {};
-      record.type = "normal", delete record.arg, entry.completion = record;
-    }
-
-    function Context(tryLocsList) {
-      this.tryEntries = [{
-        tryLoc: "root"
-      }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0);
-    }
-
-    function values(iterable) {
-      if (iterable) {
-        var iteratorMethod = iterable[iteratorSymbol];
-        if (iteratorMethod) return iteratorMethod.call(iterable);
-        if ("function" == typeof iterable.next) return iterable;
-
-        if (!isNaN(iterable.length)) {
-          var i = -1,
-              next = function next() {
-            for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next;
-
-            return next.value = undefined, next.done = !0, next;
-          };
-
-          return next.next = next;
-        }
-      }
-
-      return {
-        next: doneResult
-      };
-    }
-
-    function doneResult() {
-      return {
-        value: undefined,
-        done: !0
-      };
-    }
-
-    return GeneratorFunction.prototype = GeneratorFunctionPrototype, define(Gp, "constructor", GeneratorFunctionPrototype), define(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) {
-      var ctor = "function" == typeof genFun && genFun.constructor;
-      return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name));
-    }, exports.mark = function (genFun) {
-      return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun;
-    }, exports.awrap = function (arg) {
-      return {
-        __await: arg
-      };
-    }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () {
-      return this;
-    }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
-      void 0 === PromiseImpl && (PromiseImpl = Promise);
-      var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
-      return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) {
-        return result.done ? result.value : iter.next();
-      });
-    }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () {
-      return this;
-    }), define(Gp, "toString", function () {
-      return "[object Generator]";
-    }), exports.keys = function (object) {
-      var keys = [];
-
-      for (var key in object) keys.push(key);
-
-      return keys.reverse(), function next() {
-        for (; keys.length;) {
-          var key = keys.pop();
-          if (key in object) return next.value = key, next.done = !1, next;
-        }
-
-        return next.done = !0, next;
-      };
-    }, exports.values = values, Context.prototype = {
-      constructor: Context,
-      reset: function (skipTempReset) {
-        if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined);
-      },
-      stop: function () {
-        this.done = !0;
-        var rootRecord = this.tryEntries[0].completion;
-        if ("throw" === rootRecord.type) throw rootRecord.arg;
-        return this.rval;
-      },
-      dispatchException: function (exception) {
-        if (this.done) throw exception;
-        var context = this;
-
-        function handle(loc, caught) {
-          return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught;
-        }
-
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i],
-              record = entry.completion;
-          if ("root" === entry.tryLoc) return handle("end");
-
-          if (entry.tryLoc <= this.prev) {
-            var hasCatch = hasOwn.call(entry, "catchLoc"),
-                hasFinally = hasOwn.call(entry, "finallyLoc");
-
-            if (hasCatch && hasFinally) {
-              if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
-              if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
-            } else if (hasCatch) {
-              if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0);
-            } else {
-              if (!hasFinally) throw new Error("try statement without catch or finally");
-              if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc);
-            }
-          }
-        }
-      },
-      abrupt: function (type, arg) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) {
-            var finallyEntry = entry;
-            break;
-          }
-        }
-
-        finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null);
-        var record = finallyEntry ? finallyEntry.completion : {};
-        return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record);
-      },
-      complete: function (record, afterLoc) {
-        if ("throw" === record.type) throw record.arg;
-        return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel;
-      },
-      finish: function (finallyLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-          if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel;
-        }
-      },
-      catch: function (tryLoc) {
-        for (var i = this.tryEntries.length - 1; i >= 0; --i) {
-          var entry = this.tryEntries[i];
-
-          if (entry.tryLoc === tryLoc) {
-            var record = entry.completion;
-
-            if ("throw" === record.type) {
-              var thrown = record.arg;
-              resetTryEntry(entry);
-            }
-
-            return thrown;
-          }
-        }
-
-        throw new Error("illegal catch attempt");
-      },
-      delegateYield: function (iterable, resultName, nextLoc) {
-        return this.delegate = {
-          iterator: values(iterable),
-          resultName: resultName,
-          nextLoc: nextLoc
-        }, "next" === this.method && (this.arg = undefined), ContinueSentinel;
-      }
-    }, exports;
+    return target;
   }
 
   function _typeof(obj) {
@@ -367,29 +50,19 @@
     }, _typeof(obj);
   }
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
     }
-  }
 
-  function _defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function _createClass(Constructor, protoProps, staticProps) {
-    if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) _defineProperties(Constructor, staticProps);
-    Object.defineProperty(Constructor, "prototype", {
-      writable: false
-    });
-    return Constructor;
+    return obj;
   }
 
   function _slicedToArray(arr, i) {
@@ -467,529 +140,142 @@
     throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  function debounce(fn) {
-    var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-    var immediate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    var timer;
-    var result;
-
-    var debounced = function debounced() {
-      var _this = this;
-
-      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      if (timer) clearTimeout(timer);
-
-      if (immediate) {
-        var callNow = !timer;
-        timer = setTimeout(function () {
-          timer = null;
-        }, delay);
-        if (callNow) result = fn.apply(this, args);
-      } else {
-        timer = setTimeout(function () {
-          fn.apply(_this, args);
-        }, delay);
-      }
-
-      return result;
-    };
-
-    debounced.prototype.cancel = function () {
-      clearTimeout(timer);
-      timer = null;
-    };
-
-    return debounced;
-  }
-  function getDataKey(item, dataKey) {
-    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
-      return (o || {})[k];
-    }, item);
-  }
-
-  var CACLTYPE = {
-    INIT: 'INIT',
-    FIXED: 'FIXED',
-    DYNAMIC: 'DYNAMIC'
-  };
-  var DIRECTION = {
-    FRONT: 'FRONT',
-    BEHIND: 'BEHIND'
-  };
-  var LEADING_BUFFER = 2;
-
-  var Virtual = /*#__PURE__*/function () {
-    function Virtual(options, callback) {
-      _classCallCheck(this, Virtual);
-
-      this.options = Object.assign({}, options);
-      this.callback = callback;
-      this.sizes = new Map();
-      this.calcType = CACLTYPE.INIT;
-      this.calcSize = Object.create(null);
-      this.direction = '';
-      this.offset = 0;
-      this.range = Object.create(null);
-
-      if (options) {
-        this.checkIfUpdate(0, options.keeps - 1);
-      }
-    }
-
-    _createClass(Virtual, [{
-      key: "isFront",
-      value: function isFront() {
-        return this.direction === DIRECTION.FRONT;
-      }
-    }, {
-      key: "isBehind",
-      value: function isBehind() {
-        return this.direction === DIRECTION.BEHIND;
-      }
-    }, {
-      key: "isFixed",
-      value: function isFixed() {
-        return this.calcType === CACLTYPE.FIXED;
-      }
-    }, {
-      key: "updateOptions",
-      value: function updateOptions(key, value) {
-        var _this = this;
-
-        if (this.options && key in this.options) {
-          if (key === 'uniqueKeys') {
-            this.sizes.forEach(function (v, k) {
-              if (!value.includes(k)) {
-                _this.sizes["delete"](k);
-              }
-            });
-          }
-
-          this.options[key] = value;
-        }
-      }
-    }, {
-      key: "updateRange",
-      value: function updateRange() {
-        var start = this.range.start;
-
-        if (this.isFront()) {
-          start -= LEADING_BUFFER;
-        } else if (this.isBehind()) {
-          start += LEADING_BUFFER;
-        }
-
-        start = Math.max(start, 0);
-        this.handleUpdate(start, this.getEndByStart(start));
-      }
-    }, {
-      key: "handleItemSizeChange",
-      value: function handleItemSizeChange(key, size) {
-        this.sizes.set(key, size);
-
-        if (this.calcType === CACLTYPE.INIT) {
-          this.calcType = CACLTYPE.FIXED;
-          this.calcSize.fixed = size;
-        } else if (this.isFixed() && this.calcSize.fixed !== size) {
-          this.calcType = CACLTYPE.DYNAMIC;
-          this.calcSize.fixed = 0;
-        } // In the case of non-fixed heights, the average height and the total height are calculated
-
-
-        if (this.calcType !== CACLTYPE.FIXED) {
-          this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
-            return t + i;
-          }, 0);
-          this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
-        }
-      }
-    }, {
-      key: "handleSlotSizeChange",
-      value: function handleSlotSizeChange(key, size) {
-        this.calcSize[key] = size;
-      }
-    }, {
-      key: "handleScroll",
-      value: function handleScroll(offset) {
-        this.direction = offset < this.offset ? DIRECTION.FRONT : DIRECTION.BEHIND;
-        this.offset = offset;
-
-        if (this.isFront()) {
-          this.handleScrollFront();
-        } else if (this.isBehind()) {
-          this.handleScrollBehind();
-        }
-      }
-    }, {
-      key: "handleScrollFront",
-      value: function handleScrollFront() {
-        var scrolls = this.getScrollItems();
-        if (scrolls > this.range.start) return;
-        var start = Math.max(scrolls - this.options.buffer, 0);
-        this.checkIfUpdate(start, this.getEndByStart(start));
-      }
-    }, {
-      key: "handleScrollBehind",
-      value: function handleScrollBehind() {
-        var scrolls = this.getScrollItems();
-        if (scrolls < this.range.start + this.options.buffer) return;
-        this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
-      }
-    }, {
-      key: "getScrollItems",
-      value: function getScrollItems() {
-        var offset = this.offset - (this.calcSize.header || 0);
-
-        if (offset <= 0) {
-          return 0;
-        }
-
-        if (this.isFixed()) {
-          return Math.floor(offset / this.calcSize.fixed);
-        }
-
-        var low = 0;
-        var high = this.options.uniqueKeys.length;
-        var middle = 0;
-        var middleOffset = 0;
-
-        while (low <= high) {
-          middle = low + Math.floor((high - low) / 2);
-          middleOffset = this.getOffsetByIndex(middle);
-
-          if (middleOffset === offset) {
-            return middle;
-          } else if (middleOffset < offset) {
-            low = middle + 1;
-          } else if (middleOffset > offset) {
-            high = middle - 1;
-          }
-        }
-
-        return low > 0 ? --low : 0;
-      }
-    }, {
-      key: "checkIfUpdate",
-      value: function checkIfUpdate(start, end) {
-        var keeps = this.options.keeps;
-        var total = this.options.uniqueKeys.length;
-
-        if (total <= keeps) {
-          start = 0;
-          end = this.getLastIndex();
-        } else if (end - start < keeps - 1) {
-          start = end - keeps + 1;
-        }
-
-        if (this.range.start !== start) {
-          this.handleUpdate(start, end);
-        }
-      }
-    }, {
-      key: "handleUpdate",
-      value: function handleUpdate(start, end) {
-        this.range.start = start;
-        this.range.end = end;
-        this.range.front = this.getFrontOffset();
-        this.range.behind = this.getBehindOffset();
-        this.callback(Object.assign({}, this.range));
-      }
-    }, {
-      key: "getFrontOffset",
-      value: function getFrontOffset() {
-        if (this.isFixed()) {
-          return this.calcSize.fixed * this.range.start;
-        } else {
-          return this.getOffsetByIndex(this.range.start);
-        }
-      }
-    }, {
-      key: "getBehindOffset",
-      value: function getBehindOffset() {
-        var end = this.range.end;
-        var last = this.getLastIndex();
-
-        if (this.isFixed()) {
-          return (last - end) * this.calcSize.fixed;
-        }
-
-        return (last - end) * this.getItemSize();
-      }
-    }, {
-      key: "getOffsetByIndex",
-      value: function getOffsetByIndex(index) {
-        if (!index) return 0;
-        var offset = this.calcSize.header || 0;
-
-        for (var i = 0; i < index; i++) {
-          var size = this.sizes.get(this.options.uniqueKeys[i]);
-          offset = offset + (typeof size === 'number' ? size : this.getItemSize());
-        }
-
-        return offset;
-      }
-    }, {
-      key: "getEndByStart",
-      value: function getEndByStart(start) {
-        return Math.min(start + this.options.keeps - 1, this.getLastIndex());
-      }
-    }, {
-      key: "getLastIndex",
-      value: function getLastIndex() {
-        var _this$options = this.options,
-            uniqueKeys = _this$options.uniqueKeys,
-            keeps = _this$options.keeps;
-        return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
-      }
-    }, {
-      key: "getItemSize",
-      value: function getItemSize() {
-        return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
-      }
-    }]);
-
-    return Virtual;
-  }();
-
-  /******************************************************************************
-  Copyright (c) Microsoft Corporation.
-
-  Permission to use, copy, modify, and/or distribute this software for any
-  purpose with or without fee is hereby granted.
-
-  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-  PERFORMANCE OF THIS SOFTWARE.
-  ***************************************************************************** */
-  function __awaiter(thisArg, _arguments, P, generator) {
-    function adopt(value) {
-      return value instanceof P ? value : new P(function (resolve) {
-        resolve(value);
-      });
-    }
-
-    return new (P || (P = Promise))(function (resolve, reject) {
-      function fulfilled(value) {
-        try {
-          step(generator.next(value));
-        } catch (e) {
-          reject(e);
-        }
-      }
-
-      function rejected(value) {
-        try {
-          step(generator["throw"](value));
-        } catch (e) {
-          reject(e);
-        }
-      }
-
-      function step(result) {
-        result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-      }
-
-      step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-  }
-
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-  function createCommonjsModule(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  function getDefaultExportFromCjs (x) {
+  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
   }
 
-  var sortableDnd_min = createCommonjsModule(function (module, exports) {
+  var sortableDnd_min = {exports: {}};
+
+  sortableDnd_min.exports;
+
+  (function (module, exports) {
     !function (t, e) {
-       module.exports = e() ;
+      module.exports = e() ;
     }(commonjsGlobal, function () {
 
-      function Y(e, t) {
-        var n,
-            o = Object.keys(e);
-        return Object.getOwnPropertySymbols && (n = Object.getOwnPropertySymbols(e), t && (n = n.filter(function (t) {
-          return Object.getOwnPropertyDescriptor(e, t).enumerable;
-        })), o.push.apply(o, n)), o;
-      }
-
-      function l(o) {
-        for (var t = 1; t < arguments.length; t++) {
-          var i = null != arguments[t] ? arguments[t] : {};
-          t % 2 ? Y(Object(i), !0).forEach(function (t) {
-            var e, n;
-            e = o, n = i[t = t], (t = function (t) {
-              t = function (t, e) {
-                if ("object" != typeof t || null === t) return t;
-                var n = t[Symbol.toPrimitive];
-                if (void 0 === n) return ("string" === e ? String : Number)(t);
-                n = n.call(t, e || "default");
-                if ("object" != typeof n) return n;
-                throw new TypeError("@@toPrimitive must return a primitive value.");
-              }(t, "string");
-
-              return "symbol" == typeof t ? t : String(t);
-            }(t)) in e ? Object.defineProperty(e, t, {
-              value: n,
-              enumerable: !0,
-              configurable: !0,
-              writable: !0
-            }) : e[t] = n;
-          }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(o, Object.getOwnPropertyDescriptors(i)) : Y(Object(i)).forEach(function (t) {
-            Object.defineProperty(o, t, Object.getOwnPropertyDescriptor(i, t));
-          });
-        }
-
-        return o;
-      }
-
-      function R(t) {
-        return (R = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (t) {
+      function L(t) {
+        return (L = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (t) {
           return typeof t;
         } : function (t) {
           return t && "function" == typeof Symbol && t.constructor === Symbol && t !== Symbol.prototype ? "symbol" : typeof t;
         })(t);
       }
 
-      var F = {
+      function l() {
+        return (l = Object.assign ? Object.assign.bind() : function (t) {
+          for (var e = 1; e < arguments.length; e++) {
+            var n,
+                o = arguments[e];
+
+            for (n in o) Object.prototype.hasOwnProperty.call(o, n) && (t[n] = o[n]);
+          }
+
+          return t;
+        }).apply(this, arguments);
+      }
+
+      var W = {
         capture: !1,
         passive: !1
       },
-          H = /\s+/g,
-          c = {
-        start: ["touchstart", "mousedown"],
-        move: ["touchmove", "mousemove"],
-        end: ["touchend", "touchcancel", "mouseup"]
-      };
+          R = /\s+/g;
 
       function t(t) {
         if ("undefined" != typeof window && window.navigator) return !!navigator.userAgent.match(t);
       }
 
-      var e,
-          d = t(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i),
-          L = t(/Edge/i),
-          a = t(/safari/i) && !t(/chrome/i) && !t(/android/i),
-          k = (e = !1, document.addEventListener("checkIfSupportPassive", null, {
+      var n,
+          e,
+          h = t(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i),
+          B = t(/Edge/i),
+          F = t(/safari/i) && !t(/chrome/i) && !t(/android/i),
+          k = (n = !1, document.addEventListener("checkIfSupportPassive", null, {
         get passive() {
-          return e = !0;
+          return n = !0;
         }
 
-      }), e),
-          u = "undefined" == typeof window || "undefined" == typeof document ? "" : (o = window.getComputedStyle(document.documentElement, "") || ["-moz-hidden-iframe"], "ms" !== (o = (Array.prototype.slice.call(o).join("").match(/-(moz|webkit|ms)-/) || "" === o.OLink && ["", "o"])[1]) ? o && o.length ? o[0].toUpperCase() + o.substr(1) : "" : "ms");
+      }), n),
+          z = "undefined" == typeof window || "undefined" == typeof document ? {} : (e = window.getComputedStyle(document.documentElement, "") || ["-moz-hidden-iframe"], e = (Array.prototype.slice.call(e).join("").match(/-(moz|webkit|ms)-/) || "" === e.OLink && ["", "o"])[1], {
+        dom: "WebKit|Moz|MS|O".match(new RegExp("(" + e + ")", "i"))[1],
+        lowercase: e,
+        css: "-" + e + "-",
+        js: e[0].toUpperCase() + e.substr(1)
+      });
 
-      function i(t, e) {
-        t.style["".concat(u, "TransitionDuration")] = null == e ? "" : "".concat(e, "ms");
+      function j(t, e) {
+        t.style["".concat(z.css, "transition-duration")] = null == e ? "" : "".concat(e, "ms");
       }
 
-      function h(t, e) {
-        t.style["".concat(u, "Transform")] = e ? "".concat(e) : "";
+      function a(t, e) {
+        t.style["".concat(z.css, "transform")] = e ? "".concat(e) : "";
       }
 
-      function p(t, e, n) {
-        window.addEventListener ? t.addEventListener(e, n, !(!k && d) && F) : window.attachEvent && t.attachEvent("on" + e, n);
+      function r(t, e, n) {
+        window.addEventListener ? t.addEventListener(e, n, !(!k && h) && W) : window.attachEvent ? t.attachEvent("on" + e, n) : t["on" + e] = n;
       }
 
-      function n(t, e, n) {
-        window.removeEventListener ? t.removeEventListener(e, n, !(!k && d) && F) : window.detachEvent && t.detachEvent("on" + e, n);
+      function o(t, e, n) {
+        window.removeEventListener ? t.removeEventListener(e, n, !(!k && h) && W) : window.detachEvent ? t.detachEvent("on" + e, n) : t["on" + e] = null;
       }
 
-      function I(t) {
-        var e = t,
-            n = t.touches && t.touches[0] || t.changedTouches && t.changedTouches[0],
-            t = n ? document.elementFromPoint(n.clientX, n.clientY) : t.target;
-        return !n || "clientX" in e || (e.clientX = n.clientX, e.clientY = n.clientY, e.pageX = n.pageX, e.pageY = n.pageY, e.screenX = n.screenX, e.screenY = n.screenY), {
-          touch: n,
-          event: e,
-          target: t
-        };
+      function G() {
+        return document.scrollingElement || document.documentElement;
       }
 
-      function f(t, e) {
-        for (var n = {
-          top: 0,
-          left: 0,
-          height: t.offsetHeight,
-          width: t.offsetWidth
-        }; n.top += t.offsetTop, n.left += t.offsetLeft, (t = t.parentNode) && t !== e;);
-
-        return n;
-      }
-
-      function m() {
-        var t = document.scrollingElement;
-        return t || document.documentElement;
-      }
-
-      function g(t) {
-        var e,
-            n,
-            o,
-            i,
-            r,
-            a,
-            s,
-            l = 1 < arguments.length && void 0 !== arguments[1] ? arguments[1] : {},
-            c = 2 < arguments.length ? arguments[2] : void 0;
-
+      function f(t, e, n) {
         if (t.getBoundingClientRect || t === window) {
-          if (t !== window && t.parentNode && t !== m()) {
-            if (n = (e = t.getBoundingClientRect()).top, o = e.left, i = e.bottom, r = e.right, a = e.height, s = e.width, l.parent && t.parentNode !== t.ownerDocument.body) for (var u, h = t.parentNode; h && h.getBoundingClientRect && h !== t.ownerDocument.body;) {
-              if ((u = h.getBoundingClientRect()).height < a) return n = u.top, o = u.left, i = u.bottom, r = u.right, a = u.height, {
-                top: n,
-                left: o,
-                bottom: i,
-                right: r,
-                width: s = u.width,
-                height: a
-              };
-              h = h.parentNode;
-            }
-          } else o = n = 0, i = window.innerHeight, r = window.innerWidth, a = window.innerHeight, s = window.innerWidth;
+          var o,
+              i,
+              s,
+              l,
+              r,
+              a,
+              c = t !== window && t.parentNode && t !== G() ? (i = (o = t.getBoundingClientRect()).top, s = o.left, l = o.bottom, r = o.right, a = o.height, o.width) : (s = i = 0, l = window.innerHeight, r = window.innerWidth, a = window.innerHeight, window.innerWidth);
 
-          if ((l.block || l.relative) && t !== window && (c = c || t.parentNode, !d)) do {
-            if (c && c.getBoundingClientRect && ("none" !== v(c, "transform") || l.relative && "static" !== v(c, "position"))) {
-              var p = c.getBoundingClientRect();
-              n -= p.top + parseInt(v(c, "border-top-width")), o -= p.left + parseInt(v(c, "border-left-width")), i = n + e.height, r = o + e.width;
-              break;
-            }
-          } while (c = c.parentNode);
+          if (e && t !== window) {
+            n = n || t.parentNode;
+
+            do {
+              if (n && n.getBoundingClientRect) {
+                var h = n.getBoundingClientRect();
+                i -= h.top + parseInt(p(n, "border-top-width")), s -= h.left + parseInt(p(n, "border-left-width")), l = i + o.height, r = s + o.width;
+                break;
+              }
+            } while (n = n.parentNode);
+          }
+
           return {
-            top: n,
-            left: o,
-            bottom: i,
+            top: i,
+            left: s,
+            bottom: l,
             right: r,
-            width: s,
+            width: c,
             height: a
           };
         }
       }
 
-      function s(t, e, n, o) {
+      function c(t, e, n, o) {
         if (t) {
           n = n || document;
 
           do {
             if (null == e) {
               var i = Array.prototype.slice.call(n.children),
-                  r = i.indexOf(t);
-              if (-1 < r) return i[r];
+                  s = i.indexOf(t);
+              if (-1 < s) return i[s];
 
-              for (var a = 0; a < i.length; a++) if (W(t, i[a])) return i[a];
-            } else if ((">" !== e[0] || t.parentNode === n) && q(t, e) || o && t === n) return t;
+              for (var l = 0; l < i.length; l++) if (V(t, i[l])) return i[l];
+            } else if ((">" !== e[0] || t.parentNode === n) && d(t, e) || o && t === n) return t;
           } while (t = t.parentNode);
         }
 
         return null;
       }
 
-      function W(t, e) {
+      function V(t, e) {
         if (t && e) {
           if (e.compareDocumentPosition) return e === t || 16 & e.compareDocumentPosition(t);
           if (e.contains && 1 === t.nodeType) return e.contains(t) && e !== t;
@@ -998,12 +284,48 @@
         }
       }
 
-      function z(t, e, n) {
-        var o;
-        t && e && (t.classList ? t.classList[n ? "add" : "remove"](e) : (o = (" " + t.className + " ").replace(H, " ").replace(" " + e + " ", " "), t.className = (o + (n ? " " + e : "")).replace(H, " ")));
+      function i(t, e) {
+        var n = 0;
+        if (!t || !t.parentNode) return -1;
+
+        for (; t = t.previousElementSibling;) "TEMPLATE" === t.nodeName.toUpperCase() || e && !d(t, e) || "none" === p(t, "display") || n++;
+
+        return n;
       }
 
-      function q(t, e) {
+      function q(t, e, n, o) {
+        for (var i = 0, s = 0, l = t.children; i < l.length;) {
+          if (l[i] !== H.ghost && "none" !== p(l[i], "display") && c(l[i], n, t, !1) && (o || l[i] !== H.dragged)) {
+            if (s === e) return l[i];
+            s++;
+          }
+
+          i++;
+        }
+
+        return null;
+      }
+
+      function U(t, e) {
+        var n,
+            o = p(t),
+            i = parseInt(o.width) - parseInt(o.paddingLeft) - parseInt(o.paddingRight) - parseInt(o.borderLeftWidth) - parseInt(o.borderRightWidth),
+            s = q(t, 0, e),
+            t = q(t, 1, e),
+            e = s && p(s),
+            l = t && p(t),
+            r = e && parseInt(e.marginLeft) + parseInt(e.marginRight) + f(s).width,
+            a = l && parseInt(l.marginLeft) + parseInt(l.marginRight) + f(t).width,
+            c = B || h ? "cssFloat" : "float";
+        return "flex" === o.display ? "column" === o.flexDirection || "column-reverse" === o.flexDirection ? "vertical" : "horizontal" : "grid" === o.display ? o.gridTemplateColumns.split(" ").length <= 1 ? "vertical" : "horizontal" : s && e.float && "none" !== e.float ? (n = "left" === e.float ? "left" : "right", !t || "both" !== l.clear && l.clear !== n ? "horizontal" : "vertical") : s && ("block" === e.display || "flex" === e.display || "table" === e.display || "grid" === e.display || i <= r && "none" === o[c] || t && "none" === o[c] && i < r + a) ? "vertical" : "horizontal";
+      }
+
+      function u(t, e, n) {
+        var o;
+        t && e && (t.classList ? t.classList[n ? "add" : "remove"](e) : (o = (" " + t.className + " ").replace(R, " ").replace(" " + e + " ", " "), t.className = (o + (n ? " " + e : "")).replace(R, " ")));
+      }
+
+      function d(t, e) {
         if (e && (">" === e[0] && (e = e.substring(1)), t)) try {
           if (t.matches) return t.matches(e);
           if (t.msMatchesSelector) return t.msMatchesSelector(e);
@@ -1013,11 +335,7 @@
         }
       }
 
-      function V(t, e) {
-        return t.top !== e.top || t.left !== e.left;
-      }
-
-      function v(t, e, n) {
+      function p(t, e, n) {
         var o = t && t.style;
 
         if (o) {
@@ -1026,280 +344,229 @@
         }
       }
 
-      function U(t, e) {
-        return t.sortable.el !== e.sortable.el;
+      function s(t, e) {
+        e = e;
+        t = (t = t).compareDocumentPosition ? t.compareDocumentPosition(e) : t.contains ? (t != e && t.contains(e) && 16) + (t != e && e.contains(t) && 8) + (0 <= t.sourceIndex && 0 <= e.sourceIndex ? (t.sourceIndex < e.sourceIndex && 4) + (t.sourceIndex > e.sourceIndex && 2) : 1) + 0 : 0;
+        return 2 === t ? 1 : 4 === t ? -1 : 0;
       }
 
-      function y(t, e) {
-        v(t, "display", e ? "" : "none");
+      function K(t) {
+        void 0 !== t.preventDefault && t.cancelable && t.preventDefault();
       }
 
-      var b = "Sortable" + Date.now(),
-          o = {
-        sortable: null,
-        nodes: []
-      },
-          w = l({}, o),
-          _ = l({}, o),
-          S = {};
+      function m(t) {
+        var e = t.sortable,
+            n = t.name,
+            t = t.params,
+            e = e.options[n];
+        "function" == typeof e && e(l({}, t));
+      }
+
+      var g,
+          v,
+          y = "Sortable" + Date.now();
 
       function Z(t) {
-        this.options = t || {}, this.groupName = t.group.name || "group_" + Number(Math.random().toString().slice(-3) + Date.now()).toString(32);
-      }
-
-      function G() {
-        this.autoScrollAnimationFrame = null, this.speed = {
-          x: 10,
-          y: 10
-        };
+        this.options = t, this.autoScrollAnimationFrame = null;
       }
 
       function J(t) {
         this.options = t, this.animations = [];
       }
 
-      function K() {
-        this.helper = null, this.distance = {
-          x: 0,
-          y: 0
-        };
+      function Q(t) {
+        this.options = t || {}, this.selectedElements = [];
       }
 
-      Z.prototype = {
-        allowDrag: function (t) {
-          return this.options.multiple && S[this.groupName] && S[this.groupName].length && -1 < S[this.groupName].indexOf(t);
-        },
-        getHelper: function () {
-          var n = document.createElement("div");
-          return S[this.groupName].forEach(function (t, e) {
-            t = t.cloneNode(!0);
-            t.style = "\n        opacity: ".concat(0 === e ? 1 : .5, ";\n        position: absolute;\n        z-index: ").concat(e, ";\n        left: 0;\n        top: 0;\n        bottom: 0;\n        right: 0;\n      "), n.appendChild(t);
-          }), n;
-        },
-        select: function (t, e, n, o) {
-          var i;
-          e && (S[this.groupName] || (S[this.groupName] = []), i = S[this.groupName].indexOf(e), z(e, this.options.selectedClass, i < 0), t = l(l({}, o), {}, {
-            event: t
-          }), i < 0 ? (S[this.groupName].push(e), o.sortable._dispatchEvent("onSelect", t)) : (S[this.groupName].splice(i, 1), o.sortable._dispatchEvent("onDeselect", t)), S[this.groupName].sort(function (t, e) {
-            return t = f(t, n), e = f(e, n), t.top == e.top ? t.left - e.left : t.top - e.top;
-          }));
-        },
-        onDrag: function (e, t) {
-          w.sortable = t, w.nodes = S[this.groupName].map(function (t) {
-            return {
-              node: t,
-              rect: g(t),
-              offset: f(t, e)
-            };
-          }), _.sortable = t;
-        },
-        onTrulyStarted: function (e, t) {
-          t.animator.collect(e, null, e.parentNode), S[this.groupName].forEach(function (t) {
-            t != e && y(t, !1);
-          }), t.animator.animate();
-        },
-        onChange: function (t, e) {
-          var n = g(t),
-              o = f(t, e.el);
-          _.sortable = e, _.nodes = S[this.groupName].map(function (t) {
-            return {
-              node: t,
-              rect: n,
-              offset: o
-            };
-          });
-        },
-        onDrop: function (t, n, e, o, i) {
-          var r = this,
-              a = (_.sortable.animator.collect(n, null, n.parentNode), S[this.groupName].indexOf(n)),
-              o = (S[this.groupName].forEach(function (t, e) {
-            y(t, !0), e < a ? n.parentNode.insertBefore(t, n) : (e = 0 < e ? S[r.groupName][e - 1] : n, n.parentNode.insertBefore(t, e.nextSibling));
-          }), w.sortable = o.sortable, _.nodes = S[this.groupName].map(function (t) {
-            return {
-              node: t,
-              rect: g(t),
-              offset: f(t, e)
-            };
-          }), U(w, _)),
-              s = o || this._offsetChanged(w.nodes, _.nodes),
-              i = l(l({}, i()), {}, {
-            changed: s,
-            event: t
-          });
-
-          o && w.sortable._dispatchEvent("onDrop", i), _.sortable._dispatchEvent("onDrop", i), _.sortable.animator.animate();
-        },
-        _offsetChanged: function (t, n) {
-          return !!t.find(function (e) {
-            return V(n.find(function (t) {
-              return t.node === e.node;
-            }).offset, e.offset);
-          });
-        }
-      }, window.requestAnimationFrame || (window.requestAnimationFrame = function (t) {
+      window.requestAnimationFrame || (window.requestAnimationFrame = function (t) {
         return setTimeout(t, 17);
       }), window.cancelAnimationFrame || (window.cancelAnimationFrame = function (t) {
         clearTimeout(t);
-      }), G.prototype = {
-        clear: function () {
+      }), Z.prototype = {
+        destroy: function () {
           null != this.autoScrollAnimationFrame && (cancelAnimationFrame(this.autoScrollAnimationFrame), this.autoScrollAnimationFrame = null);
         },
-        update: function (t, e, n, o) {
-          var i = this;
+        update: function (t, e, n) {
+          var o = this;
           cancelAnimationFrame(this.autoScrollAnimationFrame), this.autoScrollAnimationFrame = requestAnimationFrame(function () {
-            n && o && i.autoScroll(t, e, o), i.update(t, e, n, o);
+            e && n && o.autoScroll(t, n), o.update(t, e, n);
           });
         },
-        autoScroll: function (t, e, n) {
-          var o, i, r, a, s, l, c, u, h, p, d, f;
-          t && (o = n.clientX, n = n.clientY, void 0 !== o) && void 0 !== n && (h = g(t)) && (d = t.scrollTop, i = t.scrollLeft, r = t.scrollHeight, p = t.scrollWidth, a = h.top, s = h.right, l = h.bottom, c = h.left, f = h.height, h = h.width, n < a || s < o || l < n || o < c || (u = 0 < d && a <= n && n <= a + e, h = i + h < p && o <= s && s - e <= o, p = d + f < r && n <= l && l - e <= n, (f = d = 0) < i && c <= o && o <= c + e && (d = Math.floor(Math.max(-1, (o - c) / e - 1) * this.speed.x)), h && (d = Math.ceil(Math.min(1, (o - s) / e + 1) * this.speed.x)), u && (f = Math.floor(Math.max(-1, (n - a) / e - 1) * this.speed.y)), (f = p ? Math.ceil(Math.min(1, (n - l) / e + 1) * this.speed.y) : f) && (t.scrollTop += f), d && (t.scrollLeft += d)));
+        autoScroll: function (t, e) {
+          var n, o, i, s, l, r, a, c, h, u, d, p, m;
+          t && void 0 !== e.clientX && void 0 !== e.clientY && (u = f(t)) && (n = e.clientX, e = e.clientY, o = u.top, i = u.right, s = u.bottom, l = u.left, p = u.height, u = u.width, e < o || i < n || s < e || n < l || (r = (a = this.options).scrollThreshold, a = a.scrollSpeed, d = t.scrollTop, c = t.scrollLeft, m = t.scrollHeight, h = 0 < d && o <= e && e <= o + r, u = c + u < t.scrollWidth && n <= i && i - r <= n, d = d + p < m && e <= s && s - r <= e, (m = p = 0) < c && l <= n && n <= l + r && (p = Math.floor(Math.max(-1, (n - l) / r - 1) * a.x)), u && (p = Math.ceil(Math.min(1, (n - i) / r + 1) * a.x)), h && (m = Math.floor(Math.max(-1, (e - o) / r - 1) * a.y)), (m = d ? Math.ceil(Math.min(1, (e - s) / r + 1) * a.y) : m) && (t.scrollTop += m), p && (t.scrollLeft += p)));
         }
       }, J.prototype = {
-        collect: function (t, e, n, o) {
-          var i = this;
-          n && (n = Array.prototype.slice.call(n.children), e = (t = this._getRange(n, t, e, o)).start, t = t.end, this.animations.length = 0, n.slice(e, t + 1).forEach(function (t) {
-            "none" !== v(t, "display") && t !== o && t !== B.helper && i.animations.push({
-              node: t,
-              rect: g(t)
-            });
-          }));
+        collect: function (t) {
+          if (t) {
+            for (var e = f(t), n = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth, o = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight, i = Math.min(e.right, n), s = Math.min(e.bottom, o), l = Array.prototype.slice.call(t.children), r = [], a = 0; a <= l.length; a++) {
+              var c = l[a];
+
+              if (c && c !== H.ghost && "none" !== p(c, "display")) {
+                var h = f(c);
+
+                if (!(h.bottom < 0 || h.right < 0)) {
+                  if (h.top - h.height > s || h.left - h.width > i) break;
+                  r.push({
+                    node: c,
+                    rect: h
+                  });
+                }
+              }
+            }
+
+            this.animations.push(r);
+          }
         },
         animate: function () {
-          var n = this;
-          this.animations.forEach(function (t) {
-            var e = t.node,
-                t = t.rect;
+          for (var t = this.animations.pop(), e = 0, n = t.length; e < n; e++) {
+            var o = t[e],
+                i = o.node,
+                o = o.rect;
 
-            n._excute(e, t);
-          });
+            this._excute(i, o);
+          }
         },
         _excute: function (t, e) {
           var n = e.left,
               e = e.top,
-              o = g(t),
-              e = e - o.top,
-              n = n - o.left,
-              o = (i(t), h(t, "translate3d(".concat(n, "px, ").concat(e, "px, 0)")), t.offsetWidth, this.options.animation);
-          i(t, o), h(t, "translate3d(0px, 0px, 0px)"), clearTimeout(t.animated), t.animated = setTimeout(function () {
-            i(t), h(t, ""), t.animated = null;
-          }, o);
-        },
-        _getRange: function (t, e, n) {
-          var o,
-              e = t.indexOf(e),
-              n = t.indexOf(n);
-          return n < e && (e = (o = [n, e])[0], n = o[1]), e < 0 && (e = n, n = t.length - 1), {
-            start: e,
-            end: n = n < 0 ? t.length - 1 : n
-          };
+              o = f(t);
+          o.top === e && o.left === n || (e = e - o.top, n = n - o.left, j(t), a(t, "translate3d(".concat(n, "px, ").concat(e, "px, 0)")), t.offsetWidth, j(t, this.options.animation), a(t, "translate3d(0px, 0px, 0px)"), clearTimeout(t.animated), t.animated = setTimeout(function () {
+            j(t), a(t, ""), t.animated = null;
+          }, this.options.animation));
         }
-      }, K.prototype = {
-        get node() {
-          return this.helper;
-        },
-
+      }, Q.prototype = {
         destroy: function () {
-          this.helper && this.helper.parentNode && this.helper.parentNode.removeChild(this.helper), this.helper = null, this.distance = {
-            x: 0,
-            y: 0
-          };
+          g = v = null;
         },
-        move: function (t, e) {
-          this.helper && h(this.helper, "translate3d(".concat(t, "px, ").concat(e, "px, 0)"));
+        active: function () {
+          return !!g;
         },
-        init: function (t, e, n, o) {
-          if (!this.helper) {
-            var i,
-                r = o.fallbackOnBody,
-                a = o.ghostClass,
-                o = o.ghostStyle,
-                r = r ? document.body : n,
-                s = (this.helper = e.cloneNode(!0), z(this.helper, a, !0), l({
-              top: t.top,
-              left: t.left,
-              width: t.width,
-              height: t.height,
-              position: "fixed",
-              opacity: "0.8",
-              "z-index": 1e5,
-              "pointer-events": "none",
-              "box-sizing": "border-box"
-            }, o));
-
-            for (i in s) v(this.helper, i, s[i]);
-
-            n = this.helper, e = "none", n.style["".concat(u, "Transition")] = e ? "none" === e ? "none" : "".concat(e) : "", h(this.helper, "translate3d(0px, 0px, 0px)"), r.appendChild(this.helper);
-            a = this.distance.x / parseInt(this.helper.style.width) * 100, t = this.distance.y / parseInt(this.helper.style.height) * 100;
-            v(this.helper, "transform-origin", "".concat(a, "% ").concat(t, "%")), v(this.helper, "transform", "translateZ(0)"), v(this.helper, "will-change", "transform");
-          }
+        setParams: function (t) {
+          t.nodes = g || [], t.clones = v || [];
+        },
+        select: function (t) {
+          u(t, this.options.selectedClass, !0), this.selectedElements.push(t), this.selectedElements.sort(s);
+        },
+        deselect: function (t) {
+          var e = this.selectedElements.indexOf(t);
+          -1 < e && (u(t, this.options.selectedClass, !1), this.selectedElements.splice(e, 1));
+        },
+        getGhostElement: function () {
+          var n;
+          return g ? (n = document.createElement("div"), this.selectedElements.forEach(function (t, e) {
+            t = t.cloneNode(!0);
+            t.style = "position: absolute;left: 0;top: 0;bottom: 0;right: 0;opacity: ".concat(0 === e ? 1 : .5, ";z-index: ").concat(e, ";"), n.appendChild(t);
+          }), n) : null;
+        },
+        toggleSelected: function (e, t) {
+          var n = this;
+          t ? e.forEach(function (t) {
+            return n.selectedElements.push(t);
+          }) : this.selectedElements = this.selectedElements.filter(function (t) {
+            return e.indexOf(t) < 0;
+          });
+        },
+        toggleClass: function (t) {
+          if (g) for (var e = 0; e < g.length; e++) u(g[e], this.options.chosenClass, t);
+        },
+        toggleVisible: function (t) {
+          g && (t ? (t = g.indexOf(H.dragged), this._viewElements(g, t, H.dragged)) : this._hideElements(g));
+        },
+        onChoose: function () {
+          !this.options.multiple || !this.selectedElements.length || this.selectedElements.indexOf(H.dragged) < 0 || (this.selectedElements.sort(s), g = this.selectedElements, this.toggleClass(!0));
+        },
+        onDrag: function (t) {
+          g && (t.animator.collect(H.dragged.parentNode), this._hideElements(g), t.animator.animate(), this.toggleClass(!1));
+        },
+        onDrop: function (t, e, n) {
+          var o, i, s;
+          g && (i = H.clone, s = g.indexOf(o = H.dragged), e[y].animator.collect(i.parentNode), t !== e && "clone" === n ? (p(i, "display", "none"), v = g.map(function (t) {
+            return t.cloneNode(!0);
+          }), this._viewElements(v, s, i), this._viewElements(g, s, o)) : this._viewElements(g, s, i), e[y].animator.animate(), t !== e) && (e[y].multiplayer.toggleSelected(v || g, !0), "clone" !== n) && t[y].multiplayer.toggleSelected(g, !1);
+        },
+        onSelect: function (t, e, n) {
+          var o = this.selectedElements.indexOf(e),
+              t = (u(e, this.options.selectedClass, o < 0), {
+            from: n.el,
+            event: t,
+            node: e,
+            index: i(e)
+          });
+          o < 0 ? (this.selectedElements.push(e), m({
+            sortable: n,
+            name: "onSelect",
+            params: t
+          })) : (this.selectedElements.splice(o, 1), m({
+            sortable: n,
+            name: "onDeselect",
+            params: t
+          })), this.selectedElements.sort(s);
+        },
+        _viewElements: function (t, e, n) {
+          for (var o, i = 0; i < t.length; i++) p(t[i], "display", ""), i < e ? n.parentNode.insertBefore(t[i], n) : (o = 0 < i ? t[i - 1] : n, n.parentNode.insertBefore(t[i], o.nextSibling));
+        },
+        _hideElements: function (t) {
+          for (var e = 0; e < t.length; e++) t[e] != H.dragged && p(t[e], "display", "none");
         }
       };
 
-      function r() {
-        var t,
-            e = {
-          from: l({}, A),
-          to: l({}, j)
-        };
-        return C && (t = {
-          from: l({}, w),
-          to: l({}, _)
-        }, e.from = l(l({}, t.from), e.from), e.to = l(l({}, t.to), e.to)), e;
-      }
-
-      var N,
+      var w,
+          b,
+          _,
+          $,
+          S,
           E,
           x,
           D,
-          O,
-          T,
           C,
-          Q,
-          $,
-          tt = {
-        sortable: null,
-        group: null,
-        node: null,
-        rect: {},
-        offset: {}
-      },
-          M = [],
-          P = new K(),
-          et = new G(),
-          A = l({}, tt),
-          j = l({}, tt),
-          X = {
-        x: 0,
-        y: 0
-      },
-          nt = function (t) {
+          M,
+          N,
+          T,
+          tt,
+          I,
+          P,
+          O,
+          X,
+          Y,
+          et,
+          A,
+          nt = [],
+          ot = function (t) {
         var e = {},
             n = t.group;
-        n && "object" == R(n) || (n = {
+        n && "object" == L(n) || (n = {
           name: n,
           pull: !0,
-          put: !0
-        }), e.name = n.name, e.pull = n.pull, e.put = n.put, t.group = e;
+          put: !0,
+          revertDrag: !0
+        }), e.name = n.name, e.pull = n.pull, e.put = n.put, e.revertDrag = n.revertDrag, t.group = e;
       };
 
-      function B(t, e) {
-        if (!t || !t.nodeType || 1 !== t.nodeType) throw "Sortable: `el` must be an HTMLElement, not ".concat({}.toString.call(t));
-        (t[b] = this).el = t, this.ownerDocument = t.ownerDocument, this.options = e = Object.assign({}, e);
+      function H(t, e) {
+        if (!t || !t.nodeType || 1 !== t.nodeType) throw "Sortable-dnd: `el` must be an HTMLElement, not ".concat({}.toString.call(t));
+        (t[y] = this).el = t, this.options = e = l({}, e);
         var n,
             o,
             i = {
+          store: null,
           disabled: !1,
           group: "",
           animation: 150,
-          multiple: !1,
           draggable: null,
           handle: null,
-          onDrag: null,
-          onMove: null,
-          onDrop: null,
-          onChange: null,
+          multiple: !1,
+          selectHandle: null,
+          customGhost: null,
+          direction: function () {
+            return U(t, e.draggable);
+          },
           autoScroll: !0,
           scrollThreshold: 55,
+          scrollSpeed: {
+            x: 10,
+            y: 10
+          },
           delay: 0,
           delayOnTouchOnly: !1,
           touchStartThreshold: (Number.parseInt ? Number : window).parseInt(window.devicePixelRatio, 10) || 1,
@@ -1309,163 +576,122 @@
           selectedClass: "",
           swapOnDrop: !0,
           fallbackOnBody: !1,
-          stopPropagation: !1,
           supportTouch: "ontouchstart" in window,
-          emptyInsertThreshold: 5
+          emptyInsertThreshold: -5
         };
 
         for (n in i) n in this.options || (this.options[n] = i[n]);
 
-        for (o in nt(e), this) "_" === o.charAt(0) && "function" == typeof this[o] && (this[o] = this[o].bind(this));
+        for (o in ot(e), this) "_" === o.charAt(0) && "function" == typeof this[o] && (this[o] = this[o].bind(this));
 
-        p(t, this.options.supportTouch ? "touchstart" : "mousedown", this._onDrag), M.push(t), this.multiplayer = new Z(this.options), this.animator = new J(this.options);
+        var s = this.options.supportTouch;
+        r(t, s ? "touchstart" : "mousedown", this._onDrag), nt.push(t), this.autoScroller = new Z(this.options), this.multiplayer = new Q(this.options), this.animator = new J(this.options);
       }
 
-      return (B.prototype = {
-        constructor: B,
-        destroy: function () {
-          this._dispatchEvent("destroy", this), this.el[b] = null;
-
-          for (var t = 0; t < c.start.length; t++) n(this.el, c.start[t], this._onDrag);
-
-          this._clearState(), M.splice(M.indexOf(this.el), 1), this.el = null;
-        },
-        option: function (t, e) {
-          var n = this.options;
-          if (void 0 === e) return n[t];
-          n[t] = e, "group" === t && nt(n);
-        },
+      return H.prototype = {
+        constructor: H,
         _onDrag: function (t) {
-          if (!this.options.disabled && this.options.group.pull && (!/mousedown|pointerdown/.test(t.type) || 0 === t.button)) {
-            var e = I(t),
-                n = e.touch,
-                o = e.event,
-                e = e.target;
-
-            if (!(e === this.el || a && e && "SELECT" === e.tagName.toUpperCase())) {
-              var i = this.options,
-                  r = i.draggable,
-                  i = i.handle;
-
-              if (("function" != typeof i || i(t)) && ("string" != typeof i || q(e, i))) {
-                if ("function" == typeof r) {
-                  i = r(t);
-                  if (!i) return;
-                  !function (e) {
-                    if (e) {
-                      var t = document.createElement("div");
-
-                      try {
-                        return t.appendChild(e.cloneNode(!0)), 1 == e.nodeType;
-                      } catch (t) {
-                        return e == window || e == document;
-                      }
-                    }
-                  }(i) || (E = i);
-                } else E = s(e, r, this.el, !1);
-
-                E && !E.animated && (D = E.cloneNode(!0), this._prepareStart(n, o));
-              }
-            }
-          }
-        },
-        _prepareStart: function (t, e) {
-          var n = this,
-              o = E.parentNode,
-              i = ((O = e).sortable = this, O.group = E.parentNode, (C = this.options.multiple && this.multiplayer.allowDrag(E)) && this.multiplayer.onDrag(this.el, this), g(E)),
-              r = f(E, this.el),
-              r = (A = {
-            sortable: this,
-            group: o,
-            node: E,
-            rect: i,
-            offset: r
-          }, j.group = o, j.sortable = this, P.distance = {
-            x: e.clientX - i.left,
-            y: e.clientY - i.top
-          }, p(document, "touchend", this._onDrop), p(document, "touchcancel", this._onDrop), p(document, "mouseup", this._onDrop), this.options),
-              o = r.delay,
-              e = r.delayOnTouchOnly;
-          if (!o || e && !t || L || d) this._onStart(t);else {
-            for (var a = 0; a < c.end.length; a++) p(this.ownerDocument, c.end[a], this._cancelStart);
-
-            for (var s = 0; s < c.move.length; s++) p(this.ownerDocument, c.move[s], this._delayMoveHandler);
-
-            $ = setTimeout(function () {
-              return n._onStart(t);
-            }, o);
-          }
+          var e,
+              n,
+              o,
+              i,
+              s = this;
+          b || this.options.disabled || !this.options.group.pull || /mousedown|pointerdown/.test(t.type) && 0 !== t.button || (o = ((e = t.touches && t.touches[0]) || t).target, F && o && "SELECT" === o.tagName.toUpperCase()) || !(n = c(o, this.options.draggable, this.el)) || n.animated || (D = {
+            original: t,
+            clientX: (e || t).clientX,
+            clientY: (e || t).clientY
+          }, b = n, r(N = e ? b : document, "mouseup", this._onDrop), r(N, "touchend", this._onDrop), r(N, "touchcancel", this._onDrop), i = (n = this.options).handle, "function" == typeof (n = n.selectHandle) && n(t)) || "string" == typeof n && d(o, n) || "function" == typeof i && !i(t) || "string" == typeof i && !d(o, i) || (o = (n = this.options).delay, i = n.delayOnTouchOnly, !o || i && !e || B || h ? this._onStart(e, t) : (r(this.el.ownerDocument, "touchmove", this._delayMoveHandler), r(this.el.ownerDocument, "mousemove", this._delayMoveHandler), r(this.el.ownerDocument, "mouseup", this._cancelStart), r(this.el.ownerDocument, "touchend", this._cancelStart), r(this.el.ownerDocument, "touchcancel", this._cancelStart), tt = setTimeout(function () {
+            return s._onStart(e, t);
+          }, o)));
         },
         _delayMoveHandler: function (t) {
           t = t.touches ? t.touches[0] : t;
-          Math.max(Math.abs(t.clientX - O.clientX), Math.abs(t.clientY - O.clientY)) >= Math.floor(this.options.touchStartThreshold / (window.devicePixelRatio || 1)) && this._cancelStart();
+          Math.max(Math.abs(t.clientX - D.clientX), Math.abs(t.clientY - D.clientY)) >= Math.floor(this.options.touchStartThreshold / (window.devicePixelRatio || 1)) && this._cancelStart();
         },
         _cancelStart: function () {
-          clearTimeout($);
-
-          for (var t = 0; t < c.end.length; t++) n(this.ownerDocument, c.end[t], this._cancelStart);
-
-          for (var e = 0; e < c.move.length; e++) n(this.ownerDocument, c.move[e], this._delayMoveHandler);
+          clearTimeout(tt), o(this.el.ownerDocument, "touchmove", this._delayMoveHandler), o(this.el.ownerDocument, "mousemove", this._delayMoveHandler), o(this.el.ownerDocument, "mouseup", this._cancelStart), o(this.el.ownerDocument, "touchend", this._cancelStart), o(this.el.ownerDocument, "touchcancel", this._cancelStart);
         },
-        _onStart: function (t) {
-          N = this.el, p(document, t ? "touchmove" : "mousemove", this._nearestSortable);
+        _onStart: function (t, e) {
+          var n = i(b);
+          I = this.el, P = this.el, et = Y = X = n, A = b, w = this.el, S = b.cloneNode(!0), x = b.parentNode, O = this.options.group.pull, H.clone = S, H.active = this, u(H.dragged = b, this.options.chosenClass, !0), this.multiplayer.onChoose(), m({
+            sortable: this,
+            name: "onChoose",
+            params: this._getParams(e)
+          }), r(N, t ? "touchmove" : "mousemove", this._nearestSortable);
 
           try {
             document.selection ? setTimeout(function () {
-              document.selection.empty();
+              return document.selection.empty();
             }, 0) : window.getSelection().removeAllRanges();
           } catch (t) {}
         },
-        _onTrulyStarted: function () {
-          var t;
-          T || (this._dispatchEvent("onDrag", l(l({}, r()), {}, {
-            event: O
-          })), C && this.multiplayer.onTrulyStarted(E, this), t = C ? this.multiplayer.getHelper() : E, P.init(A.rect, t, this.el, this.options), B.helper = P.node, y(E, !1), E.parentNode.insertBefore(D, E), z(D, this.options.chosenClass, !0), a && v(document.body, "user-select", "none"));
+        _onStarted: function () {
+          u(S, this.options.chosenClass, !0), this._appendGhost(), this.multiplayer.onDrag(this), m({
+            sortable: this,
+            name: "onDrag",
+            params: this._getParams(D.original)
+          }), p(b, "display", "none"), u(b, this.options.chosenClass, !1), b.parentNode.insertBefore(S, b), F && p(document.body, "user-select", "none");
         },
-        _nearestSortable: function (t) {
-          var e, n, o, i, r, a, s;
-          this._preventEvent(t), !O || !E || (e = (n = t).clientX, n = n.clientY, o = e - X.x, i = n - X.y, X.x = e, X.y = n, void 0 !== e && void 0 !== n && Math.abs(o) <= 0 && Math.abs(i) <= 0) || (n = (e = I(t)).event, o = e.target, r = n.clientX, a = n.clientY, M.some(function (t) {
-            var e,
-                n,
-                o = t[b].options.emptyInsertThreshold;
-            if (o) return n = g(t, {
-              parent: !0
-            }), e = r >= n.left - o && r <= n.right + o, n = a >= n.top - o && a <= n.bottom + o, e && n ? s = t : void 0;
-          }), i = s, this._onTrulyStarted(), T = n, P.move(n.clientX - O.clientX, n.clientY - O.clientY), this._autoScroll(o), i && i[b]._onMove(n, o));
+        _getGhostElement: function () {
+          var t = this.options.customGhost;
+          return "function" == typeof t ? t((t = this.multiplayer.selectedElements).length ? t : [b]) : this.multiplayer.getGhostElement() || b;
         },
-        _allowPut: function () {
-          var t, e;
-          return O.sortable.el === this.el || !!this.options.group.put && (t = this.options.group.name, (e = O.sortable.options.group).name) && t && e.name === t;
-        },
-        _onMove: function (t, e) {
-          if (this._allowPut()) {
-            if (this._dispatchEvent("onMove", l(l({}, r()), {}, {
-              event: t
-            })), N = this.el, x = s(e, this.options.draggable, N, !1)) {
-              if (x === Q) return;
-              if ((Q = x) === D) return;
-              if (x.animated || W(x, D)) return;
-            }
+        _appendGhost: function () {
+          if (!E) {
+            var t,
+                e = this.options,
+                n = e.fallbackOnBody,
+                o = e.ghostClass,
+                e = e.ghostStyle,
+                n = n ? document.body : this.el,
+                i = this._getGhostElement(),
+                i = (u(E = i.cloneNode(!0), o, !0), f(b)),
+                s = l({
+              position: "fixed",
+              top: i.top,
+              left: i.left,
+              width: i.width,
+              height: i.height,
+              minWidth: i.width,
+              minHeight: i.height,
+              opacity: "0.8",
+              overflow: "hidden",
+              "z-index": "100000",
+              "box-sizing": "border-box",
+              "pointer-events": "none"
+            }, e);
 
-            N !== A.sortable.el ? e !== N && function (t, e, n) {
-              for (var o = t.lastElementChild; o && (o === e || "none" === v(o, "display") || n && !q(o, n));) o = o.previousElementSibling;
+            for (t in s) p(E, t, s[t]);
 
-              return o;
-            }(N, P.node) ? x && this._onInsert(t, !1) : this._onInsert(t, !0) : x && this._onChange(t);
+            o = "none", E.style["".concat(z.css, "transition")] = o ? "none" === o ? "none" : "".concat(o) : "", a(E, "translate3d(0px, 0px, 0px)"), H.ghost = E, n.appendChild(E);
+            e = (D.clientX - i.left) / parseInt(E.style.width) * 100, o = (D.clientY - i.top) / parseInt(E.style.height) * 100;
+            p(E, "transform-origin", "".concat(e, "% ").concat(o, "%")), p(E, "transform", "translateZ(0)"), p(E, "will-change", "transform");
           }
         },
-        _autoScroll: function (t) {
-          var t = function (t, e) {
+        _nearestSortable: function (t) {
+          K(t);
+          var e,
+              n,
+              i,
+              s,
+              l,
+              o = t.touches && t.touches[0],
+              r = o || t;
+          !D || !b || (n = C || D, void 0 !== (e = r).clientX && void 0 !== e.clientY && Math.abs(e.clientX - n.clientX) <= 0 && Math.abs(e.clientY - n.clientY) <= 0) || (C || this._onStarted(), C = {
+            original: t,
+            clientX: r.clientX,
+            clientY: r.clientY
+          }, e = o ? document.elementFromPoint(r.clientX, r.clientY) : r.target, n = r.clientX - D.clientX, o = r.clientY - D.clientY, a(E, "translate3d(".concat(n, "px, ").concat(o, "px, 0)")), this.options.autoScroll && (n = function (t, e) {
             if (t && t.getBoundingClientRect) {
               var n = t,
                   o = !1;
 
               do {
                 if (n.clientWidth < n.scrollWidth || n.clientHeight < n.scrollHeight) {
-                  var i = v(n);
+                  var i = p(n);
 
                   if (n.clientWidth < n.scrollWidth && ("auto" == i.overflowX || "scroll" == i.overflowX) || n.clientHeight < n.scrollHeight && ("auto" == i.overflowY || "scroll" == i.overflowY)) {
-                    if (!n.getBoundingClientRect || n === document.body) return m();
+                    if (!n.getBoundingClientRect || n === document.body) return G();
                     if (o || e) return n;
                     o = !0;
                   }
@@ -1473,482 +699,152 @@
               } while (n = n.parentNode);
             }
 
-            return m();
-          }(t, !0),
-              e = this.options,
-              n = e.autoScroll,
-              e = e.scrollThreshold;
-
-          n && et.update(t, e, O, T);
+            return G();
+          }(e, !0), this.autoScroller.update(n, D, C)), i = r.clientX, s = r.clientY, nt.some(function (t) {
+            var e,
+                n,
+                o = t[y].options.emptyInsertThreshold;
+            if (null != o) return n = f(t), e = i >= n.left - o && i <= n.right + o, n = s >= n.top - o && s <= n.bottom + o, e && n ? l = t : void 0;
+          }), l && l[y]._onMove(t, e));
         },
-        _onInsert: function (t, e) {
-          var n = e ? D : x,
-              o = e ? N : x.parentNode;
-          A.sortable.animator.collect(D, null, D.parentNode, D), this.animator.collect(null, n, o, D), C && this.multiplayer.onChange(D, this), j = {
+        _allowPut: function () {
+          var t, e, n;
+          return w === this.el || !!this.options.group.put && (t = (e = this.options.group).name, e = e.put, n = w[y].options.group, e.join && -1 < e.indexOf(n.name) || n.name && t && n.name === t);
+        },
+        _allowSwap: function () {
+          var t = s(S, _),
+              e = ($ = t < 0 ? _.nextSibling : _, f(_)),
+              n = "function" == typeof this.options.direction ? this.options.direction.call(C.original, b, this) : this.options.direction,
+              o = "vertical" === n,
+              i = o ? C.clientY : C.clientX,
+              n = _["vertical" === n ? "offsetHeight" : "offsetWidth"],
+              i = i >= (o ? e.top : e.left) && i < (o ? e.bottom : e.right) - n / 2 ? -1 : 1;
+          return M !== _ ? (T = i, !0) : T !== i && ((T = i) < 0 ? 0 < t : t < 0);
+        },
+        _onMove: function (t, e) {
+          var n, o, i;
+          this._allowPut() && (m({
             sortable: this,
-            group: o,
-            node: n,
-            rect: g(n),
-            offset: f(n, N)
-          }, A.sortable._dispatchEvent("onRemove", l(l({}, r()), {}, {
-            event: t
-          })), e ? o.appendChild(D) : o.insertBefore(D, x), this._dispatchEvent("onAdd", l(l({}, r()), {}, {
-            event: t
-          })), A.sortable.animator.animate(), this.animator.animate(), A.group = o, A.sortable = this;
+            name: "onMove",
+            params: this._getParams(t)
+          }), this.el === P || e !== this.el && function (t, e) {
+            for (var n = t.lastElementChild; n && (n === H.ghost || "none" === p(n, "display") || e && !d(n, e));) n = n.previousElementSibling;
+
+            return n;
+          }(this.el) ? (_ = c(e, this.options.draggable, this.el)) && !_.animated && this._allowSwap() && (M = (_ === S || V(_, S) || (this.el !== P ? this._onInsert(t) : (n = t, o = x, i = i || f(o), n.clientX <= i.right && n.clientX >= i.left && n.clientY >= i.top && n.clientY <= i.bottom && e === x || this._onChange(t))), _)) : (_ = M = null, this._onInsert(t)));
+        },
+        _onInsert: function (t) {
+          var e = _ || S,
+              n = "clone" === O && this.el !== w && P === w,
+              o = "clone" === O && this.el === w && P !== w;
+          I = this.el, X = i(S), A = e, x = _ ? _.parentNode : this.el, P[y].animator.collect(S.parentNode), this.animator.collect(x), n && (p(b, "display", ""), w[y].multiplayer.toggleVisible(!0), w[y].options.group.revertDrag || P.insertBefore(b, S)), o && (X = i(b), p(b, "display", "none"), this.multiplayer.toggleVisible(!1)), _ ? x.insertBefore(S, T < 0 ? _ : _.nextSibling) : x.appendChild(S), Y = i(S), n && w[y].options.group.revertDrag && m({
+            sortable: w[y],
+            name: "onChange",
+            params: this._getParams(t, {
+              to: w,
+              target: b,
+              newIndex: et,
+              revertDrag: !0
+            })
+          }), n || m({
+            sortable: P[y],
+            name: "onRemove",
+            params: this._getParams(t)
+          }), o && _ !== b && m({
+            sortable: this,
+            name: "onChange",
+            params: this._getParams(t, {
+              from: w,
+              backToOrigin: !0
+            })
+          }), o || m({
+            sortable: this,
+            name: "onAdd",
+            params: this._getParams(t)
+          }), P[y].animator.animate(), this.animator.animate(), P = this.el;
         },
         _onChange: function (t) {
-          var e = x.parentNode,
-              t = (this.animator.collect(D, x, e), C && this.multiplayer.onChange(D, this), j = {
+          _ !== b && (x = _.parentNode, X = i(S), A = _, this.animator.collect(x), x.insertBefore(S, $), Y = i(S), m({
             sortable: this,
-            group: e,
-            node: x,
-            rect: g(x),
-            offset: f(x, N)
-          }, this._dispatchEvent("onChange", l(l({}, r()), {}, {
-            event: t
-          })), f(D, N)),
-              n = null,
-              n = t.top === j.offset.top ? t.left < j.offset.left ? x.nextSibling : x : t.top < j.offset.top ? x.nextSibling : x;
-          e.insertBefore(D, n), this.animator.animate(), A.group = e, A.sortable = this;
+            name: "onChange",
+            params: this._getParams(t)
+          }), this.animator.animate(), P = this.el);
         },
         _onDrop: function (t) {
-          this._unbindMoveEvents(), this._unbindDropEvents(), this._preventEvent(t), this._cancelStart(), et.clear(), E && O && T ? this._onEnd(t) : this.options.multiple && this.multiplayer.select(t, E, N, l({}, A)), this._clearState();
+          var e, n;
+          K(t), this._cancelStart(), o(N, "touchmove", this._nearestSortable), o(N, "mousemove", this._nearestSortable), o(N, "mouseup", this._onDrop), o(N, "touchend", this._onDrop), o(N, "touchcancel", this._onDrop), u(b, this.options.chosenClass, !1), w && (P = w, X = et, A === S && (A = b), this.multiplayer.toggleClass(!1), m({
+            sortable: this,
+            name: "onUnchoose",
+            params: this._getParams(t)
+          }), C) && this._onEnd(t), w || C || !this.options.multiple || (n = (e = t.changedTouches ? t.changedTouches[0] : t).clientX - D.clientX, e = e.clientY - D.clientY, 0 <= (n = Math.sqrt(n * n + e * e)) && n <= 1 && this.multiplayer.onSelect(t, b, this)), E && E.parentNode && E.parentNode.removeChild(E), this.multiplayer.destroy(), this.autoScroller.destroy(), this._nulling();
         },
         _onEnd: function (t) {
-          var e, n;
-          this.options.swapOnDrop && D.parentNode.insertBefore(E, D), A.group = O.group, A.sortable = O.sortable, j.rect = g(D), j.offset = f(D, N), C ? this.multiplayer.onDrop(t, E, N, O, r) : (j.node === D && (j.node = E), n = (e = U(A, j)) || V(A.offset, j.offset), n = l(l({}, r()), {}, {
-            changed: n,
-            event: t
-          }), e && A.sortable._dispatchEvent("onDrop", n), j.sortable._dispatchEvent("onDrop", n)), y(E, !0), D.parentNode.removeChild(D), a && v(document.body, "user-select", "");
+          var t = this._getParams(t),
+              e = (this.multiplayer.onDrop(P, I, O), this.options.swapOnDrop);
+
+          ("clone" !== O || P === I) && ("function" == typeof e ? e(t) : e) && x.insertBefore(b, S), "clone" !== O || P === I || this.multiplayer.active() ? S && S.parentNode && S.parentNode.removeChild(S) : u(S, this.options.chosenClass, !1), p(b, "display", ""), F && p(document.body, "user-select", ""), P !== I && m({
+            sortable: P[y],
+            name: "onDrop",
+            params: t
+          }), m({
+            sortable: I[y],
+            name: "onDrop",
+            params: t
+          });
         },
-        _preventEvent: function (t) {
-          void 0 !== t.preventDefault && t.cancelable && t.preventDefault(), this.options.stopPropagation && (t && t.stopPropagation ? t.stopPropagation() : window.event.cancelBubble = !0);
+        _getParams: function (t) {
+          var e = 1 < arguments.length && void 0 !== arguments[1] ? arguments[1] : {},
+              n = {};
+          return n.event = t, n.to = I, n.from = P, n.node = b, n.clone = S, n.target = A, n.oldIndex = X, n.newIndex = Y, n.pullMode = O, this.multiplayer.setParams(n), l(n, e), n.relative = n.target === b ? 0 : s(n.target, S), n;
         },
-        _dispatchEvent: function (t, e) {
-          t = this.options[t];
-          "function" == typeof t && t(e);
+        _nulling: function () {
+          I = P = w = b = _ = $ = S = E = x = O = X = Y = et = D = C = A = M = N = T = tt = H.clone = H.ghost = H.active = H.dragged = null;
         },
-        _clearState: function () {
-          E = x = D = O = T = C = Q = $ = B.helper = null, X = {
-            x: 0,
-            y: 0
-          }, A = j = l({}, tt), P.destroy();
+        destroy: function () {
+          this._nulling(), this._cancelStart(), o(this.el, "touchstart", this._onDrag), o(this.el, "mousedown", this._onDrag), nt.splice(nt.indexOf(this.el), 1), this.el[y] = this.animator = this.multiplayer = this.autoScroller = null;
         },
-        _unbindMoveEvents: function () {
-          for (var t = 0; t < c.move.length; t++) n(document, c.move[t], this._nearestSortable);
+        option: function (t, e) {
+          if (void 0 === e) return this.options[t];
+          this.options[t] = e, this.animator.options[t] = e, this.multiplayer.options[t] = e, this.autoScroller.options[t] = e, "group" === t && ot(this.options);
         },
-        _unbindDropEvents: function () {
-          for (var t = 0; t < c.end.length; t++) n(document, c.end[t], this._onDrop);
+        select: function (t) {
+          this.multiplayer.select(t);
+        },
+        deselect: function (t) {
+          this.multiplayer.deselect(t);
+        },
+        getSelectedElements: function () {
+          return this.multiplayer.selectedElements;
         }
-      }).utils = {
-        on: p,
-        off: n,
-        css: v,
-        closest: s,
-        getRect: g,
-        getOffset: f
-      }, B.get = function (t) {
-        return t[b];
-      }, B.create = function (t, e) {
-        return new B(t, e);
-      }, B;
+      }, H.utils = {
+        on: r,
+        off: o,
+        css: p,
+        index: i,
+        closest: c,
+        getRect: f,
+        toggleClass: u,
+        detectDirection: U
+      }, H.get = function (t) {
+        return t[y];
+      }, H.create = function (t, e) {
+        return new H(t, e);
+      }, H;
     });
-  });
+  })(sortableDnd_min, sortableDnd_min.exports);
 
-  var storeKey = 'virtualSortableState';
-  var defaultStore = {
-    from: {},
-    to: {}
-  };
+  var sortableDnd_minExports = sortableDnd_min.exports;
+  var Dnd = /*@__PURE__*/getDefaultExportFromCjs(sortableDnd_minExports);
 
-  var Storage = /*#__PURE__*/function () {
-    function Storage() {
-      _classCallCheck(this, Storage);
-    }
-
-    _createClass(Storage, [{
-      key: "clear",
-      value: function clear() {
-        window[storeKey] = null;
-      }
-      /**
-       * Obtaining Synchronization Data
-       * @returns states: { from, to }
-       */
-
-    }, {
-      key: "getStore",
-      value: function getStore() {
-        try {
-          var result = JSON.parse(window[storeKey]);
-          return result || defaultStore;
-        } catch (e) {
-          return defaultStore;
-        }
-      }
-      /**
-       * @returns states: { from, to }
-       */
-
-    }, {
-      key: "getValue",
-      value: function getValue() {
-        return new Promise(function (resolve, reject) {
-          try {
-            var result = JSON.parse(window[storeKey]);
-            resolve(result || defaultStore);
-          } catch (e) {
-            reject(defaultStore);
-          }
-        });
-      }
-    }, {
-      key: "setValue",
-      value: function setValue(value) {
-        return new Promise(function (resolve, reject) {
-          try {
-            var store = JSON.parse(window[storeKey] || '{}');
-            var result = Object.assign(Object.assign({}, store), value);
-            window[storeKey] = JSON.stringify(result);
-            resolve(result);
-          } catch (e) {
-            reject(defaultStore);
-          }
-        });
-      }
-    }]);
-
-    return Storage;
-  }();
-
-  var Store = new Storage();
-
-  var Attributes = ['group', 'handle', 'disabled', 'draggable', 'ghostClass', 'ghostStyle', 'chosenClass', 'animation', 'autoScroll', 'scrollThreshold', 'fallbackOnBody', 'pressDelay', 'pressDelayOnTouchOnly'];
-  var Emits = {
-    drag: 'v-drag',
-    drop: 'v-drop',
-    add: 'v-add',
-    remove: 'v-remove'
-  };
-  var dragEl = null;
-
-  var Sortable = /*#__PURE__*/function () {
-    function Sortable(ctx, onStart, onEnd) {
-      _classCallCheck(this, Sortable);
-
-      this.ctx = ctx;
-      this.onStart = onStart;
-      this.onEnd = onEnd;
-      this.initialList = _toConsumableArray(ctx.list);
-      this.dynamicList = _toConsumableArray(ctx.list);
-      this.sortable = null;
-      this.rangeChanged = false;
-
-      this._init();
-    }
-
-    _createClass(Sortable, [{
-      key: "destroy",
-      value: function destroy() {
-        this.sortable && this.sortable.destroy();
-        this.sortable = null;
-      }
-    }, {
-      key: "setValue",
-      value: function setValue(key, value) {
-        if (key === 'list') {
-          this.initialList = _toConsumableArray(value); // When the list data changes when dragging, need to execute onDrag function
-
-          if (dragEl) this._onDrag(dragEl, false);
-        } else {
-          this.ctx[key] = value;
-          if (this.sortable) this.sortable.option(key, value);
-        }
-      }
-    }, {
-      key: "_init",
-      value: function _init() {
-        var _this = this;
-
-        var props = Attributes.reduce(function (res, key) {
-          var name = key;
-          if (key === 'pressDelay') name = 'delay';
-          if (key === 'pressDelayOnTouchOnly') name = 'delayOnTouchOnly';
-          res[name] = _this.ctx[key];
-          return res;
-        }, {});
-        this.sortable = new sortableDnd_min(this.ctx.container, Object.assign(Object.assign({}, props), {
-          swapOnDrop: false,
-          list: this.dynamicList,
-          onDrag: function onDrag(_ref) {
-            var from = _ref.from;
-            return _this._onDrag(from.node);
-          },
-          onAdd: function onAdd(_ref2) {
-            var from = _ref2.from,
-                to = _ref2.to;
-            return _this._onAdd(from, to);
-          },
-          onRemove: function onRemove(_ref3) {
-            var from = _ref3.from,
-                to = _ref3.to;
-            return _this._onRemove(from, to);
-          },
-          onChange: function onChange(_ref4) {
-            var from = _ref4.from,
-                to = _ref4.to;
-            return _this._onChange(from, to);
-          },
-          onDrop: function onDrop(_ref5) {
-            var from = _ref5.from,
-                to = _ref5.to,
-                changed = _ref5.changed;
-            return _this._onDrop(from, to, changed);
-          }
-        }));
-      }
-    }, {
-      key: "_onDrag",
-      value: function _onDrag(node) {
-        var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-        return __awaiter(this, void 0, void 0, /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-          var fromList, fromState, store, emit;
-          return _regeneratorRuntime().wrap(function _callee$(_context) {
-            while (1) {
-              switch (_context.prev = _context.next) {
-                case 0:
-                  dragEl = node;
-                  this.dynamicList = _toConsumableArray(this.initialList);
-                  fromList = _toConsumableArray(this.initialList);
-                  fromState = this._getFromTo({
-                    node: node
-                  }, fromList);
-                  _context.next = 6;
-                  return Store.setValue({
-                    from: Object.assign({
-                      list: fromList
-                    }, fromState)
-                  });
-
-                case 6:
-                  if (!callback) {
-                    _context.next = 16;
-                    break;
-                  }
-
-                  this.rangeChanged = false;
-                  _context.next = 10;
-                  return Store.getValue();
-
-                case 10:
-                  store = _context.sent;
-                  emit = this.ctx[Emits.drag];
-                  emit && emit(Object.assign({
-                    list: fromList
-                  }, store));
-                  this.onStart && this.onStart(store);
-                  _context.next = 17;
-                  break;
-
-                case 16:
-                  this.rangeChanged = true;
-
-                case 17:
-                case "end":
-                  return _context.stop();
-              }
-            }
-          }, _callee, this);
-        }));
-      }
-    }, {
-      key: "_onAdd",
-      value: function _onAdd(from, to) {
-        var _a, _b;
-
-        return __awaiter(this, void 0, void 0, /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-          var store, list, index, params, emit;
-          return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-            while (1) {
-              switch (_context2.prev = _context2.next) {
-                case 0:
-                  if (!this.dynamicList.length) {
-                    this.dynamicList = _toConsumableArray(this.initialList);
-                  }
-
-                  _context2.next = 3;
-                  return Store.getValue();
-
-                case 3:
-                  store = _context2.sent;
-                  list = _toConsumableArray(this.dynamicList);
-                  index = this._getIndex(list, to.node.dataset.key);
-                  params = Object.assign(Object.assign({}, store.from), {
-                    index: index
-                  });
-
-                  if (from.node === to.node) {
-                    // insert to end of list
-                    params.index = this.dynamicList.length;
-                    this.dynamicList.push((_a = store.from) === null || _a === void 0 ? void 0 : _a.item);
-                  } else {
-                    this.dynamicList.splice(index, 0, (_b = store.from) === null || _b === void 0 ? void 0 : _b.item);
-                  }
-
-                  delete params.list;
-                  emit = this.ctx[Emits.add];
-                  emit && emit(Object.assign({}, params));
-
-                case 11:
-                case "end":
-                  return _context2.stop();
-              }
-            }
-          }, _callee2, this);
-        }));
-      }
-    }, {
-      key: "_onRemove",
-      value: function _onRemove(from, to) {
-        return __awaiter(this, void 0, void 0, /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-          var list, state, emit;
-          return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-            while (1) {
-              switch (_context3.prev = _context3.next) {
-                case 0:
-                  list = _toConsumableArray(this.dynamicList);
-                  state = this._getFromTo(from, list);
-                  this.dynamicList.splice(state.index, 1);
-                  emit = this.ctx[Emits.remove];
-                  emit && emit(Object.assign({}, state));
-
-                case 5:
-                case "end":
-                  return _context3.stop();
-              }
-            }
-          }, _callee3, this);
-        }));
-      }
-    }, {
-      key: "_onChange",
-      value: function _onChange(from, to) {
-        return __awaiter(this, void 0, void 0, /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-          var fromList, toList, fromState, toState;
-          return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-            while (1) {
-              switch (_context4.prev = _context4.next) {
-                case 0:
-                  fromList = _toConsumableArray(this.dynamicList);
-                  toList = _toConsumableArray(this.dynamicList);
-                  fromState = this._getFromTo(from, fromList);
-                  toState = this._getFromTo(to, toList);
-                  this.dynamicList.splice(fromState.index, 1);
-                  this.dynamicList.splice(toState.index, 0, fromState.item);
-
-                case 6:
-                case "end":
-                  return _context4.stop();
-              }
-            }
-          }, _callee4, this);
-        }));
-      }
-    }, {
-      key: "_onDrop",
-      value: function _onDrop(from, to, changed) {
-        return __awaiter(this, void 0, void 0, /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
-          var list, index, item, key, store, params, emit;
-          return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-            while (1) {
-              switch (_context5.prev = _context5.next) {
-                case 0:
-                  list = _toConsumableArray(this.dynamicList);
-                  index = this._getIndex(list, from.node.dataset.key);
-                  item = this.initialList[index];
-                  key = getDataKey(item, this.ctx.dataKey);
-                  _context5.next = 6;
-                  return Store.setValue({
-                    to: {
-                      list: _toConsumableArray(this.initialList),
-                      index: index,
-                      item: item,
-                      key: key
-                    }
-                  });
-
-                case 6:
-                  _context5.next = 8;
-                  return Store.getValue();
-
-                case 8:
-                  store = _context5.sent;
-                  params = Object.assign(Object.assign({
-                    list: list
-                  }, store), {
-                    changed: changed
-                  });
-                  emit = this.ctx[Emits.drop];
-                  emit && emit(Object.assign({}, params));
-                  this.onEnd && this.onEnd(store, params);
-                  this.initialList = _toConsumableArray(list);
-
-                  this._clear();
-
-                case 15:
-                case "end":
-                  return _context5.stop();
-              }
-            }
-          }, _callee5, this);
-        }));
-      }
-    }, {
-      key: "_getFromTo",
-      value: function _getFromTo(fromTo, list) {
-        var key = fromTo.node.dataset.key;
-
-        var index = this._getIndex(list, key);
-
-        var item = list[index];
-        return {
-          key: key,
-          item: item,
-          index: index
-        };
-      }
-    }, {
-      key: "_getIndex",
-      value: function _getIndex(list, key) {
-        for (var i = 0; i < list.length; i++) {
-          if (getDataKey(list[i], this.ctx.dataKey) == key) {
-            return i;
-          }
-        }
-
-        return -1;
-      }
-    }, {
-      key: "_clear",
-      value: function _clear() {
-        dragEl = null;
-        Store.clear();
-        this.rangeChanged = false;
-      }
-    }]);
-
-    return Sortable;
-  }();
-
-  var Observer = /*#__PURE__*/React.memo(function (props) {
+  var Observer = /*#__PURE__*/React__default["default"].memo(function (props) {
     var dataKey = props.dataKey,
         children = props.children,
         onSizeChange = props.onSizeChange,
         sizeKey = props.sizeKey;
-    var elementRef = React.useRef(null);
+    var elementRef = React__default["default"].useRef(null);
     var isRenderProps = typeof children === 'function';
     var mergedChildren = isRenderProps ? children(elementRef) : children;
-    React.useLayoutEffect(function () {
+    React__default["default"].useLayoutEffect(function () {
       var observer;
 
       if ((typeof ResizeObserver === "undefined" ? "undefined" : _typeof(ResizeObserver)) !== undefined) {
@@ -1966,78 +862,708 @@
         }
       };
     }, [elementRef]);
-    return /*#__PURE__*/React.cloneElement(mergedChildren, {
+    return /*#__PURE__*/React__default["default"].cloneElement(mergedChildren, {
       ref: elementRef
     });
   });
-  var Item = /*#__PURE__*/React.memo(function (props) {
+  var Item = /*#__PURE__*/React__default["default"].memo(function (props) {
     var _props$Tag = props.Tag,
         Tag = _props$Tag === void 0 ? 'div' : _props$Tag,
         children = props.children;
-    return /*#__PURE__*/React.createElement(Observer, {
+    return /*#__PURE__*/React__default["default"].createElement(Observer, {
       dataKey: props.dataKey,
       sizeKey: props.sizeKey,
       onSizeChange: props.onSizeChange
-    }, /*#__PURE__*/React.createElement(Tag, {
+    }, /*#__PURE__*/React__default["default"].createElement(Tag, {
       className: props.className,
       style: props.style,
       "data-key": props.dataKey,
       "data-index": props.index
     }, typeof children === 'function' ? children(props.record, props.index, props.dataKey) : children));
   });
-  var Slot = /*#__PURE__*/React.memo(function (props) {
+  var Slot = /*#__PURE__*/React__default["default"].memo(function (props) {
     var _props$Tag2 = props.Tag,
         Tag = _props$Tag2 === void 0 ? 'div' : _props$Tag2,
         children = props.children;
-    return children ? /*#__PURE__*/React.createElement(Observer, {
-      dataKey: props.roleId,
+    return children ? /*#__PURE__*/React__default["default"].createElement(Observer, {
+      dataKey: props.dataKey,
       sizeKey: props.sizeKey,
       onSizeChange: props.onSizeChange
-    }, /*#__PURE__*/React.createElement(Tag, {
-      role: props.roleId,
+    }, /*#__PURE__*/React__default["default"].createElement(Tag, {
+      role: props.dataKey,
       style: props.style,
       className: props.className
     }, children)) : null;
   });
 
-  var Emits$1 = {
+  function throttle(fn, wait) {
+    var timer = null;
+
+    var result = function result() {
+      var _this = this;
+
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      if (timer) return;
+
+      if (wait <= 0) {
+        fn.apply(this, args);
+      } else {
+        timer = setTimeout(function () {
+          timer = undefined;
+          fn.apply(_this, args);
+        }, wait);
+      }
+    };
+
+    result['cancel'] = function () {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    return result;
+  }
+  function debounce(fn, wait) {
+    var throttled = throttle(fn, wait);
+
+    var result = function result() {
+      throttled['cancel']();
+      throttled.apply(this, arguments);
+    };
+
+    result['cancel'] = function () {
+      throttled['cancel']();
+    };
+
+    return result;
+  }
+  function getDataKey(item, dataKey) {
+    return (!Array.isArray(dataKey) ? dataKey.replace(/\[/g, '.').replace(/\]/g, '.').split('.') : dataKey).reduce(function (o, k) {
+      return (o || {})[k];
+    }, item);
+  }
+
+  var SortableAttrs = ['delay', 'group', 'handle', 'disabled', 'draggable', 'animation', 'autoScroll', 'ghostClass', 'ghostStyle', 'chosenClass', 'fallbackOnBody', 'scrollThreshold', 'delayOnTouchOnly'];
+
+  function Sortable(el, options) {
+    this.el = el;
+    this.options = options;
+    this.list = [];
+    this.store = {};
+    this.reRendered = false;
+    this.attrs = SortableAttrs;
+    this.init();
+  }
+
+  Sortable.prototype = {
+    constructor: Sortable,
+    destroy: function destroy() {
+      this.sortable && this.sortable.destroy();
+      this.sortable = this.store = this.reRendered = null;
+    },
+    option: function option(key, value) {
+      if (key === 'list') {
+        this.list = _toConsumableArray(value);
+      } else {
+        this.sortable.option(key, value);
+      }
+    },
+    // ========================================= Properties =========================================
+    init: function init() {
+      var _this = this;
+
+      var props = {};
+
+      for (var i = 0; i < SortableAttrs.length; i++) {
+        var key = SortableAttrs[i];
+        props[key] = this.options[key];
+      }
+
+      this.sortable = new Dnd(this.el, _objectSpread2(_objectSpread2({}, props), {}, {
+        swapOnDrop: function swapOnDrop(params) {
+          return params.from === params.to;
+        },
+        onDrag: function onDrag(params) {
+          return _this.onDrag(params);
+        },
+        onAdd: function onAdd(params) {
+          return _this.onAdd(params);
+        },
+        onRemove: function onRemove(params) {
+          return _this.onRemove(params);
+        },
+        onChange: function onChange(params) {
+          return _this.onChange(params);
+        },
+        onDrop: function onDrop(params) {
+          return _this.onDrop(params);
+        }
+      }));
+      this.list = _toConsumableArray(this.options.list);
+    },
+    onDrag: function onDrag(params) {
+      var key = params.node.dataset.key;
+      var index = this.getIndex(this.list, key);
+      var item = this.list[index]; // store the drag item
+
+      this.store = {
+        item: item,
+        key: key,
+        origin: {
+          index: index,
+          list: this.list
+        },
+        from: {
+          index: index,
+          list: this.list
+        },
+        to: {
+          index: index,
+          list: this.list
+        }
+      };
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onDrag', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onRemove: function onRemove(params) {
+      var key = params.node.dataset.key;
+      var index = this.getIndex(this.list, key);
+      var item = this.list[index];
+      this.list.splice(index, 1);
+      Object.assign(this.store, {
+        key: key,
+        item: item
+      });
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onRemove', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onAdd: function onAdd(params) {
+      var from = params.from,
+          target = params.target,
+          relative = params.relative;
+
+      var _Dnd$get$option = Dnd.get(from).option('store'),
+          key = _Dnd$get$option.key,
+          item = _Dnd$get$option.item;
+
+      var index = this.getIndex(this.list, target.dataset.key);
+
+      if (relative === 0) {
+        index = this.list.length;
+      } else if (relative === -1) {
+        index += 1;
+      }
+
+      this.list.splice(index, 0, item);
+      Object.assign(this.store, {
+        to: {
+          index: index,
+          list: this.list
+        }
+      });
+      this.sortable.option('store', this.store);
+      this.dispatchEvent('onAdd', {
+        item: item,
+        key: key,
+        index: index
+      });
+    },
+    onChange: function onChange(params) {
+      var store = Dnd.get(params.from).option('store');
+
+      if (params.revertDrag) {
+        this.list = _toConsumableArray(this.options.list);
+        Object.assign(this.store, {
+          from: store.origin
+        });
+        return;
+      }
+
+      var node = params.node,
+          target = params.target,
+          relative = params.relative,
+          backToOrigin = params.backToOrigin;
+      var fromIndex = this.getIndex(this.list, node.dataset.key);
+      var fromItem = this.list[fromIndex];
+      var toIndex = this.getIndex(this.list, target.dataset.key);
+
+      if (backToOrigin) {
+        if (relative === 1 && store.from.index < toIndex) {
+          toIndex -= 1;
+        }
+
+        if (relative === -1 && store.from.index > toIndex) {
+          toIndex += 1;
+        }
+      }
+
+      this.list.splice(fromIndex, 1);
+      this.list.splice(toIndex, 0, fromItem);
+      Object.assign(this.store, {
+        from: {
+          index: toIndex,
+          list: this.list
+        },
+        to: {
+          index: toIndex,
+          list: this.list
+        }
+      });
+    },
+    onDrop: function onDrop(params) {
+      var _this$getStore = this.getStore(params),
+          from = _this$getStore.from,
+          to = _this$getStore.to;
+
+      var changed = params.from !== params.to || from.origin.index !== to.to.index;
+      this.dispatchEvent('onDrop', {
+        changed: changed,
+        list: this.list,
+        item: from.item,
+        key: from.key,
+        from: from.origin,
+        to: to.to
+      });
+
+      if (params.from === this.el && this.reRendered) {
+        var _Dnd$dragged;
+
+        (_Dnd$dragged = Dnd.dragged) === null || _Dnd$dragged === void 0 ? void 0 : _Dnd$dragged.remove();
+      }
+
+      if (params.from !== params.to && params.pullMode === 'clone') {
+        var _Dnd$clone;
+
+        (_Dnd$clone = Dnd.clone) === null || _Dnd$clone === void 0 ? void 0 : _Dnd$clone.remove();
+      }
+
+      this.reRendered = false;
+    },
+    getIndex: function getIndex(list, key) {
+      for (var i = 0; i < list.length; i++) {
+        if (getDataKey(list[i], this.options.dataKey) == key) {
+          return i;
+        }
+      }
+
+      return -1;
+    },
+    getStore: function getStore(params) {
+      return {
+        from: Dnd.get(params.from).option('store'),
+        to: Dnd.get(params.to).option('store')
+      };
+    },
+    dispatchEvent: function dispatchEvent(name, params) {
+      var cb = this.options[name];
+      if (cb) cb(params);
+    }
+  };
+
+  var _scrollDir, _offsetDir, _scrollSize, _offsetSize;
+  var CACLTYPE = {
+    INIT: 'INIT',
+    FIXED: 'FIXED',
+    DYNAMIC: 'DYNAMIC'
+  };
+  var SCROLL_DIRECTION = {
+    FRONT: 'FRONT',
+    BEHIND: 'BEHIND',
+    STATIONARY: 'STATIONARY'
+  };
+  var DIRECTION = {
+    HORIZONTAL: 'horizontal',
+    VERTICAL: 'vertical'
+  };
+  var scrollDir = (_scrollDir = {}, _defineProperty(_scrollDir, DIRECTION.VERTICAL, 'scrollTop'), _defineProperty(_scrollDir, DIRECTION.HORIZONTAL, 'scrollLeft'), _scrollDir);
+  var offsetDir = (_offsetDir = {}, _defineProperty(_offsetDir, DIRECTION.VERTICAL, 'offsetTop'), _defineProperty(_offsetDir, DIRECTION.HORIZONTAL, 'offsetLeft'), _offsetDir);
+  var scrollSize = (_scrollSize = {}, _defineProperty(_scrollSize, DIRECTION.VERTICAL, 'scrollHeight'), _defineProperty(_scrollSize, DIRECTION.HORIZONTAL, 'scrollWidth'), _scrollSize);
+  var offsetSize = (_offsetSize = {}, _defineProperty(_offsetSize, DIRECTION.VERTICAL, 'offsetHeight'), _defineProperty(_offsetSize, DIRECTION.HORIZONTAL, 'offsetWidth'), _offsetSize);
+
+  function Virtual(options) {
+    this.options = options;
+    var defaults = {
+      size: 0,
+      keeps: 0,
+      buffer: 0,
+      wrapper: null,
+      scroller: null,
+      direction: 'vertical',
+      uniqueKeys: [],
+      debounceTime: null,
+      throttleTime: null
+    };
+
+    for (var name in defaults) {
+      !(name in this.options) && (this.options[name] = defaults[name]);
+    }
+
+    this.sizes = new Map(); // store item size
+
+    this.range = {
+      start: 0,
+      end: 0,
+      front: 0,
+      behind: 0
+    };
+    this.offset = 0;
+    this.calcType = CACLTYPE.INIT;
+    this.calcSize = {
+      average: 0,
+      total: 0,
+      fixed: 0,
+      header: 0
+    };
+    this.scrollEl = this.getScrollElement(options.scroller);
+    this.direction = '';
+    this.useWindowScroll = null;
+    this.onScroll = null;
+    this.updateOnScrollFunction();
+    this.addScrollEventListener();
+    this.checkIfUpdate(0, options.keeps - 1);
+  }
+
+  Virtual.prototype = {
+    constructor: Virtual,
+    isFront: function isFront() {
+      return this.direction === SCROLL_DIRECTION.FRONT;
+    },
+    isBehind: function isBehind() {
+      return this.direction === SCROLL_DIRECTION.BEHIND;
+    },
+    isFixed: function isFixed() {
+      return this.calcType === CACLTYPE.FIXED;
+    },
+    getSize: function getSize(key) {
+      return this.sizes.get(key) || this.getItemSize();
+    },
+    getOffset: function getOffset() {
+      return this.scrollEl[scrollDir[this.options.direction]];
+    },
+    getScrollSize: function getScrollSize() {
+      return this.scrollEl[scrollSize[this.options.direction]];
+    },
+    getClientSize: function getClientSize() {
+      return this.scrollEl[offsetSize[this.options.direction]];
+    },
+    scrollToOffset: function scrollToOffset(offset) {
+      this.scrollEl[scrollDir[this.options.direction]] = offset;
+    },
+    scrollToIndex: function scrollToIndex(index) {
+      if (index >= this.options.uniqueKeys.length - 1) {
+        this.scrollToBottom();
+      } else {
+        var indexOffset = this.getOffsetByIndex(index);
+        this.scrollToOffset(indexOffset);
+      }
+    },
+    scrollToBottom: function scrollToBottom() {
+      var _this = this;
+
+      var offset = this.getScrollSize();
+      this.scrollToOffset(offset); // if the bottom is not reached, execute the scroll method again
+
+      setTimeout(function () {
+        var clientSize = _this.getClientSize();
+
+        var scrollSize = _this.getScrollSize();
+
+        var scrollOffset = _this.getOffset();
+
+        if (scrollOffset + clientSize + 1 < scrollSize) {
+          _this.scrollToBottom();
+        }
+      }, 5);
+    },
+    option: function option(key, value) {
+      var _this2 = this;
+
+      var oldValue = this.options[key];
+      this.options[key] = value;
+
+      if (key === 'uniqueKeys') {
+        this.sizes.forEach(function (v, k) {
+          if (!value.includes(k)) {
+            _this2.sizes["delete"](k);
+          }
+        });
+      }
+
+      if (key === 'scroller') {
+        oldValue && Dnd.utils.off(oldValue, 'scroll', this.onScroll);
+        this.scrollEl = this.getScrollElement(value);
+        this.addScrollEventListener();
+      }
+    },
+    updateRange: function updateRange(range) {
+      if (range) {
+        this.handleUpdate(range.start, range.end);
+        return;
+      }
+
+      var start = this.range.start;
+      start = Math.max(start, 0);
+      this.handleUpdate(start, this.getEndByStart(start));
+    },
+    onItemResized: function onItemResized(key, size) {
+      this.sizes.set(key, size);
+
+      if (this.calcType === CACLTYPE.INIT) {
+        this.calcType = CACLTYPE.FIXED;
+        this.calcSize.fixed = size;
+      } else if (this.isFixed() && this.calcSize.fixed !== size) {
+        this.calcType = CACLTYPE.DYNAMIC;
+        this.calcSize.fixed = undefined;
+      } // In the case of non-fixed heights, the average height and the total height are calculated
+
+
+      if (this.calcType !== CACLTYPE.FIXED) {
+        this.calcSize.total = _toConsumableArray(this.sizes.values()).reduce(function (t, i) {
+          return t + i;
+        }, 0);
+        this.calcSize.average = Math.round(this.calcSize.total / this.sizes.size);
+      }
+    },
+    onSlotResized: function onSlotResized(key, size) {
+      this.calcSize[key] = size;
+    },
+    addScrollEventListener: function addScrollEventListener() {
+      if (this.options.scroller) {
+        Dnd.utils.on(this.options.scroller, 'scroll', this.onScroll);
+      }
+    },
+    removeScrollEventListener: function removeScrollEventListener() {
+      if (this.options.scroller) {
+        Dnd.utils.off(this.options.scroller, 'scroll', this.onScroll);
+      }
+    },
+    // ========================================= Properties =========================================
+    updateOnScrollFunction: function updateOnScrollFunction() {
+      var _this3 = this;
+
+      var _this$options = this.options,
+          debounceTime = _this$options.debounceTime,
+          throttleTime = _this$options.throttleTime;
+
+      if (debounceTime) {
+        this.onScroll = debounce(function () {
+          return _this3.handleScroll();
+        }, debounceTime);
+      } else if (throttleTime) {
+        this.onScroll = throttle(function () {
+          return _this3.handleScroll();
+        }, throttleTime);
+      } else {
+        this.onScroll = function () {
+          return _this3.handleScroll();
+        };
+      }
+    },
+    handleScroll: function handleScroll() {
+      var offset = this.getOffset();
+      var clientSize = this.getClientSize();
+      var scrollSize = this.getScrollSize();
+
+      if (offset === this.offset) {
+        this.direction = SCROLL_DIRECTION.STATIONARY;
+      } else {
+        this.direction = offset < this.offset ? SCROLL_DIRECTION.FRONT : SCROLL_DIRECTION.BEHIND;
+      }
+
+      this.offset = offset;
+      var top = this.isFront() && offset <= 0;
+      var bottom = this.isBehind() && clientSize + offset >= scrollSize;
+      this.options.onScroll({
+        top: top,
+        bottom: bottom,
+        offset: offset,
+        direction: this.direction
+      });
+
+      if (this.isFront()) {
+        this.handleScrollFront();
+      } else if (this.isBehind()) {
+        this.handleScrollBehind();
+      }
+    },
+    handleScrollFront: function handleScrollFront() {
+      var scrolls = this.getScrollItems();
+
+      if (scrolls > this.range.start) {
+        return;
+      }
+
+      var start = Math.max(scrolls - this.options.buffer, 0);
+      this.checkIfUpdate(start, this.getEndByStart(start));
+    },
+    handleScrollBehind: function handleScrollBehind() {
+      var scrolls = this.getScrollItems();
+
+      if (scrolls < this.range.start + this.options.buffer) {
+        return;
+      }
+
+      this.checkIfUpdate(scrolls, this.getEndByStart(scrolls));
+    },
+    getScrollItems: function getScrollItems() {
+      var offset = this.offset - this.getScrollStartOffset();
+
+      if (offset <= 0) {
+        return 0;
+      }
+
+      if (this.isFixed()) {
+        return Math.floor(offset / this.calcSize.fixed);
+      }
+
+      var low = 0;
+      var high = this.options.uniqueKeys.length;
+      var middle = 0;
+      var middleOffset = 0;
+
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2);
+        middleOffset = this.getOffsetByIndex(middle);
+
+        if (middleOffset === offset) {
+          return middle;
+        } else if (middleOffset < offset) {
+          low = middle + 1;
+        } else if (middleOffset > offset) {
+          high = middle - 1;
+        }
+      }
+
+      return low > 0 ? --low : 0;
+    },
+    checkIfUpdate: function checkIfUpdate(start, end) {
+      var keeps = this.options.keeps;
+      var total = this.options.uniqueKeys.length;
+
+      if (total <= keeps) {
+        start = 0;
+        end = this.getLastIndex();
+      } else if (end - start < keeps - 1) {
+        start = end - keeps + 1;
+      }
+
+      if (this.range.start !== start) {
+        this.handleUpdate(start, end);
+      }
+    },
+    handleUpdate: function handleUpdate(start, end) {
+      this.range.start = start;
+      this.range.end = end;
+      this.range.front = this.getFrontOffset();
+      this.range.behind = this.getBehindOffset();
+      this.options.onUpdate(_objectSpread2({}, this.range));
+    },
+    getFrontOffset: function getFrontOffset() {
+      if (this.isFixed()) {
+        return this.calcSize.fixed * this.range.start;
+      } else {
+        return this.getOffsetByIndex(this.range.start);
+      }
+    },
+    getBehindOffset: function getBehindOffset() {
+      var end = this.range.end;
+      var last = this.getLastIndex();
+
+      if (this.isFixed()) {
+        return (last - end) * this.calcSize.fixed;
+      }
+
+      return (last - end) * this.getItemSize();
+    },
+    getOffsetByIndex: function getOffsetByIndex(index) {
+      if (!index) return 0;
+      var offset = 0;
+
+      for (var i = 0; i < index; i++) {
+        var size = this.sizes.get(this.options.uniqueKeys[i]);
+        offset = offset + (typeof size === 'number' ? size : this.getItemSize());
+      }
+
+      return offset;
+    },
+    getEndByStart: function getEndByStart(start) {
+      return Math.min(start + this.options.keeps - 1, this.getLastIndex());
+    },
+    getLastIndex: function getLastIndex() {
+      var _this$options2 = this.options,
+          uniqueKeys = _this$options2.uniqueKeys,
+          keeps = _this$options2.keeps;
+      return uniqueKeys.length > 0 ? uniqueKeys.length - 1 : keeps - 1;
+    },
+    getItemSize: function getItemSize() {
+      return this.isFixed() ? this.calcSize.fixed : this.calcSize.average || this.options.size;
+    },
+    getScrollElement: function getScrollElement(scroller) {
+      if (scroller instanceof Document && scroller.nodeType === 9 || scroller instanceof Window) {
+        this.useWindowScroll = true;
+        return document.scrollingElement || document.documentElement || document.body;
+      }
+
+      this.useWindowScroll = false;
+      return scroller;
+    },
+    getScrollStartOffset: function getScrollStartOffset() {
+      var offset = this.calcSize.header;
+
+      if (this.useWindowScroll && this.options.wrapper) {
+        var el = this.options.wrapper;
+
+        do {
+          offset += el[offsetDir[this.options.direction]];
+        } while ((el = el.offsetParent) && el !== this.options.wrapper.ownerDocument);
+      }
+
+      return offset;
+    }
+  };
+
+  var Emits = {
     top: 'v-top',
-    bottom: 'v-bottom'
+    bottom: 'v-bottom',
+    drag: 'v-drag',
+    drop: 'v-drop',
+    add: 'v-add',
+    remove: 'v-remove'
   };
 
   function VirtualDragList(props, ref) {
-    var _props$dataSource = props.dataSource,
-        dataSource = _props$dataSource === void 0 ? [] : _props$dataSource,
+    var _props$keeps = props.keeps,
+        keeps = _props$keeps === void 0 ? 30 : _props$keeps,
         _props$dataKey = props.dataKey,
         dataKey = _props$dataKey === void 0 ? '' : _props$dataKey,
         _props$direction = props.direction,
         direction = _props$direction === void 0 ? 'vertical' : _props$direction,
-        _props$keeps = props.keeps,
-        keeps = _props$keeps === void 0 ? 30 : _props$keeps,
-        _props$size = props.size,
-        size = _props$size === void 0 ? undefined : _props$size,
-        _props$pageMode = props.pageMode,
-        pageMode = _props$pageMode === void 0 ? false : _props$pageMode,
+        _props$dataSource = props.dataSource,
+        dataSource = _props$dataSource === void 0 ? [] : _props$dataSource,
+        _props$throttleTime = props.throttleTime,
+        throttleTime = _props$throttleTime === void 0 ? 0 : _props$throttleTime,
+        _props$debounceTime = props.debounceTime,
+        debounceTime = _props$debounceTime === void 0 ? 0 : _props$debounceTime,
         _props$delay = props.delay,
-        delay = _props$delay === void 0 ? 10 : _props$delay,
-        _props$keepOffset = props.keepOffset,
-        keepOffset = _props$keepOffset === void 0 ? false : _props$keepOffset,
+        delay = _props$delay === void 0 ? 0 : _props$delay,
+        _props$animation = props.animation,
+        animation = _props$animation === void 0 ? 150 : _props$animation,
         _props$autoScroll = props.autoScroll,
         autoScroll = _props$autoScroll === void 0 ? true : _props$autoScroll,
         _props$scrollThreshol = props.scrollThreshold,
         scrollThreshold = _props$scrollThreshol === void 0 ? 55 : _props$scrollThreshol,
-        _props$animation = props.animation,
-        animation = _props$animation === void 0 ? 150 : _props$animation,
-        _props$pressDelay = props.pressDelay,
-        pressDelay = _props$pressDelay === void 0 ? 0 : _props$pressDelay,
-        _props$pressDelayOnTo = props.pressDelayOnTouchOnly,
-        pressDelayOnTouchOnly = _props$pressDelayOnTo === void 0 ? false : _props$pressDelayOnTo,
-        _props$fallbackOnBody = props.fallbackOnBody,
-        fallbackOnBody = _props$fallbackOnBody === void 0 ? false : _props$fallbackOnBody,
-        _props$style = props.style,
-        style = _props$style === void 0 ? {} : _props$style,
-        _props$className = props.className,
-        className = _props$className === void 0 ? '' : _props$className,
         _props$wrapTag = props.wrapTag,
         WrapTag = _props$wrapTag === void 0 ? 'div' : _props$wrapTag,
         _props$rootTag = props.rootTag,
@@ -2048,95 +1574,63 @@
         headerTag = _props$headerTag === void 0 ? 'div' : _props$headerTag,
         _props$footerTag = props.footerTag,
         footerTag = _props$footerTag === void 0 ? 'div' : _props$footerTag,
+        _props$style = props.style,
+        style = _props$style === void 0 ? {} : _props$style,
         _props$itemStyle = props.itemStyle,
         itemStyle = _props$itemStyle === void 0 ? {} : _props$itemStyle,
-        _props$itemClass = props.itemClass,
-        itemClass = _props$itemClass === void 0 ? '' : _props$itemClass,
         _props$wrapStyle = props.wrapStyle,
         wrapStyle = _props$wrapStyle === void 0 ? {} : _props$wrapStyle,
-        _props$wrapClass = props.wrapClass,
-        wrapClass = _props$wrapClass === void 0 ? '' : _props$wrapClass,
-        _props$ghostClass = props.ghostClass,
-        ghostClass = _props$ghostClass === void 0 ? '' : _props$ghostClass,
         _props$ghostStyle = props.ghostStyle,
-        ghostStyle = _props$ghostStyle === void 0 ? {} : _props$ghostStyle,
-        _props$chosenClass = props.chosenClass,
-        chosenClass = _props$chosenClass === void 0 ? '' : _props$chosenClass,
-        _props$disabled = props.disabled,
-        disabled = _props$disabled === void 0 ? false : _props$disabled;
+        ghostStyle = _props$ghostStyle === void 0 ? {} : _props$ghostStyle;
 
-    var _React$useState = React.useState([]),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        viewList = _React$useState2[0],
-        setViewList = _React$useState2[1];
-
-    var _React$useState3 = React.useState({
+    var _React$useState = React__default["default"].useState({
       start: 0,
-      end: keeps - 1
+      end: keeps - 1,
+      front: 0,
+      behind: 0
     }),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        range = _React$useState2[0],
+        setRange = _React$useState2[1];
+
+    var _React$useState3 = React__default["default"].useState(null),
         _React$useState4 = _slicedToArray(_React$useState3, 2),
-        range = _React$useState4[0],
-        setRange = _React$useState4[1];
+        dragged = _React$useState4[0],
+        setDragged = _React$useState4[1];
 
-    var _React$useState5 = React.useState({
-      from: {},
-      to: {}
-    }),
+    var _React$useState5 = React__default["default"].useState([]),
         _React$useState6 = _slicedToArray(_React$useState5, 2),
-        state = _React$useState6[0],
-        setState = _React$useState6[1];
+        viewList = _React$useState6[0],
+        setViewList = _React$useState6[1];
 
-    var list = React.useRef([]);
-    var uniqueKeys = React.useRef([]);
-    var timer = React.useRef(null);
-    var rootRef = React.useRef(null); // root element
+    var list = React__default["default"].useRef([]);
+    var index = React__default["default"].useRef(null);
+    var uniqueKeys = React__default["default"].useRef([]);
+    var lastLength = React__default["default"].useRef(null); // record current list's length
 
-    var wrapRef = React.useRef(null); // list element
+    var rootRef = React__default["default"].useRef(null); // root element
 
-    var lastRef = React.useRef(null); // dom at the end of the list
+    var wrapRef = React__default["default"].useRef(null); // list element
 
-    var lastLength = React.useRef(null); // record current list's length
+    var sortable = React__default["default"].useRef(null);
+    var virtual = React__default["default"].useRef(null);
 
-    var sortable = React.useRef(null);
-    var virtual = React.useRef(null);
-
-    var _React$useMemo = React.useMemo(function () {
+    var _React$useMemo = React__default["default"].useMemo(function () {
       var isHorizontal = direction !== 'vertical';
       return {
         isHorizontal: isHorizontal,
-        slotSizeKey: isHorizontal ? 'offsetWidth' : 'offsetHeight',
-        offsetSizeKey: isHorizontal ? 'offsetLeft' : 'offsetTop',
-        scrollSizeKey: isHorizontal ? 'scrollWidth' : 'scrollHeight',
-        clientSizeKey: isHorizontal ? 'clientWidth' : 'clientHeight',
-        scrollDirectionKey: isHorizontal ? 'scrollLeft' : 'scrollTop'
+        itemSizeKey: isHorizontal ? 'offsetWidth' : 'offsetHeight'
       };
     }, [direction]),
         isHorizontal = _React$useMemo.isHorizontal,
-        slotSizeKey = _React$useMemo.slotSizeKey,
-        scrollSizeKey = _React$useMemo.scrollSizeKey,
-        offsetSizeKey = _React$useMemo.offsetSizeKey,
-        clientSizeKey = _React$useMemo.clientSizeKey,
-        scrollDirectionKey = _React$useMemo.scrollDirectionKey;
-    /**
-     * reset component
-     */
-
-
-    var reset = function reset() {
-      scrollToTop();
-      setViewList(function () {
-        return _toConsumableArray(dataSource);
-      });
-      list.current = _toConsumableArray(dataSource);
-    };
+        itemSizeKey = _React$useMemo.itemSizeKey;
     /**
      * git item size by data-key
-     * @param {String | Number} key data-key
      */
 
 
     var getSize = function getSize(key) {
-      return virtual.current.sizes.get(key);
+      return virtual.current.getSize(key);
     };
     /**
      * Get the current scroll height
@@ -2144,12 +1638,7 @@
 
 
     var getOffset = function getOffset() {
-      if (pageMode) {
-        return document.documentElement[scrollDirectionKey] || document.body[scrollDirectionKey];
-      } else {
-        var root = rootRef.current;
-        return root ? Math.ceil(root[scrollDirectionKey]) : 0;
-      }
+      return virtual.current.getOffset();
     };
     /**
      * Get client viewport size
@@ -2157,12 +1646,7 @@
 
 
     var getClientSize = function getClientSize() {
-      if (pageMode) {
-        return document.documentElement[clientSizeKey] || document.body[clientSizeKey];
-      } else {
-        var root = rootRef.current;
-        return root ? Math.ceil(root[clientSizeKey]) : 0;
-      }
+      return virtual.current.getClientSize();
     };
     /**
      * Get all scroll size
@@ -2170,39 +1654,34 @@
 
 
     var getScrollSize = function getScrollSize() {
-      if (pageMode) {
-        return document.documentElement[scrollSizeKey] || document.body[scrollSizeKey];
-      } else {
-        var root = rootRef.current;
-        return root ? Math.ceil(root[scrollSizeKey]) : 0;
-      }
+      return virtual.current.getScrollSize();
     };
     /**
      * Scroll to the specified offset
-     * @param {Number} offset
      */
 
 
     var scrollToOffset = function scrollToOffset(offset) {
-      if (pageMode) {
-        document.body[scrollDirectionKey] = offset;
-        document.documentElement[scrollDirectionKey] = offset;
-      } else {
-        rootRef.current[scrollDirectionKey] = offset;
-      }
+      virtual.current.scrollToOffset(offset);
     };
     /**
      * Scroll to the specified index position
-     * @param {Number} index
      */
 
 
     var scrollToIndex = function scrollToIndex(index) {
-      if (index >= dataSource.length - 1) {
-        scrollToBottom();
-      } else {
-        var indexOffset = virtual.current.getOffsetByIndex(index);
-        scrollToOffset(indexOffset);
+      virtual.current.scrollToIndex(index);
+    };
+    /**
+     * Scroll to the specified data-key position
+     */
+
+
+    var scrollToKey = function scrollToKey(key) {
+      var index = uniqueKeys.current.indexOf(key);
+
+      if (index > -1) {
+        virtual.current.scrollToIndex(index);
       }
     };
     /**
@@ -2219,214 +1698,167 @@
 
 
     var scrollToBottom = function scrollToBottom() {
-      if (lastRef.current) {
-        var offset = lastRef.current[offsetSizeKey];
-        scrollToOffset(offset);
-        setTimeout(function () {
-          if (!scrolledToBottom()) scrollToBottom();
-        }, 5);
-      }
+      virtual.current.scrollToBottom();
     };
 
-    React.useImperativeHandle(ref, function () {
+    React__default["default"].useImperativeHandle(ref, function () {
       return {
-        reset: reset,
         getSize: getSize,
         getOffset: getOffset,
         getClientSize: getClientSize,
         getScrollSize: getScrollSize,
         scrollToTop: scrollToTop,
+        scrollToKey: scrollToKey,
         scrollToIndex: scrollToIndex,
         scrollToOffset: scrollToOffset,
         scrollToBottom: scrollToBottom
       };
     });
-    React.useLayoutEffect(function () {
+    React__default["default"].useLayoutEffect(function () {
       initVirtual();
     }, []);
-    React.useEffect(function () {
+    React__default["default"].useEffect(function () {
       initSortable();
+      virtual.current.option('wrapper', wrapRef.current);
 
-      if (pageMode) {
-        updatePageModeFront();
-        addPageModeScrollListener();
+      if (!props.scroller) {
+        virtual.current.option('scroller', rootRef.current);
       } // destroy
 
 
       return function () {
-        destroySortable();
-        pageMode && removePageModeScrollListener();
+        var _a, _b;
+
+        (_a = virtual.current) === null || _a === void 0 ? void 0 : _a.removeScrollEventListener();
+        (_b = sortable.current) === null || _b === void 0 ? void 0 : _b.destroy();
       };
     }, []);
-    React.useEffect(function () {
-      if (sortable.current) {
-        sortable.current.setValue('disabled', disabled);
-      }
-    }, [disabled]);
-    React.useEffect(function () {
-      list.current = _toConsumableArray(dataSource);
+    React__default["default"].useEffect(function () {
+      var _a;
+
+      (_a = sortable.current) === null || _a === void 0 ? void 0 : _a.option('disabled', props.disabled);
+    }, [props.disabled]);
+    React__default["default"].useEffect(function () {
+      var _a;
+
+      var oldList = _toConsumableArray(list.current);
+
+      list.current = dataSource;
       updateUniqueKeys();
       setViewList(function () {
-        if (virtual.current.sizes.size) {
-          virtual.current.updateRange();
-        } else {
-          clearTimeout(timer.current);
-          timer.current = setTimeout(function () {
-            return virtual.current.updateRange();
-          }, 17);
-        }
-
+        updateRange(oldList, list.current);
         return _toConsumableArray(dataSource);
       });
+      (_a = sortable.current) === null || _a === void 0 ? void 0 : _a.option('list', dataSource); // if auto scroll to the last offset
 
-      if (sortable.current) {
-        sortable.current.setValue('list', dataSource);
-      } // if auto scroll to the last offset
+      if (lastLength.current && props.keepOffset) {
+        var _index = Math.abs(dataSource.length - lastLength.current);
 
-
-      if (lastLength.current && keepOffset) {
-        var index = Math.abs(dataSource.length - lastLength.current);
-        scrollToIndex(index);
+        scrollToIndex(_index);
         lastLength.current = null;
       }
     }, [dataSource]);
 
-    var addPageModeScrollListener = function addPageModeScrollListener() {
-      document.addEventListener('scroll', handleScroll, {
-        passive: false
-      });
-    };
-
-    var removePageModeScrollListener = function removePageModeScrollListener() {
-      document.removeEventListener('scroll', handleScroll);
-    }; // when using page mode we need update slot header size manually
-    // taking root offset relative to the browser as slot header size
-
-
-    var updatePageModeFront = function updatePageModeFront() {
-      var root = rootRef.current;
-
-      if (root) {
-        var rect = root.getBoundingClientRect();
-        var defaultView = root.ownerDocument.defaultView;
-        var offsetFront = isHorizontal ? rect.left + defaultView.pageXOffset : rect.top + defaultView.pageYOffset;
-        virtual.current.handleSlotSizeChange('header', offsetFront);
-      }
-    };
-
     var initVirtual = function initVirtual() {
       virtual.current = new Virtual({
-        size: size,
+        size: props.size,
         keeps: keeps,
+        buffer: Math.round(keeps / 3),
+        scroller: props.scroller,
+        direction: direction,
         uniqueKeys: uniqueKeys.current,
-        buffer: Math.round(keeps / 3)
-      }, function (range) {
-        if (!sortable.current) return;
-        setRange(function () {
-          return range;
-        });
-        var state = Store.getStore();
-        var start = range.start,
-            end = range.end;
-        var index = state.from.index;
+        debounceTime: debounceTime,
+        throttleTime: throttleTime,
+        onScroll: function onScroll(params) {
+          lastLength.current = null;
 
-        if (index > -1 && !(index >= start && index <= end)) {
-          sortable.current.rangeChanged = true;
+          if (!!list.current.length && params.top) {
+            handleToTop();
+          } else if (params.bottom) {
+            handleToBottom();
+          }
+        },
+        onUpdate: function onUpdate(newRange) {
+          if (Dnd.dragged && newRange.start !== range.start) {
+            sortable.current.reRendered = true;
+          }
+
+          setRange(function () {
+            return newRange;
+          });
         }
       });
     };
 
     var initSortable = function initSortable() {
-      sortable.current = new Sortable(Object.assign({
-        container: wrapRef.current,
+      sortable.current = new Sortable(wrapRef.current, Object.assign(Object.assign({}, props), {
         list: list.current,
-        disabled: disabled,
-        ghostClass: ghostClass,
-        ghostStyle: ghostStyle,
-        chosenClass: chosenClass,
+        delay: delay,
         animation: animation,
         autoScroll: autoScroll,
+        ghostStyle: ghostStyle,
         scrollThreshold: scrollThreshold,
-        pressDelay: pressDelay,
-        pressDelayOnTouchOnly: pressDelayOnTouchOnly,
-        fallbackOnBody: fallbackOnBody
-      }, props), function (store) {
-        setState(function () {
-          return Object.assign({}, store);
-        });
-      }, function (store, _ref) {
-        var newlist = _ref.list,
-            changed = _ref.changed;
-        setState(function () {
-          return Object.assign({}, store);
-        });
-        if (!changed) return;
-        var prelist = list.current;
-        list.current = _toConsumableArray(newlist);
-        setViewList(function () {
-          return _toConsumableArray(newlist);
-        });
-        updateUniqueKeys();
-        updateRangeOnDrop(prelist, newlist);
-      });
-    };
+        onDrag: function onDrag(params) {
+          dispatchEvent('drag', params);
+          setDragged(function () {
+            return Dnd.dragged;
+          });
+        },
+        onAdd: function onAdd(params) {
+          dispatchEvent('add', params);
+        },
+        onRemove: function onRemove(params) {
+          dispatchEvent('remove', params);
+        },
+        onDrop: function onDrop(params) {
+          if (params.list.length === list.current.length && index.current < range.start) {
+            setRange(function (pre) {
+              var _a;
 
-    var updateRangeOnDrop = function updateRangeOnDrop(prelist, newlist) {
-      setRange(function (pre) {
-        var range = Object.assign({}, pre);
-
-        if (pre.start > 0) {
-          var index = newlist.indexOf(prelist[pre.start]);
-
-          if (index > -1) {
-            range = Object.assign(Object.assign({}, pre), {
-              start: index,
-              end: index + keeps - 1
+              var range = Object.assign({}, pre);
+              range.front += ((_a = Dnd.clone) === null || _a === void 0 ? void 0 : _a[itemSizeKey]) || 0;
+              return range;
             });
+            index.current = range.start;
           }
-        }
 
-        if (newlist.length > prelist.length && pre.end === prelist.length - 1) {
-          if (scrolledToBottom()) {
-            range.end++;
-            range.start = Math.max(0, range.end - keeps + 1);
+          if (params.changed) {
+            var prelist = list.current;
+            list.current = _toConsumableArray(params.list);
+            updateUniqueKeys();
+            setDragged(function () {
+              return null;
+            });
+            setViewList(function () {
+              return _toConsumableArray(params.list);
+            });
+            updateRange(prelist, list.current);
           }
-        }
 
-        virtual.current.handleUpdate(range.start, range.end);
-        return range;
-      });
+          dispatchEvent('drop', params);
+        }
+      }));
     };
 
-    var destroySortable = function destroySortable() {
-      sortable.current && sortable.current.destroy();
-      sortable.current = null;
+    var updateRange = function updateRange(prelist, newlist) {
+      var _range = Object.assign({}, range);
+
+      if (newlist.length > prelist.length && range.end === prelist.length - 1 && scrolledToBottom()) {
+        _range.end++;
+        _range.start = Math.max(0, _range.end - keeps);
+      }
+
+      if (virtual.current.sizes.size) {
+        virtual.current.updateRange(_range);
+      }
     };
 
     var updateUniqueKeys = function updateUniqueKeys() {
       uniqueKeys.current = list.current.map(function (item) {
         return getDataKey(item, dataKey);
       });
-      virtual.current.updateOptions('uniqueKeys', uniqueKeys.current);
+      virtual.current.option('uniqueKeys', uniqueKeys.current);
     };
-
-    var handleScroll = debounce(function () {
-      var offset = getOffset();
-      var clientSize = getClientSize();
-      var scrollSize = getScrollSize(); // iOS scroll-spring-back behavior will make direction mistake
-
-      if (offset < 0 || offset + clientSize > scrollSize + 1 || !scrollSize) {
-        return;
-      }
-
-      virtual.current.handleScroll(offset);
-
-      if (virtual.current.isFront() && !!dataSource.length && offset <= 0) {
-        handleToTop();
-      } else if (virtual.current.isBehind() && clientSize + offset >= scrollSize) {
-        handleToBottom();
-      }
-    }, delay);
 
     var scrolledToBottom = function scrolledToBottom() {
       var offset = getOffset();
@@ -2435,112 +1867,104 @@
       return offset + clientSize + 1 >= scrollSize;
     };
 
+    var dispatchEvent = function dispatchEvent(name, params) {
+      var emit = props[Emits[name]];
+      emit && emit(params);
+    };
+
     var handleToTop = debounce(function () {
       lastLength.current = list.current.length;
-      var emit = props[Emits$1.top];
-      emit && emit();
-    });
+      dispatchEvent('top');
+    }, 50);
     var handleToBottom = debounce(function () {
-      var emit = props[Emits$1.bottom];
-      emit && emit();
-    });
+      dispatchEvent('bottom');
+    }, 50);
 
     var onItemSizeChange = function onItemSizeChange(key, size) {
-      virtual.current.handleItemSizeChange(key, size);
+      var renders = virtual.current.sizes.size;
+      virtual.current.onItemResized(key, size);
+
+      if (renders === 0) {
+        updateRange(list.current, list.current);
+      }
     };
 
     var onSlotSizeChange = function onSlotSizeChange(key, size) {
-      virtual.current.handleSlotSizeChange(key, size);
+      virtual.current.onSlotResized(key, size);
     }; // check item show or not
 
 
-    var getItemStyle = React.useCallback(function (itemKey) {
-      if (!sortable.current || !state) {
-        return {};
-      }
+    var getItemStyle = React__default["default"].useCallback(function (itemKey) {
+      var fromKey = dragged === null || dragged === void 0 ? void 0 : dragged.dataset.key;
 
-      var fromKey = state.from.key;
-
-      if (sortable.current.rangeChanged && itemKey == fromKey) {
+      if (itemKey == fromKey) {
         return {
           display: 'none'
         };
       }
 
       return {};
-    }, [state]);
-    var RootStyle = React.useMemo(function () {
+    }, [dragged]);
+    var RootStyle = React__default["default"].useMemo(function () {
+      var _a;
+
       return Object.assign(Object.assign({}, style), {
-        overflow: pageMode ? '' : isHorizontal ? 'auto hidden' : 'hidden auto'
+        overflow: ((_a = virtual.current) === null || _a === void 0 ? void 0 : _a.useWindowScroll) ? '' : isHorizontal ? 'auto hidden' : 'hidden auto'
       });
     }, [style, isHorizontal]);
-    var WrapStyle = React.useMemo(function () {
+    var WrapStyle = React__default["default"].useMemo(function () {
       var front = range.front,
           behind = range.behind;
       return Object.assign(Object.assign({}, wrapStyle), {
         padding: isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px")
       });
     }, [wrapStyle, isHorizontal, range]);
-    var LastItemStyle = React.useMemo(function () {
-      return {
-        width: isHorizontal ? '0px' : '100%',
-        height: isHorizontal ? '100%' : '0px'
-      };
-    }, [isHorizontal]);
-
-    var _React$useMemo2 = React.useMemo(function () {
-      return Object.assign({}, range);
-    }, [range]),
-        start = _React$useMemo2.start,
-        end = _React$useMemo2.end;
 
     var renderSlots = function renderSlots(Tag, key) {
-      return /*#__PURE__*/React.createElement(Slot, {
-        roleId: key,
+      return /*#__PURE__*/React__default["default"].createElement(Slot, {
+        key: key,
         Tag: Tag,
+        dataKey: key,
+        sizeKey: itemSizeKey,
         children: props[key],
-        sizeKey: slotSizeKey,
+        className: props["".concat(key, "Class")],
+        style: props["".concat(key, "Style")],
         onSizeChange: onSlotSizeChange
       });
     };
 
     var renderItems = function renderItems() {
-      return viewList.slice(start, end + 1).map(function (item, i) {
-        var index = start + i;
+      return viewList.slice(range.start, range.end + 1).map(function (item, i) {
+        var index = range.start + i;
         var key = getDataKey(item, dataKey);
-        return /*#__PURE__*/React.createElement(Item, {
+        return /*#__PURE__*/React__default["default"].createElement(Item, {
           key: key,
-          record: item,
-          index: index,
-          dataKey: key,
           Tag: itemTag,
+          index: index,
+          record: item,
+          dataKey: key,
+          sizeKey: itemSizeKey,
           children: props.children,
-          className: itemClass,
+          className: props.itemClass,
           style: Object.assign(Object.assign({}, itemStyle), getItemStyle(key)),
-          sizeKey: slotSizeKey,
           onSizeChange: onItemSizeChange
         });
       });
     };
 
-    return /*#__PURE__*/React.createElement(RootTag, {
+    return /*#__PURE__*/React__default["default"].createElement(RootTag, {
       ref: rootRef,
       style: RootStyle,
-      className: className,
-      onScroll: pageMode ? null : handleScroll
-    }, renderSlots(headerTag, 'header'), /*#__PURE__*/React.createElement(WrapTag, {
+      className: props.className
+    }, renderSlots(headerTag, 'header'), /*#__PURE__*/React__default["default"].createElement(WrapTag, {
       ref: wrapRef,
-      role: 'group',
       style: WrapStyle,
-      className: wrapClass
-    }, renderItems()), renderSlots(footerTag, 'footer'), /*#__PURE__*/React.createElement("div", {
-      ref: lastRef,
-      style: LastItemStyle
-    }));
+      className: props.wrapClass
+    }, renderItems()), renderSlots(footerTag, 'footer'));
   }
 
-  var index = /*#__PURE__*/React.forwardRef(VirtualDragList);
+  var index = /*#__PURE__*/React__default["default"].forwardRef(VirtualDragList);
 
   return index;
 
-})));
+}));
