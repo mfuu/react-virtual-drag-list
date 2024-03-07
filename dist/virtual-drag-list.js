@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.6.0
+ * react-virtual-drag-list v2.6.1
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -1583,28 +1583,29 @@
         _props$ghostStyle = props.ghostStyle,
         ghostStyle = _props$ghostStyle === void 0 ? {} : _props$ghostStyle;
 
-    var _React$useState = React__default["default"].useState({
+    var _React$useState = React__default["default"].useState(null),
+        _React$useState2 = _slicedToArray(_React$useState, 2),
+        dragged = _React$useState2[0],
+        setDragged = _React$useState2[1];
+
+    var _React$useState3 = React__default["default"].useState([]),
+        _React$useState4 = _slicedToArray(_React$useState3, 2),
+        viewList = _React$useState4[0],
+        setViewList = _React$useState4[1];
+
+    var _React$useState5 = React__default["default"].useState({}),
+        _React$useState6 = _slicedToArray(_React$useState5, 2),
+        viewRange = _React$useState6[0],
+        setViewRange = _React$useState6[1];
+
+    var list = React__default["default"].useRef([]);
+    var index = React__default["default"].useRef(null);
+    var range = React__default["default"].useRef({
       start: 0,
       end: keeps - 1,
       front: 0,
       behind: 0
-    }),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        range = _React$useState2[0],
-        setRange = _React$useState2[1];
-
-    var _React$useState3 = React__default["default"].useState(null),
-        _React$useState4 = _slicedToArray(_React$useState3, 2),
-        dragged = _React$useState4[0],
-        setDragged = _React$useState4[1];
-
-    var _React$useState5 = React__default["default"].useState([]),
-        _React$useState6 = _slicedToArray(_React$useState5, 2),
-        viewList = _React$useState6[0],
-        setViewList = _React$useState6[1];
-
-    var list = React__default["default"].useRef([]);
-    var index = React__default["default"].useRef(null);
+    });
     var uniqueKeys = React__default["default"].useRef([]);
     var lastLength = React__default["default"].useRef(null); // record current list's length
 
@@ -1779,11 +1780,12 @@
           }
         },
         onUpdate: function onUpdate(newRange) {
-          if (Dnd.dragged && newRange.start !== range.start) {
+          if (Dnd.dragged && newRange.start !== range.current.start) {
             sortable.current.reRendered = true;
           }
 
-          setRange(function () {
+          range.current = newRange;
+          setViewRange(function () {
             return newRange;
           });
         }
@@ -1799,6 +1801,7 @@
         ghostStyle: ghostStyle,
         scrollThreshold: scrollThreshold,
         onDrag: function onDrag(params) {
+          index.current = range.current.start;
           dispatchEvent('drag', params);
           setDragged(function () {
             return Dnd.dragged;
@@ -1811,15 +1814,14 @@
           dispatchEvent('remove', params);
         },
         onDrop: function onDrop(params) {
-          if (params.list.length === list.current.length && index.current < range.start) {
-            setRange(function (pre) {
-              var _a;
+          var _a;
 
-              var range = Object.assign({}, pre);
-              range.front += ((_a = Dnd.clone) === null || _a === void 0 ? void 0 : _a[itemSizeKey]) || 0;
-              return range;
+          if (params.list.length === list.current.length && index.current < range.current.start) {
+            range.current.front += ((_a = Dnd.clone) === null || _a === void 0 ? void 0 : _a[itemSizeKey]) || 0;
+            index.current = null;
+            setViewRange(function () {
+              return range.current;
             });
-            index.current = range.start;
           }
 
           if (params.changed) {
@@ -1840,10 +1842,10 @@
       }));
     };
 
-    var updateRange = function updateRange(prelist, newlist) {
-      var _range = Object.assign({}, range);
+    var updateRange = function updateRange(oldlist, newlist) {
+      var _range = Object.assign({}, range.current);
 
-      if (newlist.length > prelist.length && range.end === prelist.length - 1 && scrolledToBottom()) {
+      if (newlist.length > oldlist.length && range.current.end === oldlist.length - 1 && scrolledToBottom()) {
         _range.end++;
         _range.start = Math.max(0, _range.end - keeps);
       }
@@ -1851,6 +1853,10 @@
       if (virtual.current.sizes.size) {
         virtual.current.updateRange(_range);
       }
+
+      setViewRange(function () {
+        return range.current;
+      });
     };
 
     var updateUniqueKeys = function updateUniqueKeys() {
@@ -1913,12 +1919,12 @@
       });
     }, [style, isHorizontal]);
     var WrapStyle = React__default["default"].useMemo(function () {
-      var front = range.front,
-          behind = range.behind;
+      var front = viewRange.front,
+          behind = viewRange.behind;
       return Object.assign(Object.assign({}, wrapStyle), {
         padding: isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px")
       });
-    }, [wrapStyle, isHorizontal, range]);
+    }, [wrapStyle, isHorizontal, viewRange]);
 
     var renderSlots = function renderSlots(Tag, key) {
       return /*#__PURE__*/React__default["default"].createElement(Slot, {
@@ -1934,8 +1940,8 @@
     };
 
     var renderItems = function renderItems() {
-      return viewList.slice(range.start, range.end + 1).map(function (item, i) {
-        var index = range.start + i;
+      return viewList.slice(viewRange.start, viewRange.end + 1).map(function (item, i) {
+        var index = viewRange.start + i;
         var key = getDataKey(item, dataKey);
         return /*#__PURE__*/React__default["default"].createElement(Item, {
           key: key,
