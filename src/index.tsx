@@ -39,17 +39,13 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     ghostStyle = {},
   } = props;
 
-  const [range, setRange] = React.useState<Range>({
-    start: 0,
-    end: keeps - 1,
-    front: 0,
-    behind: 0,
-  });
   const [dragged, setDragged] = React.useState<HTMLElement>(null);
   const [viewList, setViewList] = React.useState<T[]>([]);
+  const [viewRange, setViewRange] = React.useState<Range>({});
 
   const list = React.useRef([]);
   const index = React.useRef(null);
+  const range = React.useRef({ start: 0, end: keeps - 1, front: 0, behind: 0 });
   const uniqueKeys = React.useRef([]);
   const lastLength = React.useRef(null); // record current list's length
 
@@ -207,10 +203,11 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         }
       },
       onUpdate: (newRange: Range) => {
-        if (Dnd.dragged && newRange.start !== range.start) {
+        if (Dnd.dragged && newRange.start !== range.current.start) {
           sortable.current.reRendered = true;
         }
-        setRange(() => newRange);
+        range.current = newRange;
+        setViewRange(() => newRange);
       },
     });
   };
@@ -225,6 +222,7 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
       ghostStyle,
       scrollThreshold,
       onDrag: (params) => {
+        index.current = range.current.start;
         dispatchEvent('drag', params);
         setDragged(() => Dnd.dragged);
       },
@@ -235,13 +233,10 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
         dispatchEvent('remove', params);
       },
       onDrop: (params) => {
-        if (params.list.length === list.current.length && index.current < range.start) {
-          setRange((pre: Range) => {
-            let range: Range = { ...pre };
-            range.front += Dnd.clone?.[itemSizeKey] || 0;
-            return range;
-          });
-          index.current = range.start;
+        if (params.list.length === list.current.length && index.current < range.current.start) {
+          range.current.front += Dnd.clone?.[itemSizeKey] || 0;
+          index.current = null;
+          setViewRange(() => range.current);
         }
 
         if (params.changed) {
@@ -260,15 +255,20 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
     });
   };
 
-  const updateRange = (prelist, newlist) => {
-    let _range: Range = { ...range };
-    if (newlist.length > prelist.length && range.end === prelist.length - 1 && scrolledToBottom()) {
+  const updateRange = (oldlist, newlist) => {
+    let _range: Range = { ...range.current };
+    if (
+      newlist.length > oldlist.length &&
+      range.current.end === oldlist.length - 1 &&
+      scrolledToBottom()
+    ) {
       _range.end++;
       _range.start = Math.max(0, _range.end - keeps);
     }
     if (virtual.current.sizes.size) {
       virtual.current.updateRange(_range);
     }
+    setViewRange(() => range.current);
   };
 
   const updateUniqueKeys = () => {
@@ -333,12 +333,12 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   }, [style, isHorizontal]);
 
   const WrapStyle = React.useMemo(() => {
-    const { front, behind } = range;
+    const { front, behind } = viewRange;
     return {
       ...wrapStyle,
       padding: isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`,
     };
-  }, [wrapStyle, isHorizontal, range]);
+  }, [wrapStyle, isHorizontal, viewRange]);
 
   const renderSlots = (Tag: string, key: string) => {
     return (
@@ -356,8 +356,8 @@ function VirtualDragList<T>(props: VirtualProps<T>, ref: React.ref) {
   };
 
   const renderItems = () => {
-    return viewList.slice(range.start, range.end + 1).map((item, i: number) => {
-      const index = range.start + i;
+    return viewList.slice(viewRange.start, viewRange.end + 1).map((item, i: number) => {
+      const index = viewRange.start + i;
       const key = getDataKey(item, dataKey);
       return (
         <Item
