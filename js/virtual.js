@@ -122,7 +122,7 @@ const Header = () => {
           disabled={disabled}
           direction={props.direction}
           group={props.group}
-          pageMode={props.pageMode}
+          scroller={props.scroller}
           header={props.topLoad && topLoading && Header()}
           footer={props.bottomLoad && Footer()}
           v-top={handleToTop}
