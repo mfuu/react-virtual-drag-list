@@ -1,5 +1,5 @@
 import React from 'react';
-import { BaseProps, ItemProps, SlotProps } from './props';
+import { BaseProps, ItemProps } from './props';
 
 export const Observer = React.memo((props: BaseProps) => {
   const { dataKey, children, onSizeChange, sizeKey } = props;
@@ -50,20 +50,4 @@ export const Item = React.memo((props: ItemProps) => {
       </Tag>
     </Observer>
   );
-});
-
-export const Slot = React.memo((props: SlotProps) => {
-  const { Tag = 'div', children } = props;
-
-  return children ? (
-    <Observer
-      dataKey={props.dataKey}
-      sizeKey={props.sizeKey}
-      onSizeChange={props.onSizeChange}
-    >
-      <Tag role={props.dataKey} style={props.style} className={props.className}>
-        {children}
-      </Tag>
-    </Observer>
-  ) : null;
 });

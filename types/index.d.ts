@@ -1,6 +1,6 @@
 import React from 'react';
 
-type RenderFunc<T> = (item: T, index: number, props: {
+declare type RenderFunc<T> = (item: T, index: number, props: {
     style?: React.CSSProperties;
 }) => React.ReactNode;
 interface Group {
@@ -34,7 +34,8 @@ interface VirtualProps<T> {
     size?: number;
     group?: Group | string;
     handle?: Function | string;
-    scroller?: HTMLElement | Window | Document;
+    lockAxis?: 'x' | 'y';
+    scroller?: HTMLElement | Document;
     direction?: 'vertical' | 'horizontal';
     debounceTime?: number;
     throttleTime?: number;
@@ -51,16 +52,10 @@ interface VirtualProps<T> {
     rootTag?: string;
     wrapTag?: string;
     itemTag?: string;
-    headerTag?: string;
-    footerTag?: string;
     itemStyle?: CSSStyleDeclaration;
     itemClass?: string;
     wrapStyle?: CSSStyleDeclaration;
     wrapClass?: string;
-    headerStyle?: CSSStyleDeclaration;
-    headerClass?: string;
-    footerStyle?: CSSStyleDeclaration;
-    footerClass?: string;
     ghostStyle?: CSSStyleDeclaration;
     ghostClass?: string;
     chosenClass?: string;

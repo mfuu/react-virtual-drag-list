@@ -42,7 +42,8 @@ export interface VirtualProps<T> {
   size?: number;
   group?: Group | string;
   handle?: Function | string;
-  scroller?: HTMLElement | Window | Document;
+  lockAxis?: 'x' | 'y';
+  scroller?: HTMLElement | Document;
   direction?: 'vertical' | 'horizontal';
   debounceTime?: number;
   throttleTime?: number;
@@ -62,17 +63,11 @@ export interface VirtualProps<T> {
   rootTag?: string;
   wrapTag?: string;
   itemTag?: string;
-  headerTag?: string;
-  footerTag?: string;
 
   itemStyle?: CSSStyleDeclaration;
   itemClass?: string;
   wrapStyle?: CSSStyleDeclaration;
   wrapClass?: string;
-  headerStyle?: CSSStyleDeclaration;
-  headerClass?: string;
-  footerStyle?: CSSStyleDeclaration;
-  footerClass?: string;
 
   ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
@@ -114,12 +109,6 @@ export interface ItemProps extends BaseProps {
   key: string | number;
   index: number;
   record: any;
-  style?: CSSStyleDeclaration;
-  className?: string;
-}
-
-export interface SlotProps extends BaseProps {
-  Tag?: string;
   style?: CSSStyleDeclaration;
   className?: string;
 }

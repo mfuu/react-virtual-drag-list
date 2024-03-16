@@ -20,14 +20,15 @@ function Virtual() {
 
   const [list, setList] = useState([{id: '1', text: 'a'}, {id: '2', text: 'b'}, ...]);
 
-  const handleToTop = () => {
-    // to top
+  const onTop = () => {
+    // scrolled to the top of list
   }
-  const handleToBottom = () => {
-    // to bottom
+  const onBottom = () => {
+    // scrolled to the bottom of list
   }
-  const handleDrop = (params) => {
+  const onDrop = (params) => {
     // dnd complete
+    setList(() => params.list);
   }
 
   // use style and className as jsx used
@@ -40,9 +41,9 @@ function Virtual() {
       handle=".handle"
       header={ <div className="loading">top loading...</div> }
       footer={ <div className="loading">bottom loading...</div> }
-      v-top={ handleToTop }
-      v-bottom={ handleToBottom }
-      v-drop={ handleDrop }
+      v-top={ onTop }
+      v-bottom={ onBottom }
+      v-drop={ onDrop }
     >
       {
         (record, index, dataKey) => {
@@ -82,8 +83,9 @@ function Virtual() {
 | `keeps`          | `Number`     |               | `30`         | The number of lines rendered by the virtual scroll  |
 | `handle`         | `Function/String`|           | -            | Drag handle selector within list items |
 | `group`          | `Object/String` |            | -            | string: 'name' or object: `{ name: 'group', put: true/false, pull: true/false/'clone', revertDrag: true/false }` |
-| `scroller`       | `HTMLElement \| Window \| Document`| | - | Virtual list scrolling element |
-| `direction`      | `String`     |               | `vertical`   | `vertical/horizontal`, scroll direction  |
+| `scroller`       | `Document \| HTMLElement` |  | -            | Virtual list scrolling element |
+| `direction`      | `vertical \| horizontal` |   | `vertical`   | Scroll direction  |
+| `lockAxis`       | `x \| y`     |               | `-`          | Axis on which dragging will be locked |
 | `keepOffset`     | `Boolean`    |               | `false`      | When scrolling up to load data, keep the same offset as the previous scroll  |
 | `debounceTime`   | `Number`     |               | `0`          | debounce time on scroll |
 | `throttleTime`   | `Number`     |               | `0`          | debounce time on scroll |
@@ -109,12 +111,6 @@ function Virtual() {
 | `itemTag`       | `String`     |               | `div`       | Label type for list item element |
 | `itemStyle`     | `Object`     |               | `{}`        | List item element style |
 | `itemClass`     | `String`     |               | `''`        | List item element class |
-| `headerTag`     | `String`     |               | `div`       | Label type for header slot element |
-| `headerStyle`   | `Object`     |               | `{}`        | header slot style |
-| `headerClass`   | `String`     |               | `''`        | header slot class |
-| `footerTag`     | `String`     |               | `div`       | Label type for footer slot element |
-| `footerStyle`   | `Object`     |               | `{}`        | footer slot style |
-| `footerClass`   | `String`     |               | `''`        | footer slot class |
 | `ghostStyle`    | `Object`     |               | `{}`        | The style of the mask element when dragging |
 | `ghostClass`    | `String`     |               | `''`        | The class of the mask element when dragging |
 | `chosenClass`   | `String`     |               | `''`        | The class of the selected element when dragging |
