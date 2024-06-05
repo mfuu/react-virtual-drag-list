@@ -1,36 +1,31 @@
 import React from 'react';
+import { SortableEvent } from 'sortable-dnd';
 
-type RenderFunc<T> = (
-  item: T,
-  index: number,
-  props: { style?: React.CSSProperties }
-) => React.ReactNode;
+export type RenderFunc<T> = (item: T, index: number, key: string | number) => React.ReactNode;
 
 export interface Group {
   name: string;
-  put: boolean | Array<string>;
+  put: boolean | string[];
   pull: boolean | 'clone';
   revertDrag: boolean;
 }
 
-export interface SortState<T> {
+export interface DragEvent<T> {
+  key: string | number;
   item: T;
-  key: any;
   index: number;
+  event: SortableEvent;
 }
 
-export interface FromTo<T> {
-  index: number;
-  list: T[];
-}
-
-export interface DropState<T> {
-  changed: boolean;
-  list: T[];
+export interface DropEvent<T> {
+  key: string | number;
   item: T;
-  key: any;
-  from: FromTo<T>;
-  to: FromTo<T>;
+  list: T[];
+  event: SortableEvent;
+  changed: false;
+  oldList: T[];
+  oldIndex: number;
+  newIndex: number;
 }
 
 export interface VirtualProps<T> {
@@ -41,7 +36,7 @@ export interface VirtualProps<T> {
   keeps?: number;
   size?: number;
   group?: Group | string;
-  handle?: Function | string;
+  handle?: string;
   lockAxis?: 'x' | 'y';
   scroller?: HTMLElement | Document;
   direction?: 'vertical' | 'horizontal';
@@ -50,65 +45,54 @@ export interface VirtualProps<T> {
 
   delay?: number;
   disabled?: boolean;
+  sortable?: boolean;
   draggable?: string;
+  animation?: number;
   keepOffset?: boolean;
   autoScroll?: boolean;
   fallbackOnBody?: boolean;
   scrollThreshold?: number;
   delayOnTouchOnly?: boolean;
 
-  style?: CSSStyleDeclaration;
-  className?: string;
-
   rootTag?: string;
   wrapTag?: string;
-  itemTag?: string;
 
-  itemStyle?: CSSStyleDeclaration;
-  itemClass?: string;
+  style?: CSSStyleDeclaration;
+  className?: string;
   wrapStyle?: CSSStyleDeclaration;
   wrapClass?: string;
+  itemClass?: string;
 
   ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
   chosenClass?: string;
-  animation?: number;
 
   header?: React.ReactNode;
   footer?: React.ReactNode;
 
-  'v-top'?: () => void;
-  'v-bottom'?: () => void;
-  'v-drag'?: (params: SortState<T>) => void;
-  'v-add'?: (params: SortState<T>) => void;
-  'v-remove'?: (params: SortState<T>) => void;
-  'v-drop'?: (params: DropState<T>) => void;
+  onTop?: () => void;
+  onBottom?: () => void;
+  onDrag?: (event: DragEvent<T>) => void;
+  onDrop?: (event: DropEvent<T>) => void;
 }
 
 export interface VirtualComponentRef {
-  getSize: (key: any) => number;
+  getSize: (key: string) => number;
   getOffset: () => number;
   getClientSize: () => number;
   getScrollSize: () => number;
   scrollToTop: () => void;
-  scrollToKey: (key: any) => void;
+  scrollToKey: (key: string) => void;
   scrollToIndex: (index: number) => void;
   scrollToOffset: (offset: number) => void;
   scrollToBottom: () => void;
 }
 
-export interface BaseProps {
+export interface ItemProps<T> {
+  itemClass: string;
   dataKey: string | number;
-  sizeKey?: string;
-  onSizeChange?: (key: string | number, size: number) => void;
-  children?: React.ReactNode | ((ref: React.RefObject<any>) => React.ReactElement);
-}
-
-export interface ItemProps extends BaseProps {
-  Tag?: string;
-  key: string | number;
-  index: number;
-  record: any;
-  style?: CSSStyleDeclaration;
-  className?: string;
+  sizeKey: string;
+  dragging: string;
+  children: React.ReactNode | RenderFunc<T>;
+  onSizeChange: (key: string | number, size: number) => void;
 }

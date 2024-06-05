@@ -25,7 +25,7 @@ export default [
       {
         format: 'umd',
         file: 'dist/virtual-drag-list.js',
-        name: 'VirtualDragList',
+        name: 'VirtualList',
         sourcemap: false,
         globals: {
           react: 'React',
@@ -35,7 +35,7 @@ export default [
       {
         format: 'umd',
         file: 'dist/virtual-drag-list.min.js',
-        name: 'VirtualDragList',
+        name: 'VirtualList',
         sourcemap: false,
         globals: {
           react: 'React',
