@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.7.0
+ * react-virtual-drag-list v2.7.1
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -9,8 +9,6 @@
   typeof define === 'function' && define.amd ? define(['react'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.VirtualList = factory(global.React));
 })(this, (function (React) { 'use strict';
-
-  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
   function _interopNamespace(e) {
     if (e && e.__esModule) return e;
@@ -31,7 +29,6 @@
   }
 
   var React__namespace = /*#__PURE__*/_interopNamespace(React);
-  var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
 
   function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
@@ -157,6 +154,10 @@
 
   function _nonIterableRest() {
     throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  function useCombine(states, effect) {
+    React__namespace.useEffect(effect, Object.values(states));
   }
 
   function Item(props) {
@@ -1699,12 +1700,47 @@
     });
   }
 
-  function useCombine(states, effect) {
-    React__namespace.useEffect(effect, Object.values(states));
-  }
+  var Emits = {
+    drag: 'onDrag',
+    drop: 'onDrop',
+    top: 'onTop',
+    bottom: 'onBottom'
+  };
 
-  function useSortable(list, props, wrapRef, uniqueKeys, onDrag, onDrop) {
-    var _props$delay = props.delay,
+  function VirtualList(props, ref) {
+    var _props$dataKey = props.dataKey,
+        dataKey = _props$dataKey === void 0 ? '' : _props$dataKey,
+        _props$dataSource = props.dataSource,
+        dataSource = _props$dataSource === void 0 ? [] : _props$dataSource,
+        _props$tableMode = props.tableMode,
+        tableMode = _props$tableMode === void 0 ? false : _props$tableMode,
+        _props$wrapTag = props.wrapTag,
+        wrapTag = _props$wrapTag === void 0 ? 'div' : _props$wrapTag,
+        _props$rootTag = props.rootTag,
+        rootTag = _props$rootTag === void 0 ? 'div' : _props$rootTag,
+        _props$style = props.style,
+        style = _props$style === void 0 ? {} : _props$style,
+        _props$className = props.className,
+        className = _props$className === void 0 ? '' : _props$className,
+        _props$wrapStyle = props.wrapStyle,
+        wrapStyle = _props$wrapStyle === void 0 ? {} : _props$wrapStyle,
+        _props$wrapClass = props.wrapClass,
+        wrapClass = _props$wrapClass === void 0 ? '' : _props$wrapClass,
+        _props$itemClass = props.itemClass,
+        itemClass = _props$itemClass === void 0 ? 'virutal-dnd-list-item' : _props$itemClass,
+        _props$size = props.size,
+        size = _props$size === void 0 ? undefined : _props$size,
+        _props$keeps = props.keeps,
+        keeps = _props$keeps === void 0 ? 30 : _props$keeps,
+        _props$scroller = props.scroller,
+        scroller = _props$scroller === void 0 ? undefined : _props$scroller,
+        _props$direction = props.direction,
+        direction = _props$direction === void 0 ? 'vertical' : _props$direction,
+        _props$debounceTime = props.debounceTime,
+        debounceTime = _props$debounceTime === void 0 ? 0 : _props$debounceTime,
+        _props$throttleTime = props.throttleTime,
+        throttleTime = _props$throttleTime === void 0 ? 0 : _props$throttleTime,
+        _props$delay = props.delay,
         delay = _props$delay === void 0 ? 0 : _props$delay,
         _props$group = props.group,
         group = _props$group === void 0 ? '' : _props$group,
@@ -1735,171 +1771,7 @@
         _props$delayOnTouchOn = props.delayOnTouchOnly,
         delayOnTouchOnly = _props$delayOnTouchOn === void 0 ? false : _props$delayOnTouchOn;
 
-    var _React$useState = React__namespace.useState(undefined),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        dnd = _React$useState2[0],
-        setDnd = _React$useState2[1];
-
-    var combinedStates = {
-      delay: delay,
-      group: group,
-      handle: handle,
-      lockAxis: lockAxis,
-      disabled: disabled,
-      sortable: sortable,
-      draggable: draggable,
-      animation: animation,
-      autoScroll: autoScroll,
-      ghostClass: ghostClass,
-      ghostStyle: ghostStyle,
-      chosenClass: chosenClass,
-      fallbackOnBody: fallbackOnBody,
-      scrollThreshold: scrollThreshold,
-      delayOnTouchOnly: delayOnTouchOnly
-    };
-    React__namespace.useEffect(function () {
-      setDnd(function () {
-        return new Sortable(wrapRef.current, Object.assign(Object.assign({}, combinedStates), {
-          list: list,
-          uniqueKeys: uniqueKeys,
-          onDrag: onDrag,
-          onDrop: onDrop
-        }));
-      });
-      return function () {
-        dnd === null || dnd === void 0 ? void 0 : dnd.destroy();
-      };
-    }, []);
-    useCombine(combinedStates, function () {
-      SortableAttrs.forEach(function (key) {
-        dnd === null || dnd === void 0 ? void 0 : dnd.option(key, props[key]);
-      });
-    });
-    return [dnd];
-  }
-
-  var Emits$1 = {
-    top: 'onTop',
-    bottom: 'onBottom'
-  };
-
-  function useVirtual(props, rootRef, wrapRef, uniqueKeys, onUpdate) {
-    var _props$size = props.size,
-        size = _props$size === void 0 ? undefined : _props$size,
-        _props$keeps = props.keeps,
-        keeps = _props$keeps === void 0 ? 30 : _props$keeps,
-        _props$scroller = props.scroller,
-        scroller = _props$scroller === void 0 ? undefined : _props$scroller,
-        _props$direction = props.direction,
-        direction = _props$direction === void 0 ? 'vertical' : _props$direction,
-        _props$dataSource = props.dataSource,
-        dataSource = _props$dataSource === void 0 ? [] : _props$dataSource,
-        _props$debounceTime = props.debounceTime,
-        debounceTime = _props$debounceTime === void 0 ? 0 : _props$debounceTime,
-        _props$throttleTime = props.throttleTime,
-        throttleTime = _props$throttleTime === void 0 ? 0 : _props$throttleTime;
-
-    var _React$useState = React__namespace.useState(undefined),
-        _React$useState2 = _slicedToArray(_React$useState, 2),
-        virutal = _React$useState2[0],
-        setVirtual = _React$useState2[1];
-
-    var topLoading = React__namespace.useRef(false);
-    var combinedStates = {
-      size: size,
-      keeps: keeps,
-      scroller: scroller,
-      direction: direction,
-      debounceTime: debounceTime,
-      throttleTime: throttleTime
-    };
-    var handleToTop = debounce(function () {
-      var _a;
-
-      topLoading.current = true;
-      (_a = props[Emits$1.top]) === null || _a === void 0 ? void 0 : _a.call(props);
-    }, 50);
-    var handleToBottom = debounce(function () {
-      var _a;
-
-      (_a = props[Emits$1.bottom]) === null || _a === void 0 ? void 0 : _a.call(props);
-    }, 50);
-    React__namespace.useEffect(function () {
-      setVirtual(function () {
-        return new Virtual(Object.assign(Object.assign({}, combinedStates), {
-          buffer: Math.round(keeps / 3),
-          wrapper: wrapRef.current,
-          scroller: scroller || rootRef.current,
-          uniqueKeys: uniqueKeys,
-          onScroll: function onScroll(event) {
-            topLoading.current = false;
-
-            if (event.top) {
-              handleToTop();
-            } else if (event.bottom) {
-              handleToBottom();
-            }
-          },
-          onUpdate: onUpdate
-        }));
-      });
-      return function () {
-        virutal === null || virutal === void 0 ? void 0 : virutal.removeScrollEventListener();
-      };
-    }, []);
-    var lastLength = React__namespace.useRef(null);
-    React__namespace.useEffect(function () {
-      // if auto scroll to the last offset
-      if (topLoading.current && props.keepOffset) {
-        var index = Math.abs(dataSource.length - lastLength.current);
-        virutal === null || virutal === void 0 ? void 0 : virutal.scrollToIndex(index);
-        topLoading.current = false;
-      }
-
-      lastLength.current = dataSource.length;
-    }, [dataSource]);
-    useCombine(combinedStates, function () {
-      VirtualAttrs.forEach(function (key) {
-        virutal === null || virutal === void 0 ? void 0 : virutal.option(key, props[key]);
-      });
-    });
-    return [virutal];
-  }
-
-  var Emits = {
-    drag: 'onDrag',
-    drop: 'onDrop'
-  };
-
-  function VirtualList(props, ref) {
-    var _props$keeps = props.keeps,
-        keeps = _props$keeps === void 0 ? 30 : _props$keeps,
-        _props$dataKey = props.dataKey,
-        dataKey = _props$dataKey === void 0 ? '' : _props$dataKey,
-        _props$sortable = props.sortable,
-        sortable = _props$sortable === void 0 ? true : _props$sortable,
-        _props$scroller = props.scroller,
-        scroller = _props$scroller === void 0 ? undefined : _props$scroller,
-        _props$direction = props.direction,
-        direction = _props$direction === void 0 ? 'vertical' : _props$direction,
-        _props$dataSource = props.dataSource,
-        dataSource = _props$dataSource === void 0 ? [] : _props$dataSource,
-        _props$style = props.style,
-        style = _props$style === void 0 ? {} : _props$style,
-        _props$className = props.className,
-        className = _props$className === void 0 ? '' : _props$className,
-        _props$wrapStyle = props.wrapStyle,
-        wrapStyle = _props$wrapStyle === void 0 ? {} : _props$wrapStyle,
-        _props$wrapClass = props.wrapClass,
-        wrapClass = _props$wrapClass === void 0 ? '' : _props$wrapClass,
-        _props$itemClass = props.itemClass,
-        itemClass = _props$itemClass === void 0 ? 'virutal-dnd-list-item' : _props$itemClass,
-        _props$wrapTag = props.wrapTag,
-        Wrapper = _props$wrapTag === void 0 ? 'div' : _props$wrapTag,
-        _props$rootTag = props.rootTag,
-        Rooter = _props$rootTag === void 0 ? 'div' : _props$rootTag;
-
-    var _React$useState = React__default["default"].useState({
+    var _React$useState = React__namespace.useState({
       start: 0,
       end: keeps - 1,
       front: 0,
@@ -1909,25 +1781,13 @@
         range = _React$useState2[0],
         setRange = _React$useState2[1];
 
-    var dragging = React__default["default"].useRef('');
-    var uniqueKeys = React__default["default"].useRef([]);
-    var rootRef = React__default["default"].useRef(null);
-    var wrapRef = React__default["default"].useRef(null);
-
-    var _React$useMemo = React__default["default"].useMemo(function () {
-      var isHorizontal = direction !== 'vertical';
-      var itemSizeKey = isHorizontal ? 'offsetWidth' : 'offsetHeight';
-      return {
-        isHorizontal: isHorizontal,
-        itemSizeKey: itemSizeKey
-      };
-    }, [direction]),
-        isHorizontal = _React$useMemo.isHorizontal,
-        itemSizeKey = _React$useMemo.itemSizeKey;
+    var dragging = React__namespace.useRef('');
+    var uniqueKeys = React__namespace.useRef([]);
+    var rootRef = React__namespace.useRef(null);
+    var wrapRef = React__namespace.useRef(null);
     /**
      * git item size by data-key
      */
-
 
     var getSize = function getSize(key) {
       return virtualRef.current.getSize(key);
@@ -2001,7 +1861,7 @@
       virtualRef.current.scrollToBottom();
     };
 
-    React__default["default"].useImperativeHandle(ref, function () {
+    React__namespace.useImperativeHandle(ref, function () {
       return {
         getSize: getSize,
         getOffset: getOffset,
@@ -2014,24 +1874,47 @@
         scrollToBottom: scrollToBottom
       };
     });
-    var list = React__default["default"].useRef([]);
-    React__default["default"].useEffect(function () {
+    React__namespace.useEffect(function () {
+      installVirtual();
+      installSortable();
+      return function () {
+        var _a, _b;
+
+        (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.removeScrollEventListener();
+        (_b = sortableRef.current) === null || _b === void 0 ? void 0 : _b.destroy();
+      };
+    }, []); // ========================================== use virtual ==========================================
+
+    var topLoading = React__namespace.useRef(false);
+    var virtualRef = React__namespace.useRef(undefined);
+    var virtualCombinedStates = {
+      size: size,
+      keeps: keeps,
+      scroller: scroller,
+      direction: direction,
+      debounceTime: debounceTime,
+      throttleTime: throttleTime
+    };
+    var handleToTop = debounce(function () {
       var _a;
 
-      updateUniqueKeys();
-      updateRange(list.current, dataSource);
-      list.current = dataSource;
-      (_a = sortableRef.current) === null || _a === void 0 ? void 0 : _a.option('list', dataSource);
-    }, [dataSource]);
+      topLoading.current = true;
+      (_a = props[Emits.top]) === null || _a === void 0 ? void 0 : _a.call(props);
+    }, 50);
+    var handleToBottom = debounce(function () {
+      var _a;
 
-    var updateUniqueKeys = function updateUniqueKeys() {
-      var _a, _b;
+      (_a = props[Emits.bottom]) === null || _a === void 0 ? void 0 : _a.call(props);
+    }, 50);
 
-      uniqueKeys.current = dataSource.map(function (item) {
-        return getDataKey(item, dataKey);
-      });
-      (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.option('uniqueKeys', uniqueKeys.current);
-      (_b = sortableRef.current) === null || _b === void 0 ? void 0 : _b.option('uniqueKeys', uniqueKeys.current);
+    var onScroll = function onScroll(event) {
+      topLoading.current = false;
+
+      if (event.top) {
+        handleToTop();
+      } else if (event.bottom) {
+        handleToBottom();
+      }
     };
 
     var onUpdate = function onUpdate(range) {
@@ -2044,13 +1927,62 @@
       });
     };
 
-    var virtualRef = React__default["default"].useRef(undefined);
+    var installVirtual = function installVirtual() {
+      virtualRef.current = new Virtual(Object.assign(Object.assign({}, virtualCombinedStates), {
+        buffer: Math.round(keeps / 3),
+        wrapper: wrapRef.current,
+        scroller: scroller || rootRef.current,
+        uniqueKeys: uniqueKeys.current,
+        onScroll: onScroll,
+        onUpdate: onUpdate
+      }));
+    };
 
-    var _useVirtual = useVirtual(props, rootRef, wrapRef, uniqueKeys.current, onUpdate),
-        _useVirtual2 = _slicedToArray(_useVirtual, 1),
-        virtual = _useVirtual2[0];
+    useCombine(virtualCombinedStates, function () {
+      VirtualAttrs.forEach(function (key) {
+        var _a;
 
-    virtualRef.current = virtual;
+        if (props[key] !== undefined) {
+          (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.option(key, props[key]);
+        }
+      });
+    });
+    var lastLength = React__namespace.useRef(null);
+    React__namespace.useEffect(function () {
+      var _a; // if auto scroll to the last offset
+
+
+      if (lastLength.current && topLoading.current && props.keepOffset) {
+        var index = Math.abs(dataSource.length - lastLength.current);
+
+        if (index > 0) {
+          (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.scrollToIndex(index);
+        }
+
+        topLoading.current = false;
+      }
+
+      lastLength.current = dataSource.length;
+    }, [dataSource]); // ========================================== use dnd ==========================================
+
+    var sortableRef = React__namespace.useRef(undefined);
+    var sortableCombinedStates = {
+      delay: delay,
+      group: group,
+      handle: handle,
+      lockAxis: lockAxis,
+      disabled: disabled,
+      sortable: sortable,
+      draggable: draggable,
+      animation: animation,
+      autoScroll: autoScroll,
+      ghostClass: ghostClass,
+      ghostStyle: ghostStyle,
+      chosenClass: chosenClass,
+      fallbackOnBody: fallbackOnBody,
+      scrollThreshold: scrollThreshold,
+      delayOnTouchOnly: delayOnTouchOnly
+    };
 
     var onDrag = function onDrag(event) {
       var _a;
@@ -2071,18 +2003,50 @@
       dragging.current = '';
       virtualRef.current.enableScroll(true);
       sortableRef.current.option('autoScroll', props.autoScroll);
-      (_a = props[Emits.drop]) === null || _a === void 0 ? void 0 : _a.call(props, Object.assign(Object.assign({}, event), {
+      var params = Object.assign(Object.assign({}, event), {
         list: _toConsumableArray(event.list)
+      });
+      (_a = props[Emits.drop]) === null || _a === void 0 ? void 0 : _a.call(props, params);
+    };
+
+    var installSortable = function installSortable() {
+      sortableRef.current = new Sortable(rootRef.current, Object.assign(Object.assign({}, sortableCombinedStates), {
+        list: dataSource,
+        uniqueKeys: uniqueKeys.current,
+        onDrag: onDrag,
+        onDrop: onDrop
       }));
     };
 
-    var sortableRef = React__default["default"].useRef(undefined);
+    useCombine(sortableCombinedStates, function () {
+      SortableAttrs.forEach(function (key) {
+        var _a;
 
-    var _useSortable = useSortable(dataSource, props, wrapRef, uniqueKeys.current, onDrag, onDrop),
-        _useSortable2 = _slicedToArray(_useSortable, 1),
-        dnd = _useSortable2[0];
+        if (props[key] !== undefined) {
+          (_a = sortableRef.current) === null || _a === void 0 ? void 0 : _a.option(key, props[key]);
+        }
+      });
+    }); // ========================================== layout ==========================================
 
-    sortableRef.current = dnd;
+    var list = React__namespace.useRef([]);
+    React__namespace.useEffect(function () {
+      var _a;
+
+      updateUniqueKeys();
+      updateRange(list.current, dataSource);
+      list.current = dataSource;
+      (_a = sortableRef.current) === null || _a === void 0 ? void 0 : _a.option('list', dataSource);
+    }, [dataSource]);
+
+    var updateUniqueKeys = function updateUniqueKeys() {
+      var _a, _b;
+
+      uniqueKeys.current = dataSource.map(function (item) {
+        return getDataKey(item, dataKey);
+      });
+      (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.option('uniqueKeys', uniqueKeys.current);
+      (_b = sortableRef.current) === null || _b === void 0 ? void 0 : _b.option('uniqueKeys', uniqueKeys.current);
+    };
 
     var updateRange = function updateRange(oldlist, newlist) {
       var _a;
@@ -2104,15 +2068,49 @@
       return offset + clientSize + 1 >= scrollSize;
     };
 
-    var onItemSizeChange = function onItemSizeChange(key, size) {
-      var sizes = virtualRef.current.sizes.size;
+    var onSizeChange = function onSizeChange(key, size) {
+      var _a, _b;
+
+      var sizes = (_a = virtualRef.current) === null || _a === void 0 ? void 0 : _a.sizes.size;
       var renders = Math.min(keeps, dataSource.length);
-      virtualRef.current.onItemResized(key, size);
+      (_b = virtualRef.current) === null || _b === void 0 ? void 0 : _b.onItemResized(key, size);
 
       if (sizes === renders - 1) {
         updateRange(dataSource, dataSource);
       }
     };
+
+    var _React$useMemo = React__namespace.useMemo(function () {
+      var front = range.front,
+          behind = range.behind;
+      var isHorizontal = direction !== 'vertical';
+      var overflowStyle = isHorizontal ? 'auto hidden' : 'hidden auto';
+      var padding = isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px");
+      var containerStyle = Object.assign(Object.assign({}, style), {
+        overflow: tableMode || scroller ? '' : overflowStyle
+      });
+      var wrapperStyle = Object.assign(Object.assign({}, wrapStyle), {
+        padding: tableMode ? null : padding
+      });
+      var itemSizeKey = isHorizontal ? 'offsetWidth' : 'offsetHeight';
+      return {
+        containerStyle: containerStyle,
+        wrapperStyle: wrapperStyle,
+        itemSizeKey: itemSizeKey
+      };
+    }, [range, style, wrapStyle, scroller, tableMode, direction]),
+        containerStyle = _React$useMemo.containerStyle,
+        wrapperStyle = _React$useMemo.wrapperStyle,
+        itemSizeKey = _React$useMemo.itemSizeKey;
+
+    var _React$useMemo2 = React__namespace.useMemo(function () {
+      var container = tableMode ? 'table' : wrapTag;
+      var wrapper = tableMode ? 'tbody' : wrapTag;
+      return [container, wrapper];
+    }, [rootTag, wrapTag, tableMode]),
+        _React$useMemo3 = _slicedToArray(_React$useMemo2, 2),
+        Container = _React$useMemo3[0],
+        Wrapper = _React$useMemo3[1];
 
     var listChildren = useChildren({
       list: dataSource,
@@ -2123,34 +2121,33 @@
       children: props.children,
       dragging: dragging.current,
       itemClass: itemClass,
-      onSizeChange: onItemSizeChange
+      onSizeChange: onSizeChange
     });
-    var rooterStyle = React__default["default"].useMemo(function () {
-      var overflowStyle = isHorizontal ? 'auto hidden' : 'hidden auto';
-      return Object.assign(Object.assign({}, style), {
-        overflow: scroller ? '' : overflowStyle
-      });
-    }, [style, isHorizontal, scroller]);
-    var wrapperStyle = React__default["default"].useMemo(function () {
-      var front = range.front,
-          behind = range.behind;
-      var padding = isHorizontal ? "0px ".concat(behind, "px 0px ").concat(front, "px") : "".concat(front, "px 0px ").concat(behind, "px");
-      return Object.assign(Object.assign({}, wrapStyle), {
-        padding: padding
-      });
-    }, [wrapStyle, isHorizontal, range]);
-    return /*#__PURE__*/React__default["default"].createElement(Rooter, {
+
+    var TableSpacer = function TableSpacer(offset) {
+      var style = {
+        padding: 0,
+        border: 0,
+        margin: 0,
+        height: "".concat(offset, "px")
+      };
+      return /*#__PURE__*/React__namespace.createElement("tr", null, /*#__PURE__*/React__namespace.createElement("td", {
+        style: style
+      }));
+    };
+
+    return /*#__PURE__*/React__namespace.createElement(Container, {
       ref: rootRef,
-      style: rooterStyle,
+      style: containerStyle,
       className: className
-    }, props.header, /*#__PURE__*/React__default["default"].createElement(Wrapper, {
+    }, props.header, /*#__PURE__*/React__namespace.createElement(Wrapper, {
       ref: wrapRef,
       style: wrapperStyle,
       className: wrapClass
-    }, listChildren), props.footer);
+    }, tableMode && TableSpacer(range.front), listChildren, tableMode && TableSpacer(range.behind)), props.footer);
   }
 
-  var index = /*#__PURE__*/React__default["default"].forwardRef(VirtualList);
+  var index = /*#__PURE__*/React__namespace.forwardRef(VirtualList);
 
   return index;
 

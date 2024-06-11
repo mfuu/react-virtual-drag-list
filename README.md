@@ -83,6 +83,7 @@ function Virtual() {
 | `direction`    | `vertical \| horizontal`  | `vertical`  | Scroll direction                                                                                                 |
 | `debounceTime` | `Number`                  | `0`         | debounce time on scroll                                                                                          |
 | `throttleTime` | `Number`                  | `0`         | debounce time on scroll                                                                                          |
+| `tableMode`    | `Boolean`                 | `false`     | display with table and tbody                                                                                     |
 
 **Uncommonly used**
 

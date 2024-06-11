@@ -1,31 +1,54 @@
-import React from 'react';
+import * as React from 'react';
+import useCombine from './hooks/useCombine';
 import useChildren from './hooks/useChildren';
-import useSortable from './hooks/useSortable';
-import useVirtual from './hooks/useVirtual';
 import { VirtualComponentRef, VirtualProps } from './interface';
-import { Virtual, Sortable, Range, getDataKey } from './core';
+import { Range, DropEvent, ScrollEvent, SortableEvent } from './core';
+import { Virtual, Sortable, debounce, getDataKey, VirtualAttrs, SortableAttrs } from './core';
 
 const Emits = {
   drag: 'onDrag',
   drop: 'onDrop',
+  top: 'onTop',
+  bottom: 'onBottom',
 };
 
 function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
   const {
-    keeps = 30,
     dataKey = '',
-    sortable = true,
-    scroller = undefined,
-    direction = 'vertical',
     dataSource = [],
+    tableMode = false,
+
+    wrapTag = 'div',
+    rootTag = 'div',
 
     style = {},
     className = '',
     wrapStyle = {},
     wrapClass = '',
     itemClass = 'virutal-dnd-list-item',
-    wrapTag: Wrapper = 'div',
-    rootTag: Rooter = 'div',
+
+    size = undefined,
+    keeps = 30,
+    scroller = undefined,
+    direction = 'vertical',
+    debounceTime = 0,
+    throttleTime = 0,
+
+    delay = 0,
+    group = '',
+    handle = '',
+    lockAxis = undefined,
+    disabled = false,
+    sortable = true,
+    draggable = '.virutal-dnd-list-item',
+    animation = 150,
+    autoScroll = true,
+    ghostClass = '',
+    ghostStyle = undefined,
+    chosenClass = '',
+    fallbackOnBody = false,
+    scrollThreshold = 55,
+    delayOnTouchOnly = false,
   } = props;
 
   const [range, setRange] = React.useState<Range>({
@@ -40,13 +63,6 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
 
   const rootRef = React.useRef<Element>(null);
   const wrapRef = React.useRef<Element>(null);
-
-  const { isHorizontal, itemSizeKey } = React.useMemo(() => {
-    const isHorizontal = direction !== 'vertical';
-    const itemSizeKey = isHorizontal ? 'offsetWidth' : 'offsetHeight';
-
-    return { isHorizontal, itemSizeKey };
-  }, [direction]);
 
   /**
    * git item size by data-key
@@ -126,6 +142,145 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
     scrollToBottom,
   }));
 
+  React.useEffect(() => {
+    installVirtual();
+    installSortable();
+
+    return () => {
+      virtualRef.current?.removeScrollEventListener();
+      sortableRef.current?.destroy();
+    };
+  }, []);
+
+  // ========================================== use virtual ==========================================
+  const topLoading = React.useRef(false);
+  const virtualRef = React.useRef<Virtual>(undefined);
+  const virtualCombinedStates = {
+    size,
+    keeps,
+    scroller,
+    direction,
+    debounceTime,
+    throttleTime,
+  };
+  const handleToTop = debounce(() => {
+    topLoading.current = true;
+    props[Emits.top]?.();
+  }, 50);
+
+  const handleToBottom = debounce(() => {
+    props[Emits.bottom]?.();
+  }, 50);
+
+  const onScroll = (event: ScrollEvent) => {
+    topLoading.current = false;
+    if (event.top) {
+      handleToTop();
+    } else if (event.bottom) {
+      handleToBottom();
+    }
+  };
+
+  const onUpdate = (range: Range) => {
+    setRange((current: Range) => {
+      if (dragging.current && range.start !== current.start) {
+        sortableRef.current.reRendered = true;
+      }
+      return range;
+    });
+  };
+
+  const installVirtual = () => {
+    virtualRef.current = new Virtual({
+      ...virtualCombinedStates,
+      buffer: Math.round(keeps / 3),
+      wrapper: wrapRef.current,
+      scroller: scroller || rootRef.current,
+      uniqueKeys: uniqueKeys.current,
+      onScroll: onScroll,
+      onUpdate: onUpdate,
+    });
+  };
+
+  useCombine(virtualCombinedStates, () => {
+    VirtualAttrs.forEach((key) => {
+      if (props[key] !== undefined) {
+        virtualRef.current?.option(key, props[key]);
+      }
+    });
+  });
+
+  const lastLength = React.useRef(null);
+  React.useEffect(() => {
+    // if auto scroll to the last offset
+    if (lastLength.current && topLoading.current && props.keepOffset) {
+      const index = Math.abs(dataSource.length - lastLength.current);
+      if (index > 0) {
+        virtualRef.current?.scrollToIndex(index);
+      }
+      topLoading.current = false;
+    }
+
+    lastLength.current = dataSource.length;
+  }, [dataSource]);
+
+  // ========================================== use dnd ==========================================
+  const sortableRef = React.useRef<Sortable>(undefined);
+  const sortableCombinedStates = {
+    delay,
+    group,
+    handle,
+    lockAxis,
+    disabled,
+    sortable,
+    draggable,
+    animation,
+    autoScroll,
+    ghostClass,
+    ghostStyle,
+    chosenClass,
+    fallbackOnBody,
+    scrollThreshold,
+    delayOnTouchOnly,
+  };
+
+  const onDrag = (event: SortableEvent) => {
+    dragging.current = event.key;
+    if (!sortable) {
+      virtualRef.current.enableScroll(false);
+      sortableRef.current.option('autoScroll', false);
+    }
+    props[Emits.drag]?.(event);
+  };
+
+  const onDrop = (event: DropEvent) => {
+    dragging.current = '';
+    virtualRef.current.enableScroll(true);
+    sortableRef.current.option('autoScroll', props.autoScroll);
+
+    const params = { ...event, list: [...event.list] };
+    props[Emits.drop]?.(params);
+  };
+
+  const installSortable = () => {
+    sortableRef.current = new Sortable(rootRef.current, {
+      ...sortableCombinedStates,
+      list: dataSource,
+      uniqueKeys: uniqueKeys.current,
+      onDrag,
+      onDrop,
+    });
+  };
+
+  useCombine(sortableCombinedStates, () => {
+    SortableAttrs.forEach((key) => {
+      if (props[key] !== undefined) {
+        sortableRef.current?.option(key, props[key]);
+      }
+    });
+  });
+
+  // ========================================== layout ==========================================
   const list = React.useRef([]);
   React.useEffect(() => {
     updateUniqueKeys();
@@ -141,40 +296,6 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
     virtualRef.current?.option('uniqueKeys', uniqueKeys.current);
     sortableRef.current?.option('uniqueKeys', uniqueKeys.current);
   };
-
-  const onUpdate = (range) => {
-    setRange((current: Range) => {
-      if (dragging.current && range.start !== current.start) {
-        sortableRef.current.reRendered = true;
-      }
-      return range;
-    });
-  };
-
-  const virtualRef = React.useRef<Virtual>(undefined);
-  const [virtual] = useVirtual(props, rootRef, wrapRef, uniqueKeys.current, onUpdate);
-  virtualRef.current = virtual;
-
-  const onDrag = (event) => {
-    dragging.current = event.key;
-    if (!sortable) {
-      virtualRef.current.enableScroll(false);
-      sortableRef.current.option('autoScroll', false);
-    }
-    props[Emits.drag]?.(event);
-  };
-
-  const onDrop = (event) => {
-    dragging.current = '';
-    virtualRef.current.enableScroll(true);
-    sortableRef.current.option('autoScroll', props.autoScroll);
-
-    props[Emits.drop]?.({ ...event, list: [...event.list] });
-  };
-
-  const sortableRef = React.useRef<Sortable>(undefined);
-  const [dnd] = useSortable(dataSource, props, wrapRef, uniqueKeys.current, onDrag, onDrop);
-  sortableRef.current = dnd;
 
   const updateRange = (oldlist: T[], newlist: T[]) => {
     let _range: Range = { ...range };
@@ -197,15 +318,40 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
     return offset + clientSize + 1 >= scrollSize;
   };
 
-  const onItemSizeChange = (key: string | number, size: number) => {
-    const sizes = virtualRef.current.sizes.size;
+  const onSizeChange = (key: string | number, size: number) => {
+    const sizes = virtualRef.current?.sizes.size;
     const renders = Math.min(keeps, dataSource.length);
-    virtualRef.current.onItemResized(key, size);
+    virtualRef.current?.onItemResized(key, size);
 
     if (sizes === renders - 1) {
       updateRange(dataSource, dataSource);
     }
   };
+
+  const { containerStyle, wrapperStyle, itemSizeKey } = React.useMemo(() => {
+    const { front, behind } = range;
+    const isHorizontal = direction !== 'vertical';
+
+    const overflowStyle = isHorizontal ? 'auto hidden' : 'hidden auto';
+    const padding = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
+
+    const containerStyle = { ...style, overflow: tableMode || scroller ? '' : overflowStyle };
+    const wrapperStyle = { ...wrapStyle, padding: tableMode ? null : padding };
+    const itemSizeKey = isHorizontal ? 'offsetWidth' : 'offsetHeight';
+
+    return {
+      containerStyle,
+      wrapperStyle,
+      itemSizeKey,
+    };
+  }, [range, style, wrapStyle, scroller, tableMode, direction]);
+
+  const [Container, Wrapper] = React.useMemo(() => {
+    const container = tableMode ? 'table' : wrapTag;
+    const wrapper = tableMode ? 'tbody' : wrapTag;
+
+    return [container, wrapper];
+  }, [rootTag, wrapTag, tableMode]);
 
   const listChildren = useChildren({
     list: dataSource,
@@ -215,31 +361,31 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ref) {
     sizeKey: itemSizeKey,
     children: props.children,
     dragging: dragging.current,
-    itemClass: itemClass,
-    onSizeChange: onItemSizeChange,
+    itemClass,
+    onSizeChange,
   });
 
-  const rooterStyle = React.useMemo(() => {
-    const overflowStyle = isHorizontal ? 'auto hidden' : 'hidden auto';
-
-    return { ...style, overflow: scroller ? '' : overflowStyle };
-  }, [style, isHorizontal, scroller]);
-
-  const wrapperStyle = React.useMemo(() => {
-    const { front, behind } = range;
-    const padding = isHorizontal ? `0px ${behind}px 0px ${front}px` : `${front}px 0px ${behind}px`;
-
-    return { ...wrapStyle, padding };
-  }, [wrapStyle, isHorizontal, range]);
+  const TableSpacer = (offset: number) => {
+    const style = { padding: 0, border: 0, margin: 0, height: `${offset}px` };
+    return (
+      <tr>
+        <td style={style}></td>
+      </tr>
+    );
+  };
 
   return (
-    <Rooter ref={rootRef} style={rooterStyle} className={className}>
+    <Container ref={rootRef} style={containerStyle} className={className}>
       {props.header}
       <Wrapper ref={wrapRef} style={wrapperStyle} className={wrapClass}>
+        {tableMode && TableSpacer(range.front)}
+
         {listChildren}
+
+        {tableMode && TableSpacer(range.behind)}
       </Wrapper>
       {props.footer}
-    </Rooter>
+    </Container>
   );
 }
 

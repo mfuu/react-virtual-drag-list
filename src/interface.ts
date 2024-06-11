@@ -32,6 +32,7 @@ export interface VirtualProps<T> {
   dataKey: string;
   dataSource: T[];
   children: RenderFunc<T>;
+  tableMode?: boolean;
 
   keeps?: number;
   size?: number;
