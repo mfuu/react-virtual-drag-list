@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { ItemProps } from './interface';
 
-function Item<T>(props: ItemProps<T>) {
-  const { itemClass, dataKey, sizeKey, dragging, children, onSizeChange } = props;
+function Item(props: ItemProps) {
+  const { itemClass, dataKey, sizeKey, dragging, chosenKey, children, onSizeChange } = props;
 
-  const eleRef = React.useRef<Element>(null);
+  const eleRef = React.useRef<HTMLElement>(null);
 
   React.useLayoutEffect(() => {
     let observer: ResizeObserver | null;
     if (typeof ResizeObserver !== undefined) {
       observer = new ResizeObserver(() => {
-        const size = eleRef.current[sizeKey];
+        const size = eleRef.current![sizeKey];
         onSizeChange(dataKey, size);
       });
       eleRef.current && observer?.observe(eleRef.current);
@@ -23,14 +23,14 @@ function Item<T>(props: ItemProps<T>) {
     };
   }, [eleRef]);
 
-  const itemStyle = React.useMemo(() => {
+  const itemStyle: React.CSSProperties = React.useMemo(() => {
     const style = children.props.style || {};
-    if (dataKey === dragging) {
+    if (dragging && dataKey === chosenKey) {
       return Object.assign(style, { display: 'none' });
     }
 
     return style;
-  }, [dragging]);
+  }, [chosenKey, dragging]);
 
   return React.cloneElement(children, {
     'data-key': dataKey,

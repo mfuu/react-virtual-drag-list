@@ -1,17 +1,10 @@
-import React from 'react';
-import { SortableEvent } from 'sortable-dnd';
+import * as React from 'react';
+import { SortableEvent, Group, ScrollSpeed } from 'sortable-dnd';
 
-declare type RenderFunc<T> = (item: T, index: number, key: string | number) => React.ReactNode;
-interface Group {
-    name: string;
-    put: boolean | string[];
-    pull: boolean | 'clone';
-    revertDrag: boolean;
-}
 interface DragEvent<T> {
-    key: string | number;
     item: T;
-    index: number;
+    key: string | number;
+    index?: number;
     event: SortableEvent;
 }
 interface DropEvent<T> {
@@ -19,15 +12,17 @@ interface DropEvent<T> {
     item: T;
     list: T[];
     event: SortableEvent;
-    changed: false;
+    changed: boolean;
     oldList: T[];
     oldIndex: number;
     newIndex: number;
 }
+
+declare type RenderFunc<T> = (item: T, index: number, key: string | number) => React.ReactElement;
 interface VirtualProps<T> {
     dataKey: string;
     dataSource: T[];
-    children: RenderFunc<T>;
+    children: React.ReactElement | RenderFunc<T>;
     tableMode?: boolean;
     keeps?: number;
     size?: number;
@@ -45,6 +40,7 @@ interface VirtualProps<T> {
     animation?: number;
     keepOffset?: boolean;
     autoScroll?: boolean;
+    scrollSpeed?: ScrollSpeed;
     fallbackOnBody?: boolean;
     scrollThreshold?: number;
     delayOnTouchOnly?: boolean;
@@ -58,6 +54,7 @@ interface VirtualProps<T> {
     ghostStyle?: CSSStyleDeclaration;
     ghostClass?: string;
     chosenClass?: string;
+    placeholderClass?: string;
     header?: React.ReactNode;
     footer?: React.ReactNode;
     onTop?: () => void;
@@ -65,9 +62,27 @@ interface VirtualProps<T> {
     onDrag?: (event: DragEvent<T>) => void;
     onDrop?: (event: DropEvent<T>) => void;
 }
+interface VirtualComponentRef {
+    getSize: (key: string | number) => number;
+    getOffset: () => number;
+    getClientSize: () => number;
+    getScrollSize: () => number;
+    scrollToTop: () => void;
+    scrollToKey: (key: string | number) => void;
+    scrollToIndex: (index: number) => void;
+    scrollToOffset: (offset: number) => void;
+    scrollToBottom: () => void;
+}
 
+declare function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualComponentRef>): React.ReactElement<{
+    ref: React.MutableRefObject<HTMLElement | undefined>;
+    style: {
+        overflow: string;
+    };
+    className: string;
+}, string | React.JSXElementConstructor<any>>;
 declare const _default: <T>(props: VirtualProps<T> & {
-    ref?: any;
-}) => any;
+    ref?: React.ForwardedRef<VirtualComponentRef> | undefined;
+}) => ReturnType<typeof VirtualList>;
 
 export { _default as default };

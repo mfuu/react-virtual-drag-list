@@ -89,13 +89,14 @@ function Virtual() {
 
 | **Prop**           | **Type**  | **Default**               | **Description**                                                             |
 | ------------------ | --------- | ------------------------- | --------------------------------------------------------------------------- |
-| `draggable`        | `String`  | '.virutal-dnd-list-item'  | Specifies which items inside the element should be draggable                |
+| `draggable`        | `String`  | `.virutal-dnd-list-item`  | Specifies which items inside the element should be draggable                |
 | `sortable`         | `Boolean` | `true`                    | Whether the current list can be sorted by dragging                          |
 | `lockAxis`         | `x \| y`  | `-`                       | Axis on which dragging will be locked                                       |
 | `keepOffset`       | `Boolean` | `false`                   | When scrolling up to load data, keep the same offset as the previous scroll |
 | `disabled`         | `Boolean` | `false`                   | Disables the sortable if set to true                                        |
 | `animation`        | `Number`  | `150`                     | Drag-and-drop's animation delay                                             |
 | `autoScroll`       | `Boolean` | `true`                    | Automatic scrolling when moving to the edge of the container                |
+| `scrollSpeed`      | `Object`  | `{ x: 10, y: 10 }`        | Vertical&Horizontal scrolling speed (px)                                    |
 | `scrollThreshold`  | `Number`  | `55`                      | Threshold to trigger autoscroll                                             |
 | `delay`            | `Number`  | `0`                       | Time in milliseconds to define when the sorting should start                |
 | `delayOnTouchOnly` | `Boolean` | `false`                   | Only delay on press if user is using touch                                  |
@@ -104,10 +105,11 @@ function Virtual() {
 | `wrapTag`          | `String`  | `div`                     | Label type for list wrap element                                            |
 | `wrapStyle`        | `Object`  | `{}`                      | List wrapper element style                                                  |
 | `wrapClass`        | `String`  | `''`                      | List wrapper element class                                                  |
-| `itemClass`        | `String`  | `'virutal-dnd-list-item'` | List item element class                                                     |
+| `itemClass`        | `String`  | `virutal-dnd-list-item`   | List item element class                                                     |
 | `ghostStyle`       | `Object`  | `{}`                      | The style of the mask element when dragging                                 |
 | `ghostClass`       | `String`  | `''`                      | The class of the mask element when dragging                                 |
-| `chosenClass`      | `String`  | `''`                      | The class of the selected element when dragging                             |
+| `chosenClass`      | `String`  | `''`                      | Class name for the chosen item                                              |
+| `placeholderClass` | `String`  | `''`                      | Class name for the drop placeholder                                         |
 
 ## Methods
 Use the methods exposed in the component by setting `ref`
