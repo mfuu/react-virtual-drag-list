@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { ItemProps } from './interface';
+import { isSameValue } from './core';
 
 function Item(props: ItemProps) {
   const { itemClass, dataKey, sizeKey, dragging, chosenKey, children, onSizeChange } = props;
@@ -25,7 +26,8 @@ function Item(props: ItemProps) {
 
   const itemStyle: React.CSSProperties = React.useMemo(() => {
     const style = children.props.style || {};
-    if (dragging && dataKey === chosenKey) {
+    const isChosen = isSameValue(dataKey, chosenKey);
+    if (dragging && isChosen) {
       return Object.assign(style, { display: 'none' });
     }
 

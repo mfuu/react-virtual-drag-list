@@ -16,6 +16,7 @@ import {
   getDataKey,
   VirtualAttrs,
   SortableAttrs,
+  isSameValue,
 } from './core';
 
 const Emits = {
@@ -355,7 +356,7 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
 
   const onSizeChange = (key: string | number, size: number) => {
     // ignore changes for dragging element
-    if (key === chosenKey.current) {
+    if (isSameValue(key, chosenKey.current)) {
       return;
     }
 

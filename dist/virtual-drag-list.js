@@ -1,5 +1,5 @@
 /*!
- * react-virtual-drag-list v2.7.2
+ * react-virtual-drag-list v2.7.3
  * open source under the MIT license
  * https://github.com/mfuu/react-virtual-drag-list#readme
  */
@@ -143,54 +143,6 @@
   function useCombine(states, effect) {
     React__namespace.useEffect(effect, Object.values(states));
   }
-
-  function Item(props) {
-    var itemClass = props.itemClass,
-        dataKey = props.dataKey,
-        sizeKey = props.sizeKey,
-        dragging = props.dragging,
-        chosenKey = props.chosenKey,
-        children = props.children,
-        onSizeChange = props.onSizeChange;
-    var eleRef = React__namespace.useRef(null);
-    React__namespace.useLayoutEffect(function () {
-      var observer;
-
-      if ((typeof ResizeObserver === "undefined" ? "undefined" : _typeof(ResizeObserver)) !== undefined) {
-        observer = new ResizeObserver(function () {
-          var size = eleRef.current[sizeKey];
-          onSizeChange(dataKey, size);
-        });
-        eleRef.current && (observer === null || observer === void 0 ? void 0 : observer.observe(eleRef.current));
-      }
-
-      return function () {
-        if (observer) {
-          observer.disconnect();
-          observer = null;
-        }
-      };
-    }, [eleRef]);
-    var itemStyle = React__namespace.useMemo(function () {
-      var style = children.props.style || {};
-
-      if (dragging && dataKey === chosenKey) {
-        return Object.assign(style, {
-          display: 'none'
-        });
-      }
-
-      return style;
-    }, [chosenKey, dragging]);
-    return /*#__PURE__*/React__namespace.cloneElement(children, {
-      'data-key': dataKey,
-      ref: eleRef,
-      style: itemStyle,
-      className: [itemClass, children.props.className].join(' ')
-    });
-  }
-
-  var Item$1 = /*#__PURE__*/React__namespace.memo(Item);
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1762,6 +1714,55 @@
     return Virtual;
   }();
 
+  function Item(props) {
+    var itemClass = props.itemClass,
+        dataKey = props.dataKey,
+        sizeKey = props.sizeKey,
+        dragging = props.dragging,
+        chosenKey = props.chosenKey,
+        children = props.children,
+        onSizeChange = props.onSizeChange;
+    var eleRef = React__namespace.useRef(null);
+    React__namespace.useLayoutEffect(function () {
+      var observer;
+
+      if ((typeof ResizeObserver === "undefined" ? "undefined" : _typeof(ResizeObserver)) !== undefined) {
+        observer = new ResizeObserver(function () {
+          var size = eleRef.current[sizeKey];
+          onSizeChange(dataKey, size);
+        });
+        eleRef.current && (observer === null || observer === void 0 ? void 0 : observer.observe(eleRef.current));
+      }
+
+      return function () {
+        if (observer) {
+          observer.disconnect();
+          observer = null;
+        }
+      };
+    }, [eleRef]);
+    var itemStyle = React__namespace.useMemo(function () {
+      var style = children.props.style || {};
+      var isChosen = isSameValue(dataKey, chosenKey);
+
+      if (dragging && isChosen) {
+        return Object.assign(style, {
+          display: 'none'
+        });
+      }
+
+      return style;
+    }, [chosenKey, dragging]);
+    return /*#__PURE__*/React__namespace.cloneElement(children, {
+      'data-key': dataKey,
+      ref: eleRef,
+      style: itemStyle,
+      className: [itemClass, children.props.className].join(' ')
+    });
+  }
+
+  var Item$1 = /*#__PURE__*/React__namespace.memo(Item);
+
   function useChildren(props) {
     var list = props.list,
         start = props.start,
@@ -2196,7 +2197,7 @@
       var _a, _b; // ignore changes for dragging element
 
 
-      if (key === chosenKey.current) {
+      if (isSameValue(key, chosenKey.current)) {
         return;
       }
 

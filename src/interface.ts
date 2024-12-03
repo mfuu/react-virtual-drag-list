@@ -1,37 +1,13 @@
-import React from 'react';
-import { SortableEvent } from 'sortable-dnd';
+import * as React from 'react';
+import { Group, ScrollSpeed } from 'sortable-dnd';
+import { DragEvent, DropEvent } from './core';
 
-export type RenderFunc<T> = (item: T, index: number, key: string | number) => React.ReactNode;
-
-export interface Group {
-  name: string;
-  put: boolean | string[];
-  pull: boolean | 'clone';
-  revertDrag: boolean;
-}
-
-export interface DragEvent<T> {
-  key: string | number;
-  item: T;
-  index: number;
-  event: SortableEvent;
-}
-
-export interface DropEvent<T> {
-  key: string | number;
-  item: T;
-  list: T[];
-  event: SortableEvent;
-  changed: false;
-  oldList: T[];
-  oldIndex: number;
-  newIndex: number;
-}
+export type RenderFunc<T> = (item: T, index: number, key: string | number) => React.ReactElement;
 
 export interface VirtualProps<T> {
   dataKey: string;
   dataSource: T[];
-  children: RenderFunc<T>;
+  children: React.ReactElement | RenderFunc<T>;
   tableMode?: boolean;
 
   keeps?: number;
@@ -51,6 +27,7 @@ export interface VirtualProps<T> {
   animation?: number;
   keepOffset?: boolean;
   autoScroll?: boolean;
+  scrollSpeed?: ScrollSpeed;
   fallbackOnBody?: boolean;
   scrollThreshold?: number;
   delayOnTouchOnly?: boolean;
@@ -67,6 +44,7 @@ export interface VirtualProps<T> {
   ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
   chosenClass?: string;
+  placeholderClass?: string;
 
   header?: React.ReactNode;
   footer?: React.ReactNode;
@@ -78,22 +56,23 @@ export interface VirtualProps<T> {
 }
 
 export interface VirtualComponentRef {
-  getSize: (key: string) => number;
+  getSize: (key: string | number) => number;
   getOffset: () => number;
   getClientSize: () => number;
   getScrollSize: () => number;
   scrollToTop: () => void;
-  scrollToKey: (key: string) => void;
+  scrollToKey: (key: string | number) => void;
   scrollToIndex: (index: number) => void;
   scrollToOffset: (offset: number) => void;
   scrollToBottom: () => void;
 }
 
-export interface ItemProps<T> {
+export interface ItemProps {
   itemClass: string;
   dataKey: string | number;
   sizeKey: string;
-  dragging: string;
-  children: React.ReactNode | RenderFunc<T>;
+  chosenKey: string;
+  dragging: boolean;
+  children: React.ReactElement;
   onSizeChange: (key: string | number, size: number) => void;
 }
