@@ -74,6 +74,7 @@ const VList = (props) => {
   };
 
   const handleDrop = (params) => {
+    setList(() => params.list);
     console.log(params, "drag end");
   };
 
@@ -124,12 +125,10 @@ const VList = (props) => {
         scroller={props.scroller}
         header={props.topLoad && topLoading && Header()}
         footer={props.bottomLoad && Footer()}
-        v-top={handleToTop}
-        v-bottom={handleToBottom}
-        v-drag={handleDrag}
-        v-drop={handleDrop}
-        v-add={handleAdd}
-        v-remove={handleRemove}
+        onTop={handleToTop}
+        onBottom={handleToBottom}
+        onDrag={handleDrag}
+        onDrop={handleDrop}
       >
         {(record, index, dataKey) => {
           return (
