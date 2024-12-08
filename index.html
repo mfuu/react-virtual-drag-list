@@ -44,22 +44,22 @@
           <section className="content">
             {type === "Group" && (
               <div className="flex justify-content-center">
-                <VirtualList group="g" style={{ height: "600px" }}></VirtualList>
-                <VirtualList group="g" style={{ height: "600px" }}></VirtualList>
+                <VList key="g1" group="g" style={{ height: "600px" }}></VList>
+                <VList key="g2" group="g" style={{ height: "600px" }}></VList>
               </div>
             )}
             {type === "Infinity" && (
-              <VirtualList topLoad="true" bottomLoad="true" style={{ height: "600px" }}></VirtualList>
+              <VList topLoad="true" bottomLoad="true" style={{ height: "600px" }}></VList>
             )}
             {type === "Horizontal" && (
-              <VirtualList
+              <VList
                 direction="horizontal"
                 wrapStyle={{ display: "flex" }}
                 style={{ display: "flex", width: "100%", height: "600px" }}
-              ></VirtualList>
+              ></VList>
             )}
             {type === "pageMode" && (
-              <VirtualList scroller={window}></VirtualList>
+              <VList scroller={window}></VList>
             )}
           </section>
         </div>
