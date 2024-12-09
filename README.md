@@ -41,7 +41,7 @@ function Virtual() {
         (record, index, dataKey) => {
           return (
             <div>
-              <span class=".handle">{ index }</span>
+              <span className=".handle">{ index }</span>
               { record.text }
             </div>
           )

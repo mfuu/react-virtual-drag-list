@@ -10,8 +10,9 @@
   ],
   "scripts": {
     "lint": "eslint --fix src --ext .js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup --config"
+    "build": "rollup --config",
+    "docs:dev": "cross-env APP_ROOT=dumi dumi dev",
+    "docs:build": "cross-env APP_ROOT=dumi dumi build"
   },
   "repository": {
     "type": "git",
@@ -50,6 +51,9 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/react": "^18.3.12",
+    "cross-env": "^7.0.3",
+    "dumi": "^2.4.14",
+    "mockjs": "^1.1.0",
     "prettier": "^2.8.8",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
