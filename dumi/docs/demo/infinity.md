@@ -6,7 +6,7 @@ import '../global.less';
 
 const Footer = () => {
   return (
-    <div className="flex align-center justify-center">
+    <div className="flex align-center justify-center" style={{ height: '40px' }}>
       <div className="loading"></div>
     </div>
   )

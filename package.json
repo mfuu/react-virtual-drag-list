@@ -1,6 +1,6 @@
 {
   "name": "react-virtual-drag-list",
-  "version": "2.7.3",
+  "version": "2.7.4",
   "description": "A virtual scrolling list component that can be sorted by dragging",
   "main": "dist/virtual-drag-list.js",
   "types": "types/index.d.ts",
@@ -11,6 +11,7 @@
   "scripts": {
     "lint": "eslint --fix src --ext .js",
     "build": "rollup --config",
+    "core:update": "git submodule update --remote",
     "docs:dev": "cross-env APP_ROOT=dumi dumi dev",
     "docs:build": "cross-env APP_ROOT=dumi dumi build"
   },

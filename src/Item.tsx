@@ -38,7 +38,7 @@ function Item(props: ItemProps) {
     'data-key': dataKey,
     ref: eleRef,
     style: itemStyle,
-    className: [itemClass, children.props.className].join(' '),
+    className: `${itemClass} ${children.props.className}`,
   });
 }
 

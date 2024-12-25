@@ -1,23 +1,23 @@
 import * as React from 'react';
 import { SortableEvent } from 'sortable-dnd';
-import useCombine from './hooks/useCombine';
-import useChildren from './hooks/useChildren';
-import { VirtualComponentRef, VirtualProps } from './interface';
 import {
-  Range,
+  debounce,
   DragEvent,
   DropEvent,
-  ScrollEvent,
-  SortableOptions,
-  VirtualOptions,
-  Virtual,
-  Sortable,
-  debounce,
   getDataKey,
-  VirtualAttrs,
-  SortableAttrs,
   isSameValue,
+  Range,
+  ScrollEvent,
+  Sortable,
+  SortableAttrs,
+  SortableOptions,
+  Virtual,
+  VirtualAttrs,
+  VirtualOptions,
 } from './core';
+import useChildren from './hooks/useChildren';
+import useCombine from './hooks/useCombine';
+import { VirtualComponentRef, VirtualProps } from './interface';
 
 const Emits = {
   drag: 'onDrag',
@@ -72,7 +72,6 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
     end: keeps - 1,
     front: 0,
     behind: 0,
-    total: 0,
   });
 
   const dragging = React.useRef<boolean>(false);
@@ -202,7 +201,7 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
   const onUpdate = (range: Range) => {
     setRange((current: Range) => {
       if (sortableRef.current && dragging.current && range.start !== current.start) {
-        sortableRef.current.reRendered = true;
+        sortableRef.current.rangeChanged = true;
       }
       return range;
     });
@@ -336,15 +335,16 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
       return;
     }
 
-    let _range = { ...range };
+    let newRange = { ...range };
     if (
+      oldList.length > keeps &&
       newList.length > oldList.length &&
-      _range.end === oldList.length - 1 &&
+      newRange.end === oldList.length - 1 &&
       scrolledToBottom()
     ) {
-      _range.start++;
+      newRange.start++;
     }
-    virtualRef.current?.updateRange(_range);
+    virtualRef.current?.updateRange(newRange);
   };
 
   const scrolledToBottom = () => {
