@@ -12,7 +12,6 @@ interface Props<T> {
   dragging: boolean;
   chosenKey: string;
   children: React.ReactElement | RenderFunc<T>;
-  itemClass: string;
   onSizeChange: (key: string, size: number) => void;
 }
 
@@ -26,7 +25,6 @@ function useChildren<T>(props: Props<T>) {
     dragging,
     chosenKey,
     children,
-    itemClass,
     onSizeChange,
   } = props;
 
@@ -41,7 +39,6 @@ function useChildren<T>(props: Props<T>) {
         sizeKey={sizeKey}
         dragging={dragging}
         chosenKey={chosenKey}
-        itemClass={itemClass}
         onSizeChange={onSizeChange}>
         {typeof children === 'function' ? children(item, index, key) : children}
       </Item>

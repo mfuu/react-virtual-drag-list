@@ -39,7 +39,6 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
     className = '',
     wrapStyle = {},
     wrapClass = '',
-    itemClass = 'virutal-dnd-list-item',
 
     size = undefined,
     keeps = 30,
@@ -54,7 +53,7 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
     lockAxis = undefined,
     disabled = false,
     sortable = true,
-    draggable = '.virutal-dnd-list-item',
+    draggable = '[role="item"]',
     animation = 150,
     autoScroll = true,
     scrollSpeed = { x: 10, y: 10 },
@@ -403,12 +402,12 @@ function VirtualList<T>(props: VirtualProps<T>, ref: React.ForwardedRef<VirtualC
     children: props.children,
     dragging: dragging.current,
     chosenKey: chosenKey.current,
-    itemClass,
     onSizeChange,
   });
 
   const TableSpacer = (offset: number, key: string) => {
-    const style = { padding: 0, border: 0, height: `${offset}px` };
+    const offsetKey = direction === 'vertical' ? 'height' : 'width';
+    const style = { padding: 0, border: 0, [offsetKey]: `${offset}px` };
     return (
       <tr key={key}>
         <td style={style}></td>

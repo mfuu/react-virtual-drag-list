@@ -50,7 +50,6 @@ interface VirtualProps<T> {
     className?: string;
     wrapStyle?: CSSStyleDeclaration;
     wrapClass?: string;
-    itemClass?: string;
     ghostStyle?: CSSStyleDeclaration;
     ghostClass?: string;
     chosenClass?: string;

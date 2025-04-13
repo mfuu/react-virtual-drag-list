@@ -3,7 +3,7 @@ import { ItemProps } from './interface';
 import { isSameValue } from './core';
 
 function Item(props: ItemProps) {
-  const { itemClass, dataKey, sizeKey, dragging, chosenKey, children, onSizeChange } = props;
+  const { dataKey, sizeKey, dragging, chosenKey, children, onSizeChange } = props;
 
   const eleRef = React.useRef<HTMLElement>(null);
 
@@ -36,9 +36,10 @@ function Item(props: ItemProps) {
 
   return React.cloneElement(children, {
     'data-key': dataKey,
+    role: 'item',
     ref: eleRef,
     style: itemStyle,
-    className: `${itemClass} ${children.props.className}`,
+    className: children.props.className,
   });
 }
 

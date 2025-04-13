@@ -39,7 +39,6 @@ export interface VirtualProps<T> {
   className?: string;
   wrapStyle?: CSSStyleDeclaration;
   wrapClass?: string;
-  itemClass?: string;
 
   ghostStyle?: CSSStyleDeclaration;
   ghostClass?: string;
@@ -68,7 +67,6 @@ export interface VirtualComponentRef {
 }
 
 export interface ItemProps {
-  itemClass: string;
   dataKey: string | number;
   sizeKey: string;
   chosenKey: string;

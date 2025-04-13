@@ -1,20 +1,20 @@
-# react-virtual-drag-list
+# react-virtual-sortable
 
-[![npm](https://img.shields.io/npm/v/react-virtual-drag-list.svg)](https://www.npmjs.com/package/react-virtual-drag-list)  [![npm](https://img.shields.io/npm/dm/react-virtual-drag-list.svg)](https://www.npmjs.com/package/react-virtual-drag-list)  [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/react-virtual-sortable.svg)](https://www.npmjs.com/package/react-virtual-sortable)  [![npm](https://img.shields.io/npm/dm/react-virtual-sortable.svg)](https://www.npmjs.com/package/react-virtual-sortable)  [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
 
 A virtual scrolling list component that can be sorted by dragging
 
-### [Live Demo](https://mfuu.github.io/react-virtual-drag-list/)
+### [Live Demo](https://mfuu.github.io/react-virtual-sortable/)
 
 ## Simple Usage
 
 ```bash
-npm i react-virtual-drag-list
+npm i react-virtual-sortable
 ```
 
 Root component:
 ```jsx
-import VirtualList from 'react-virtual-drag-list';
+import VirtualList from 'react-virtual-sortable';
 
 function Virtual() {
 
@@ -89,7 +89,7 @@ function Virtual() {
 
 | **Prop**           | **Type**  | **Default**               | **Description**                                                             |
 | ------------------ | --------- | ------------------------- | --------------------------------------------------------------------------- |
-| `draggable`        | `String`  | `.virutal-dnd-list-item`  | Specifies which items inside the element should be draggable                |
+| `draggable`        | `String`  | `[role="item"]`           | Specifies which items inside the element should be draggable                |
 | `sortable`         | `Boolean` | `true`                    | Whether the current list can be sorted by dragging                          |
 | `lockAxis`         | `x \| y`  | `-`                       | Axis on which dragging will be locked                                       |
 | `keepOffset`       | `Boolean` | `false`                   | When scrolling up to load data, keep the same offset as the previous scroll |
@@ -105,7 +105,6 @@ function Virtual() {
 | `wrapTag`          | `String`  | `div`                     | Label type for list wrap element                                            |
 | `wrapStyle`        | `Object`  | `{}`                      | List wrapper element style                                                  |
 | `wrapClass`        | `String`  | `''`                      | List wrapper element class                                                  |
-| `itemClass`        | `String`  | `virutal-dnd-list-item`   | List item element class                                                     |
 | `ghostStyle`       | `Object`  | `{}`                      | The style of the mask element when dragging                                 |
 | `ghostClass`       | `String`  | `''`                      | The class of the mask element when dragging                                 |
 | `chosenClass`      | `String`  | `''`                      | Class name for the chosen item                                              |
