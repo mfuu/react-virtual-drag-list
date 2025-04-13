@@ -7,12 +7,12 @@ export default defineConfig({
     memo.plugins.delete('copy');
   },
   locales: [{ id: 'en-US', name: 'English' }],
-  base: '/react-virtual-drag-list/',
-  publicPath: '/react-virtual-drag-list/',
+  base: '/react-virtual-sortable/',
+  publicPath: '/react-virtual-sortable/',
   themeConfig: {
     mode: 'doc',
     prefersColor: { default: 'auto' },
-    socialLinks: { github: 'https://github.com/mfuu/react-virtual-drag-list' },
+    socialLinks: { github: 'https://github.com/mfuu/react-virtual-sortable' },
     nav: [
       {
         title: 'Guide',

@@ -40,7 +40,7 @@ function Virtual() {
           return (
             <tr>
               <td>
-                <span className="index">#{ index }</span>
+                <span className="index">#{ record.index }</span>
                 <span className="handle">☰</span>
               </td>
               <td>{ record.name }</td>

@@ -25,7 +25,7 @@ function Virtual() {
       {
         (record, index, dataKey) => {
           return (
-            <div>
+            <div className="list-item">
               <div className="item-title">
                 <span className="index">#{ record.index }</span>
                 <span className="handle">☰</span>
